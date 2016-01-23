@@ -1,10 +1,14 @@
 package com.quickbite.connector;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.assets.loaders.TextureLoader;
+import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.scenes.scene2d.Stage;
@@ -18,8 +22,11 @@ public class Game extends com.badlogic.gdx.Game {
 	public static OrthographicCamera camera;
 	public static OrthographicCamera UICamera;
 	public static Stage stage;
-	public static BitmapFont defaultFont;
+	public static BitmapFont defaultFont, defaultLargeFont;
 	public static ExecutorService executor;
+	public static EasyAssetManager easyAssetManager;
+
+	public static TextureRegion defaultButtonUp, defaultButtonDown;
 	
 	@Override
 	public void create () {
@@ -31,15 +38,49 @@ public class Game extends com.badlogic.gdx.Game {
 		renderer.setProjectionMatrix(camera.combined);
 
 		executor = Executors.newFixedThreadPool(3);
+        easyAssetManager = new EasyAssetManager();
+
+        this.loadAllPng(Gdx.files.internal("art/"));
+        this.loadAssets();
 
 		FreeTypeFontGenerator generator = new FreeTypeFontGenerator(Gdx.files.internal("copperplatessibold.ttf"));
 		FreeTypeFontGenerator.FreeTypeFontParameter parameter = new FreeTypeFontGenerator.FreeTypeFontParameter();
 		parameter.size = 18;
 		defaultFont = generator.generateFont(parameter); // font size 12 pixels
+
+		generator = new FreeTypeFontGenerator(Gdx.files.internal("copperplatessibold.ttf"));
+		parameter.size = 28;
+		defaultLargeFont = generator.generateFont(parameter); // font size 12 pixels
+
 		generator.dispose(); // don't forget to dispose to avoid memory leaks!
 
+		defaultButtonUp = new TextureRegion(easyAssetManager.get("defaultButton_normal", Texture.class));
+		defaultButtonDown = new TextureRegion(easyAssetManager.get("defaultButton_down", Texture.class));
+
 		Gdx.input.setInputProcessor(stage);
-		this.setScreen(new MainMenu(this));
+		this.setScreen(new LogoScreen(this));
+	}
+
+	public void loadAllPng(FileHandle handle){
+		TextureLoader.TextureParameter param = new TextureLoader.TextureParameter();
+		param.genMipMaps = true;
+		param.magFilter = Texture.TextureFilter.Linear;
+		param.minFilter = Texture.TextureFilter.Linear;
+
+		for(FileHandle h : handle.list()){
+			if(h.name().endsWith(".png")){
+				easyAssetManager.load(h.path(), Texture.class, param);
+			}else if(h.isDirectory()){
+				this.loadAllPng(Gdx.files.internal(h.path()+"/"));
+			}
+		}
+	}
+
+	public void loadAssets(){
+        boolean done = false;
+		while(!done){
+            done = easyAssetManager.update();
+		}
 	}
 
 	@Override

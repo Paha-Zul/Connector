@@ -13,10 +13,7 @@ import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.Actor;
-import com.badlogic.gdx.scenes.scene2d.ui.Image;
-import com.badlogic.gdx.scenes.scene2d.ui.Label;
-import com.badlogic.gdx.scenes.scene2d.ui.Table;
-import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
+import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Align;
@@ -49,8 +46,10 @@ public class GameScreen implements Screen, InputProcessor{
     private float currScale = 0, currRotation = 0;
     private double startTime, endTime, avg;
     public int currRound, maxRounds=10, currScore;
-    private boolean dragging = false;
+    private boolean dragging = false, failedLastRound = false;
     private DecimalFormat formatter = new DecimalFormat("#.00");
+
+    private float roundTime, roundTimeDecreaseAmount = 1, roundTimeStart = 10;
 
     private final float disBetweenPositions = 10, topArea = 0.1f;
     private float sizeOfSpots = 480/5, sizeOfShapes = 480/6;
@@ -58,8 +57,9 @@ public class GameScreen implements Screen, InputProcessor{
     /* GUI STUFF */
     private Table table = new Table();
     private Image gameOverImage;
-    private Label roundLabel, avgLabel, colorTypeLabel, matchTypeLabel, gameTypeLabel;
+    private Label roundLabel, avgLabel, colorTypeLabel, matchTypeLabel, gameTypeLabel, timerLabel;
     private TextButton restartButton, mainMenuButton;
+    private ImageButton backButton;
 
     public GameScreen(Game game){
         this.game = game;
@@ -85,7 +85,7 @@ public class GameScreen implements Screen, InputProcessor{
         int ySpots = (int)((Gdx.graphics.getHeight()- sizeOfSpots - (Gdx.graphics.getHeight()*this.topArea))/sizeOfSpots)+1;
         int num = xSpots*ySpots;
 
-        this.topTexture = new TextureRegion(new Texture("Top.png"));
+        this.topTexture = new TextureRegion(Game.easyAssetManager.get("Top", Texture.class));
 
         positions = new Vector2[num];
         for(int i=0;i<num;i++){
@@ -97,35 +97,46 @@ public class GameScreen implements Screen, InputProcessor{
         for(int i=0;i<this.colorIDs.length;i++)
             colorIDs[i] = i/2;
 
-        shapes = new TextureRegion[4];
-        shapes[0] = new TextureRegion(new Texture(Gdx.files.internal("shapes/Star.png"), true));
-        shapes[1] = new TextureRegion(new Texture(Gdx.files.internal("shapes/Square.png"), true));
-        shapes[2] = new TextureRegion(new Texture(Gdx.files.internal("shapes/Circle.png"), true));
-        shapes[3] = new TextureRegion(new Texture(Gdx.files.internal("shapes/Diamond.png"), true));
+        shapes = new TextureRegion[6];
+        shapes[0] = new TextureRegion(Game.easyAssetManager.get("Star", Texture.class));
+        shapes[1] = new TextureRegion(Game.easyAssetManager.get("Square", Texture.class));
+        shapes[2] = new TextureRegion(Game.easyAssetManager.get("Circle", Texture.class));
+        shapes[3] = new TextureRegion(Game.easyAssetManager.get("Diamond", Texture.class));
+        shapes[4] = new TextureRegion(Game.easyAssetManager.get("Triangle", Texture.class));
+        shapes[5] = new TextureRegion(Game.easyAssetManager.get("Hexagon", Texture.class));
 
-        shapesGlow = new TextureRegion[4];
-        shapesGlow[0] = new TextureRegion(new Texture(Gdx.files.internal("shapes/Star_glow.png"), true));
-        shapesGlow[1] = new TextureRegion(new Texture(Gdx.files.internal("shapes/Square_glow.png"), true));
-        shapesGlow[2] = new TextureRegion(new Texture(Gdx.files.internal("shapes/Circle_glow.png"), true));
-        shapesGlow[3] = new TextureRegion(new Texture(Gdx.files.internal("shapes/Diamond_glow.png"), true));
+        shapesGlow = new TextureRegion[6];
+        shapesGlow[0] = new TextureRegion(Game.easyAssetManager.get("Star_glow", Texture.class));
+        shapesGlow[1] = new TextureRegion(Game.easyAssetManager.get("Square_glow", Texture.class));
+        shapesGlow[2] = new TextureRegion(Game.easyAssetManager.get("Circle_glow", Texture.class));
+        shapesGlow[3] = new TextureRegion(Game.easyAssetManager.get("Diamond_glow", Texture.class));
+        shapesGlow[4] = new TextureRegion(Game.easyAssetManager.get("Triangle_glow", Texture.class));
+        shapesGlow[5] = new TextureRegion(Game.easyAssetManager.get("Hexagon_glow", Texture.class));
 
-        shapeColors = new Color[4];
+        shapeColors = new Color[6];
         shapeColors[0] = Color.YELLOW;
         shapeColors[1] = Color.RED;
         shapeColors[2] = Color.GREEN;
         shapeColors[3] = Color.CYAN;
+        shapeColors[4] = Color.ORANGE;
+        shapeColors[5] = Color.BLUE;
 
         this.gameOverShapes = new TextureRegion[2];
-        Texture texture = new Texture(Gdx.files.internal("checkmark.png"), true);
+
+        Texture texture = Game.easyAssetManager.get("checkmark", Texture.class);
         texture.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
         this.gameOverShapes[0] = new TextureRegion(texture);
-        texture = new Texture(Gdx.files.internal("X.png"), true);
+
+        texture = Game.easyAssetManager.get("X", Texture.class);
         texture.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
         this.gameOverShapes[1] = new TextureRegion(texture);
 
         //Reset our stuff.
         this.currRound = this.currScore = 0;
         this.avg = 0;
+
+        if(GameSettings.gameType == GameSettings.GameType.Timed)
+            this.roundTime = this.roundTimeStart;
 
         initRound();
         this.initLists();
@@ -137,10 +148,31 @@ public class GameScreen implements Screen, InputProcessor{
         this.table.setFillParent(true);
         Game.stage.addActor(this.table);
 
+        TextureRegion arrow = new TextureRegion(Game.easyAssetManager.get("leftArrow", Texture.class));
+
+        ImageButton.ImageButtonStyle imageButtonStyle = new ImageButton.ImageButtonStyle();
+        imageButtonStyle.up = new TextureRegionDrawable(Game.defaultButtonUp);
+        imageButtonStyle.down = new TextureRegionDrawable(Game.defaultButtonDown);
+        imageButtonStyle.imageUp = new TextureRegionDrawable(arrow);
+        imageButtonStyle.imageDown = new TextureRegionDrawable(arrow);
+
+        this.backButton = new ImageButton(imageButtonStyle);
+        this.backButton.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                Game.stage.clear();
+                game.setScreen(new MainMenu(game));
+            }
+        });
+        this.backButton.setSize(64, 32);
+        this.backButton.setPosition(Gdx.graphics.getWidth()/2 - 32, Gdx.graphics.getHeight() - 32);
+
         TextButton.TextButtonStyle style = new TextButton.TextButtonStyle();
-        style.up = new TextureRegionDrawable(new TextureRegion(new Texture("defaultButton_normal.png")));
-        style.down = new TextureRegionDrawable(new TextureRegion(new Texture("defaultButton_down.png")));
+        style.up = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("defaultButton_normal", Texture.class)));
+        style.down = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("defaultButton_down", Texture.class)));
         style.font = Game.defaultFont;
+
+        /* The restart and main menu button for when the game ends */
 
         this.restartButton = new TextButton("Restart", style);
         this.mainMenuButton = new TextButton("Main Menu", style);
@@ -151,7 +183,6 @@ public class GameScreen implements Screen, InputProcessor{
                 restart();
             }
         });
-
         this.mainMenuButton.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
@@ -159,6 +190,8 @@ public class GameScreen implements Screen, InputProcessor{
                 game.setScreen(new MainMenu(game));
             }
         });
+
+        /* The labels for information about the game*/
 
         String colorType="Colors: Normal", matchType="Matching: Shapes", gameType="Practice";
 
@@ -174,6 +207,7 @@ public class GameScreen implements Screen, InputProcessor{
             gameType = "Mode; TimeAttack";
 
         Label.LabelStyle labelStyle = new Label.LabelStyle(Game.defaultFont, Color.WHITE);
+        Label.LabelStyle titleLabelStyle = new Label.LabelStyle(Game.defaultLargeFont, Color.WHITE);
 
         this.colorTypeLabel = new Label(colorType, labelStyle);
         this.matchTypeLabel = new Label(matchType, labelStyle);
@@ -199,21 +233,29 @@ public class GameScreen implements Screen, InputProcessor{
             this.avgLabel = new Label("avg-time: 0", labelStyle);
             this.avgLabel.setAlignment(Align.center);
             this.avgLabel.setSize(100, 50);
-            this.avgLabel.setPosition(Gdx.graphics.getWidth()/2 - 50, Gdx.graphics.getHeight() - 100);
             otherTable.add(avgLabel);
             otherTable.row();
 
             this.roundLabel = new Label("0 / "+this.currRound+" / "+this.maxRounds, labelStyle);
             this.roundLabel.setAlignment(Align.center);
             this.roundLabel.setSize(100, 50);
-            this.roundLabel.setPosition(Gdx.graphics.getWidth()/2 - 50, Gdx.graphics.getHeight() - 50);
             otherTable.add(roundLabel);
 
             Game.stage.addActor(otherTable);
         }
+
+        if(GameSettings.gameType == GameSettings.GameType.Timed){
+            this.timerLabel = new Label(this.roundTime+"", titleLabelStyle);
+            this.timerLabel.setAlignment(Align.center);
+            this.timerLabel.setSize(100, 50);
+            this.timerLabel.setPosition(Gdx.graphics.getWidth()/2 - 50, Gdx.graphics.getHeight() - 75);
+            Game.stage.addActor(this.timerLabel);
+        }
+
+        Game.stage.addActor(this.backButton);
     }
 
-    private void restart(){
+    public void restart(){
         this.currRound = 0;
         this.table.clear();
         this.initRound();
@@ -229,9 +271,10 @@ public class GameScreen implements Screen, InputProcessor{
             }
         }
 
-        this.currScore = 0;
+        this.roundTime = this.roundTimeStart - this.roundTimeDecreaseAmount*this.currRound;
         this.winCounter = 0;
         this.currScale = 0;
+        this.failedLastRound = false;
 
         //Shuffle some arrays
         shuffleArray(this.positions);
@@ -305,7 +348,7 @@ public class GameScreen implements Screen, InputProcessor{
             }
         }
 
-        this.debugDrawShapeAreas(shapeRenderer);
+        //this.debugDrawShapeAreas(shapeRenderer);
 
 //        for(GameShape shape : this.shapeList)
 //            shapeRenderer.rect(shape.bounds.x, shape.bounds.y, shape.bounds.width, shape.bounds.height);
@@ -323,13 +366,17 @@ public class GameScreen implements Screen, InputProcessor{
     }
 
     private void update(float delta){
-        if(winCounter >= GameSettings.numShapes){
-            this.winCounter = 0;
-            this.setGameOver(false);
-        }
+        if(currGameState == GameState.Running){
+            if(GameSettings.gameType == GameSettings.GameType.Timed)
+                this.updateTimedGame(delta);
+
+            if(winCounter >= GameSettings.numShapes){
+                this.winCounter = 0;
+                this.setGameOver(false);
+            }
 
         //If starting, spin the shapes in!
-        if(currGameState == GameState.Starting){
+        }else if(currGameState == GameState.Starting){
             this.currScale = lerpScale(0, 1, this.currScale, 1500);
             this.currRotation += 20;
             if(this.currScale >= 1) {
@@ -346,6 +393,15 @@ public class GameScreen implements Screen, InputProcessor{
                 this.currRotation = 0;
                 this.ended();
             }
+        }
+    }
+
+    private void updateTimedGame(float delta){
+        this.roundTime -= delta;
+        this.timerLabel.setText(this.formatter.format(this.roundTime)+"");
+        if(this.roundTime <= 0){
+            this.roundTime = 0;
+            this.setGameOver(true);
         }
     }
 
@@ -366,6 +422,7 @@ public class GameScreen implements Screen, InputProcessor{
         this.gameOverImage.remove();
         this.currGameState = GameState.Starting;
 
+        //If it was the fastest game type, check if we finished all of our rounds.
         if(GameSettings.gameType == GameSettings.GameType.Fastest){
             if(this.currRound >= this.maxRounds){
                 this.currGameState = GameState.Over;
@@ -374,6 +431,14 @@ public class GameScreen implements Screen, InputProcessor{
                 this.table.row().padTop(50);
                 this.table.add(this.mainMenuButton).size(200, 75);
             }
+
+        //If it was the time game type, game over if we failed once.
+        }else if(GameSettings.gameType == GameSettings.GameType.Timed && this.failedLastRound){
+            this.currGameState = GameState.Over;
+
+            this.table.add(this.restartButton).size(200, 75);
+            this.table.row().padTop(50);
+            this.table.add(this.mainMenuButton).size(200, 75);
         }
 
         if(this.currGameState == GameState.Starting)
@@ -384,29 +449,23 @@ public class GameScreen implements Screen, InputProcessor{
         //Set the state to ending and stop dragging.
         this.currGameState = GameState.Ending;
         this.dragging = false;
+        this.failedLastRound = failed;
         this.endTime = System.currentTimeMillis();
+        this.currRound++;
 
         //If we passed, do stuff!
         if(!failed) {
             this.gameOverImage = new Image(this.gameOverShapes[0]);
-
-            //If we are doing the fastest game type, record our score.
-            if(GameSettings.gameType == GameSettings.GameType.Fastest){
-                this.currScore++;
-
-                this.setAvgTime();
-            }
-
-        //Otherwise we failed.
         }else {
             this.gameOverImage = new Image(this.gameOverShapes[1]);
         }
 
-        //Increment our current round.
-        if(GameSettings.gameType == GameSettings.GameType.Fastest){
-            this.currRound++;
-            this.roundLabel.setText(this.currScore+" / "+this.currRound+" / "+this.maxRounds);
-        }
+        if(GameSettings.gameType == GameSettings.GameType.Fastest)
+            this.gameOverFastest(failed);
+        else if(GameSettings.gameType == GameSettings.GameType.Timed)
+            this.gameOverTimed(failed);
+        else if(GameSettings.gameType == GameSettings.GameType.Practice)
+            this.gameOverPractice(failed);
 
         //Add the game over image.
         this.gameOverImage.setPosition(0, Gdx.graphics.getWidth()/2);
@@ -414,6 +473,23 @@ public class GameScreen implements Screen, InputProcessor{
         Game.stage.addActor(this.gameOverImage);
 
         this.ending();
+
+    }
+
+    private void gameOverFastest(boolean failed){
+        if(!failed){
+            this.currScore++;
+            this.setAvgTime();
+        }
+
+        this.roundLabel.setText(this.currScore+" / "+this.currRound+" / "+this.maxRounds);
+    }
+
+    private void gameOverTimed(boolean failed){
+
+    }
+
+    private void gameOverPractice(boolean failed){
 
     }
 
