@@ -18,7 +18,7 @@ import java.text.DecimalFormat;
  * Created by Paha on 1/8/2016.
  */
 public class GameScreen implements Screen{
-    public enum GameState {Starting, Running, Ending, Over}
+    public enum GameState {Beginning, Starting, Running, Ending, Over}
     private GameState currGameState;
 
     private TextureRegion topTexture;
@@ -128,15 +128,21 @@ public class GameScreen implements Screen{
         if(GameSettings.gameType == GameSettings.GameType.Timed)
             this.roundTime = this.roundTimeStart;
 
-        initRound();
+        this.shapeList = new Array<GameShape>();
+        this.initRound();
         this.initLists();
 
         GUIManager.GameScreenGUI.inst().makeGUI(this.game, this);
+
+        this.currGameState = GameState.Beginning;
     }
 
+    /**
+     * Restarts the current game mode.
+     */
     public void restart(){
+        GUIManager.GameScreenGUI.inst().mainTable.clear();
         this.currRound = 0;
-        GUIManager.GameScreenGUI.inst().table.clear();
         this.initRound();
     }
 
@@ -178,7 +184,7 @@ public class GameScreen implements Screen{
         //Show the avg time including the new one.
         if(this.avg == 0) this.avg = this.endTime - this.startTime;
         else this.avg = (this.avg + (this.endTime - this.startTime))/2;
-        GUIManager.GameScreenGUI.inst().avgLabel.setText("avg-time: "+this.formatter.format(this.avg/1000));
+        GUIManager.GameScreenGUI.inst().avgTimeLabel.setText("avg-time: "+this.formatter.format(this.avg/1000));
     }
 
     @Override
@@ -227,7 +233,7 @@ public class GameScreen implements Screen{
             }
         }
 
-        //this.debugDrawShapeAreas(shapeRenderer);
+        this.debugDrawShapeAreas(shapeRenderer);
 
 //        for(GameShape shape : this.shapeList)
 //            shapeRenderer.rect(shape.bounds.x, shape.bounds.y, shape.bounds.width, shape.bounds.height);
@@ -245,7 +251,14 @@ public class GameScreen implements Screen{
     }
 
     private void update(float delta){
-        if(currGameState == GameState.Running){
+
+        if(currGameState == GameState.Beginning) {
+            if(GUIManager.GameScreenGUI.inst().showStartingScreen(delta)) {
+                currGameState = GameState.Starting;
+                initRound();
+            }
+
+        }else if(currGameState == GameState.Running){
             if(GameSettings.gameType == GameSettings.GameType.Timed)
                 this.updateTimedGame(delta);
 
@@ -299,7 +312,7 @@ public class GameScreen implements Screen{
 
     private void ended(){
         GUIManager.GameScreenGUI.inst().roundEndedGUI();
-        this.currGameState = GameState.Starting;
+        this.currGameState = GameState.Starting; //By default, set it to starting the round again.
 
         //If it was the fastest game type, check if we finished all of our rounds.
         if(GameSettings.gameType == GameSettings.GameType.Fastest){
@@ -312,10 +325,10 @@ public class GameScreen implements Screen{
         //If it was the time game type, game over if we failed once.
         }else if(GameSettings.gameType == GameSettings.GameType.Timed && this.failedLastRound){
             this.currGameState = GameState.Over;
-
             GUIManager.GameScreenGUI.inst().gameOverGUI();
         }
 
+        //If we are still starting, init the round.
         if(this.currGameState == GameState.Starting)
             this.initRound();
     }

@@ -18,24 +18,33 @@ import com.badlogic.gdx.utils.Align;
 public class GUIManager {
 
     public static class GameScreenGUI {
-        public Table table = new Table();
+        public Table mainTable = new Table();
         public Image gameOverImage;
-        public Label roundLabel, avgLabel, colorTypeLabel, matchTypeLabel, gameTypeLabel, timerLabel;
+        public Label roundLabel, avgTimeLabel, colorTypeLabel, matchTypeLabel, gameTypeLabel, timerLabel;
         public TextButton restartButton, mainMenuButton;
         public ImageButton backButton;
+
+
+        /* Starting screen stuff */
+        private int state = 0, innerState = 0;
+        private Label startingColorType, startingMatchType, startingGameType;
+        private Table startingTable;
+        private Image firstShape, secondShape, overlay;
+        private float waitTime = 0;
+
 
         private static GameScreenGUI instance;
 
         public void makeGUI(final Game game, final GameScreen gameScreen) {
-            this.table = new Table();
-            this.table.setFillParent(true);
-            Game.stage.addActor(this.table);
+            this.mainTable = new Table();
+            this.mainTable.setFillParent(true);
+            Game.stage.addActor(this.mainTable);
 
             TextureRegion arrow = new TextureRegion(Game.easyAssetManager.get("leftArrow", Texture.class));
 
             ImageButton.ImageButtonStyle imageButtonStyle = new ImageButton.ImageButtonStyle();
-            imageButtonStyle.up = new TextureRegionDrawable(Game.defaultButtonUp);
-            imageButtonStyle.down = new TextureRegionDrawable(Game.defaultButtonDown);
+            imageButtonStyle.up = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("buttonDark_up", Texture.class)));
+            imageButtonStyle.down = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("buttonDark_down", Texture.class)));
             imageButtonStyle.imageUp = new TextureRegionDrawable(arrow);
             imageButtonStyle.imageDown = new TextureRegionDrawable(arrow);
 
@@ -47,12 +56,13 @@ public class GUIManager {
                     game.setScreen(new MainMenu(game));
                 }
             });
+
             this.backButton.setSize(64, 32);
             this.backButton.setPosition(Gdx.graphics.getWidth() / 2 - 32, Gdx.graphics.getHeight() - 32);
 
             TextButton.TextButtonStyle style = new TextButton.TextButtonStyle();
-            style.up = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("defaultButton_normal", Texture.class)));
-            style.down = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("defaultButton_down", Texture.class)));
+            style.up = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("buttonDark_up", Texture.class)));
+            style.down = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("buttonDark_down", Texture.class)));
             style.font = Game.defaultFont;
 
         /* The restart and main menu button for when the game ends */
@@ -99,7 +109,6 @@ public class GUIManager {
             Table labelTable = new Table();
             labelTable.left().top();
             labelTable.setFillParent(true);
-            Game.stage.addActor(labelTable);
 
             labelTable.add(colorTypeLabel).left();
             labelTable.row();
@@ -113,10 +122,10 @@ public class GUIManager {
                 otherTable.right().top();
                 labelStyle = new Label.LabelStyle(Game.defaultFont, Color.WHITE);
 
-                this.avgLabel = new Label("avg-time: 0", labelStyle);
-                this.avgLabel.setAlignment(Align.center);
-                this.avgLabel.setSize(100, 50);
-                otherTable.add(avgLabel);
+                this.avgTimeLabel = new Label("avg-time: 0", labelStyle);
+                this.avgTimeLabel.setAlignment(Align.center);
+                this.avgTimeLabel.setSize(100, 50);
+                otherTable.add(avgTimeLabel);
                 otherTable.row();
 
                 this.roundLabel = new Label("0 / 0 / 0", labelStyle);
@@ -136,6 +145,134 @@ public class GUIManager {
             }
 
             Game.stage.addActor(this.backButton);
+            Game.stage.addActor(labelTable);
+
+            this.makeStartingGUI(game, gameScreen);
+        }
+
+        public void makeStartingGUI(final Game game, final GameScreen scren){
+            String numShapes, colorType="Colors: Normal", matchType="Matching: Shapes", gameType="Practice!";
+
+            if(GameSettings.colorType == GameSettings.ColorType.Random)
+                colorType = "Colors: Random";
+
+            if(GameSettings.matchType == GameSettings.MatchType.Color)
+                matchType = "Matching: Colors";
+
+            if(GameSettings.gameType == GameSettings.GameType.Fastest)
+                gameType = "Best out of 10!";
+            else if(GameSettings.gameType == GameSettings.GameType.Timed)
+                gameType = "Time Attack!";
+
+            Label.LabelStyle style = new Label.LabelStyle(Game.defaultLargeFont, Color.WHITE);
+
+            this.startingColorType = new Label(colorType, style);
+            this.startingColorType.setAlignment(Align.center);
+            this.startingColorType.setColor(1, 1, 1, 0);
+
+            this.startingMatchType = new Label(matchType, style);
+            this.startingMatchType.setAlignment(Align.center);
+            this.startingMatchType.setColor(1, 1, 1, 0);
+
+            this.startingGameType = new Label(gameType, style);
+            this.startingGameType.setAlignment(Align.center);
+            this.startingGameType.setColor(1, 1, 1, 0);
+
+//            this.overlay = new Image(new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("whitePixel", Texture.class))));
+//            this.overlay.setColor(0.2f, 0.2f, 0.2f, 0.8f);
+//            this.overlay.setSize(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+//            this.overlay.setPosition(0,0);
+
+            Table shapeTable = new Table();
+
+            if(GameSettings.matchType == GameSettings.MatchType.Shapes){
+                this.firstShape = new Image(new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("Square", Texture.class))));
+                this.secondShape = new Image(new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("Square", Texture.class))));
+                this.firstShape.setColor(Color.YELLOW);
+                this.secondShape.setColor(Color.RED);
+            }else{
+                this.firstShape = new Image(new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("Star", Texture.class))));
+                this.secondShape = new Image(new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("Square", Texture.class))));
+                this.firstShape.setColor(Color.RED);
+                this.secondShape.setColor(Color.RED);
+            }
+
+            this.firstShape.getColor().a = 0;
+            this.secondShape.getColor().a = 0;
+
+            shapeTable.add(this.firstShape).padRight(60);
+            shapeTable.add(this.secondShape);
+
+            this.startingTable = new Table();
+            this.startingTable.setFillParent(true);
+            this.startingTable.debugAll();
+
+            this.startingTable.add(this.startingColorType).expandX().fillX();
+            this.startingTable.row().padTop(20);
+            this.startingTable.add(this.startingMatchType).expandX().fillX();
+            this.startingTable.row().padTop(20);
+            this.startingTable.add(shapeTable);
+            this.startingTable.row().padTop(20);
+            this.startingTable.add(this.startingGameType).expandX().fillX();
+        }
+
+        public boolean showStartingScreen(float delta){
+            //First, show color type (random, same)
+            if(this.state == 0){
+                //Game.stage.addActor(this.overlay);
+                Game.stage.addActor(this.startingTable);
+                this.state++;
+            }else if(this.state == 1){
+                //Show colors
+                this.startingColorType.getColor().a = GH.lerpValue(this.startingColorType.getColor().a, 0, 1, 0.5f);
+                if(this.startingColorType.getColor().a >= 1) this.state++;
+
+            }else if(this.state == 2){
+                //Show matching
+                this.startingMatchType.getColor().a = GH.lerpValue(this.startingMatchType.getColor().a, 0, 1, 0.5f);
+                if(this.startingMatchType.getColor().a >= 1) this.state++;
+
+            }else if(this.state == 3){
+                float a;
+                Color color;
+                //Show example
+                if(this.innerState == 0) {
+                    color = this.firstShape.getColor();
+                    this.firstShape.getColor().a = GH.lerpValue(color.a, 0, 1, 0.5f);
+
+                    color = this.secondShape.getColor();
+                    this.secondShape.getColor().a = GH.lerpValue(color.a, 0, 1, 0.5f);
+                    if (this.secondShape.getColor().a >= 1) this.state++;
+                }else{
+                    this.innerState = 0;
+                    this.state++;
+                }
+
+            }else if(this.state == 4){
+                //Show game type
+                float a = GH.lerpValue(this.startingGameType.getColor().a, 0, 1, 0.5f);
+                this.startingGameType.setColor(1, 1, 1, a);
+                if(a >= 1) this.state++;
+
+            }else if(this.state == 5){
+                this.waitTime = GH.lerpValue(this.waitTime, 0, 1, 1);
+                if(this.waitTime >= 1) {
+                    this.startingTable.remove();
+                    //this.overlay.remove();
+                    return true;
+                }
+                //Remove example and such?
+            }
+
+
+            //Second, show what we are matching (shapes/colors)
+
+            //Third, show two shapes, if matching random color shapes, 2 diff shapes with different colors.
+            //Otherwise, 2 same shapes with same/random colors, either is fine...
+
+            //Lastly, display game type (Practice, Best out of 10, TimeAttack)
+
+            return false;
         }
 
         public void roundEndedGUI(){
@@ -143,9 +280,9 @@ public class GUIManager {
         }
 
         public void gameOverGUI(){
-            this.table.add(this.restartButton).size(200f, 75f);
-            this.table.row().padTop(50f);
-            this.table.add(this.mainMenuButton).size(200f, 75f);
+            this.mainTable.add(this.restartButton).size(200f, 75f);
+            this.mainTable.row().padTop(50f);
+            this.mainTable.add(this.mainMenuButton).size(200f, 75f);
         }
 
         public void roundOverGUI(TextureRegion gameOverTexture){
@@ -175,9 +312,9 @@ public class GUIManager {
             this.table = new Table();
 
             TextButton.TextButtonStyle regularStyle = new TextButton.TextButtonStyle();
-            regularStyle.up = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("defaultButton_normal", Texture.class)));
-            regularStyle.down = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("defaultButton_down", Texture.class)));
-            regularStyle.checked = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("defaultButton_down", Texture.class)));
+            regularStyle.up = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("buttonDark_up", Texture.class)));
+            regularStyle.down = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("buttonDark_down", Texture.class)));
+            regularStyle.checked = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("buttonDark_down", Texture.class)));
             regularStyle.font = Game.defaultFont;
 
             TextButton.TextButtonStyle style = new TextButton.TextButtonStyle();
@@ -345,7 +482,7 @@ public class GUIManager {
             this.table.add(quit).size(200, 75);
 
             this.table.setFillParent(true);
-            //this.table.debug();
+            //this.mainTable.debug();
 
             Game.stage.addActor(this.table);
         }
