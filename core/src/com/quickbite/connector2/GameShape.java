@@ -1,4 +1,4 @@
-package com.quickbite.connector;
+package com.quickbite.connector2;
 
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;

@@ -1,4 +1,4 @@
-package com.quickbite.connector;
+package com.quickbite.connector2;
 
 import com.badlogic.gdx.math.Intersector;
 import com.badlogic.gdx.math.Vector2;
@@ -41,7 +41,7 @@ public class CheckCollision implements Runnable{
             else if(GameSettings.matchType == GameSettings.MatchType.Color) condition = shape.getColorID() == this.currShape.getColorID();
 
             if(intersect && !condition){
-                this.game.setGameOver(true);
+                this.game.setRoundOver(true, GameScreen.RoundOver.HitShape);
                 return;
             }
         }
@@ -57,7 +57,7 @@ public class CheckCollision implements Runnable{
                 boolean intersect = Intersector.intersectSegments(_curr, _next, this.prev, this.curr, intersection);
 
                 if(intersect){
-                    this.game.setGameOver(true);
+                    this.game.setRoundOver(true, GameScreen.RoundOver.HitLine);
                     return;
                 }
             }

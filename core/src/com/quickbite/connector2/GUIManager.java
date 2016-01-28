@@ -1,4 +1,4 @@
-package com.quickbite.connector;
+package com.quickbite.connector2;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
@@ -21,6 +21,7 @@ public class GUIManager {
         public Table mainTable = new Table();
         public Image gameOverImage;
         public Label roundLabel, avgTimeLabel, colorTypeLabel, matchTypeLabel, gameTypeLabel, timerLabel;
+        public Label roundsSurvivedLabel, bestTimeLabel, lostReasonLabel, avgTimeLabel2;
         public TextButton restartButton, mainMenuButton;
         public ImageButton backButton;
 
@@ -53,6 +54,7 @@ public class GUIManager {
                 @Override
                 public void changed(ChangeEvent event, Actor actor) {
                     Game.stage.clear();
+                    gameScreen.dispose();
                     game.setScreen(new MainMenu(game));
                 }
             });
@@ -80,6 +82,7 @@ public class GUIManager {
                 @Override
                 public void changed(ChangeEvent event, Actor actor) {
                     Game.stage.clear();
+                    gameScreen.dispose();
                     game.setScreen(new MainMenu(game));
                 }
             });
@@ -101,6 +104,15 @@ public class GUIManager {
 
             Label.LabelStyle labelStyle = new Label.LabelStyle(Game.defaultFont, Color.WHITE);
             Label.LabelStyle titleLabelStyle = new Label.LabelStyle(Game.defaultLargeFont, Color.WHITE);
+
+            this.bestTimeLabel = new Label("", titleLabelStyle);
+            this.bestTimeLabel.setAlignment(Align.center);
+
+            this.lostReasonLabel = new Label("", titleLabelStyle);
+            this.lostReasonLabel.setAlignment(Align.center);
+
+            this.avgTimeLabel2 = new Label("", titleLabelStyle);
+            this.avgTimeLabel2.setAlignment(Align.center);
 
             this.colorTypeLabel = new Label(colorType, labelStyle);
             this.matchTypeLabel = new Label(matchType, labelStyle);
@@ -178,10 +190,10 @@ public class GUIManager {
             this.startingGameType.setAlignment(Align.center);
             this.startingGameType.setColor(1, 1, 1, 0);
 
-//            this.overlay = new Image(new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("whitePixel", Texture.class))));
-//            this.overlay.setColor(0.2f, 0.2f, 0.2f, 0.8f);
-//            this.overlay.setSize(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-//            this.overlay.setPosition(0,0);
+            this.overlay = new Image(new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("whitePixel", Texture.class))));
+            this.overlay.setColor(0.1f, 0.1f, 0.1f, 1f);
+            this.overlay.setSize(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+            this.overlay.setPosition(0,0);
 
             Table shapeTable = new Table();
 
@@ -205,21 +217,21 @@ public class GUIManager {
 
             this.startingTable = new Table();
             this.startingTable.setFillParent(true);
-            this.startingTable.debugAll();
+            //this.startingTable.debugAll();
 
             this.startingTable.add(this.startingColorType).expandX().fillX();
-            this.startingTable.row().padTop(20);
+            this.startingTable.row().padTop(40);
             this.startingTable.add(this.startingMatchType).expandX().fillX();
-            this.startingTable.row().padTop(20);
+            this.startingTable.row().padTop(40);
             this.startingTable.add(shapeTable);
-            this.startingTable.row().padTop(20);
+            this.startingTable.row().padTop(40);
             this.startingTable.add(this.startingGameType).expandX().fillX();
         }
 
         public boolean showStartingScreen(float delta){
             //First, show color type (random, same)
             if(this.state == 0){
-                //Game.stage.addActor(this.overlay);
+                Game.stage.addActor(this.overlay);
                 Game.stage.addActor(this.startingTable);
                 this.state++;
             }else if(this.state == 1){
@@ -233,7 +245,6 @@ public class GUIManager {
                 if(this.startingMatchType.getColor().a >= 1) this.state++;
 
             }else if(this.state == 3){
-                float a;
                 Color color;
                 //Show example
                 if(this.innerState == 0) {
@@ -250,18 +261,29 @@ public class GUIManager {
 
             }else if(this.state == 4){
                 //Show game type
-                float a = GH.lerpValue(this.startingGameType.getColor().a, 0, 1, 0.5f);
-                this.startingGameType.setColor(1, 1, 1, a);
-                if(a >= 1) this.state++;
+                this.startingGameType.getColor().a = GH.lerpValue(this.startingGameType.getColor().a, 0, 1, 0.5f);
+                if(this.startingGameType.getColor().a >= 1) this.state++;
 
             }else if(this.state == 5){
-                this.waitTime = GH.lerpValue(this.waitTime, 0, 1, 1);
+                this.waitTime = GH.lerpValue(this.waitTime, 0, 1f, 1f);
                 if(this.waitTime >= 1) {
-                    this.startingTable.remove();
-                    //this.overlay.remove();
-                    return true;
+                    this.waitTime = 0;
+                    this.state++;
                 }
                 //Remove example and such?
+            }else if(this.state == 6){
+                this.startingTable.getColor().a = GH.lerpValue(this.startingTable.getColor().a, 1, 0, 0.5f);
+                if(this.startingTable.getColor().a <= 0) {
+                    this.state++;
+                }
+            }else if(this.state == 7){
+                this.waitTime = GH.lerpValue(this.waitTime, 0, 1f, 0.5f);
+                if(this.waitTime >= 1) {
+                    this.waitTime = 0;
+                    this.startingTable.remove();
+                    this.overlay.remove();
+                    return true;
+                }
             }
 
 
@@ -279,7 +301,30 @@ public class GUIManager {
             this.gameOverImage.remove();
         }
 
+        public void gameOverTimedGUI(GameScreen screen){
+            Label.LabelStyle style = new Label.LabelStyle(Game.defaultLargeFont, Color.WHITE);
+            this.roundsSurvivedLabel = new Label("Made it to round "+screen.currRound, style);
+            this.roundsSurvivedLabel.setAlignment(Align.center);
+
+            this.mainTable.add(this.lostReasonLabel).fillX().expandX();
+            this.mainTable.row().padTop(50);
+            this.mainTable.add(this.roundsSurvivedLabel).fillX().expandX();
+            this.mainTable.row().padTop(50);
+        }
+
+        public void gameOverBestGUI(){
+
+        }
+
+        public void gameOverPracticeGUI(){
+
+        }
+
         public void gameOverGUI(){
+            this.mainTable.add(this.avgTimeLabel2).expandX().fillX();
+            this.mainTable.row().padTop(50f);
+            this.mainTable.add(this.bestTimeLabel).expandX().fillX();
+            this.mainTable.row().padTop(50f);
             this.mainTable.add(this.restartButton).size(200f, 75f);
             this.mainTable.row().padTop(50f);
             this.mainTable.add(this.mainMenuButton).size(200f, 75f);
@@ -294,10 +339,36 @@ public class GUIManager {
             Game.stage.addActor(this.gameOverImage);
         }
 
+        public void setAvgTimeLabelText(String text){
+            if(this.avgTimeLabel != null)
+                this.avgTimeLabel.setText(text);
+        }
+
+        public void setBestTimeLabelText(String text){
+            if(this.bestTimeLabel != null)
+                this.bestTimeLabel.setText(text);
+        }
+
+        public void setLostReasonLabelText(String text){
+            if(this.lostReasonLabel != null)
+                this.lostReasonLabel.setText(text);
+        }
+
+        public void setGameOverAvgTimeLabelText(String text){
+            if(this.avgTimeLabel2 != null)
+                this.avgTimeLabel2.setText(text);
+        }
+
+        public void reset(){
+            this.state = 0;
+            this.innerState = 0;
+        }
+
         public static GameScreenGUI inst(){
             if(instance == null) instance = new GameScreenGUI();
             return instance;
         }
+
     }
 
     public static class MainMenuGUI{
@@ -308,8 +379,13 @@ public class GUIManager {
         public TextButton start, quit, colorSame, colorRandom, matchShape, matchColor, modePractice, modeBest, modeTimed, startGame;
         public TextButton threeShapes, fourShapes, fiveShapes, sixShapes;
 
+        public Label TitleLabel;
+
         public void makeGUI(final Game game, final MainMenu mainMenu){
             this.table = new Table();
+
+            Table buttonTable = new Table();
+            Container<Label> titleContainer = new Container<Label>();
 
             TextButton.TextButtonStyle regularStyle = new TextButton.TextButtonStyle();
             regularStyle.up = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("buttonDark_up", Texture.class)));
@@ -477,23 +553,33 @@ public class GUIManager {
                 }
             });
 
-            this.table.add(start).size(200, 75);
-            this.table.row().padTop(75);
-            this.table.add(quit).size(200, 75);
+            Label.LabelStyle titleStyle = new Label.LabelStyle(Game.defaultHugeFont, Color.WHITE);
+            this.TitleLabel = new Label("Connector", titleStyle);
+            this.TitleLabel.setAlignment(Align.top);
+            this.TitleLabel.setFontScale(1);
+
+            titleContainer.setActor(TitleLabel);
+
+            buttonTable.add(start).size(200, 75);
+            buttonTable.row().padTop(75);
+            buttonTable.add(quit).size(200, 75);
+
+            this.table.add(titleContainer);
+            this.table.row().padTop(100);
+            this.table.add(buttonTable);
 
             this.table.setFillParent(true);
-            //this.mainTable.debug();
 
             Game.stage.addActor(this.table);
         }
 
         private void choicesMenu(){
             Label.LabelStyle titleStyle = new Label.LabelStyle(Game.defaultFont, Color.WHITE);
-            titleStyle.background = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("pixel", Texture.class)));
+            titleStyle.background = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("darkStrip", Texture.class)));
 
             Label.LabelStyle style = new Label.LabelStyle(Game.defaultFont, Color.WHITE);
 
-            Label numShapesLabel = new Label("Num Shapes", titleStyle);
+            Label numShapesLabel = new Label("Number of Shapes", titleStyle);
             numShapesLabel.setAlignment(Align.center);
 
             Label colorLabel = new Label("Color", titleStyle);
@@ -527,22 +613,22 @@ public class GUIManager {
             this.table.add(numShapesLabel).expandX().fillX().center().padBottom(10).height(40);
             this.table.row();
             this.table.add(numShapesTable).expandX();
-            this.table.row().padTop(75);
+            this.table.row().padTop(50);
 
             this.table.add(colorLabel).expandX().fillX().center().padBottom(10).height(40);
             this.table.row();
             this.table.add(colorTable).expandX();
-            this.table.row().padTop(75);
+            this.table.row().padTop(50);
 
             this.table.add(matchLabel).expandX().fillX().center().padBottom(10).height(40);
             this.table.row().padTop(10);
             this.table.add(matchTable).expandX();
-            this.table.row().padTop(75);
+            this.table.row().padTop(50);
 
             this.table.add(modeLabel).expandX().fillX().center().padBottom(10).height(40);
             this.table.row().padTop(10);
             this.table.add(modeTable).expandX();
-            this.table.row().padTop(75);
+            this.table.row().padTop(50);
 
             this.table.add(this.startGame).size(125, 50);
 

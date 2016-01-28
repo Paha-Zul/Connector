@@ -1,4 +1,4 @@
-package com.quickbite.connector;
+package com.quickbite.connector2;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.assets.loaders.TextureLoader;
@@ -22,7 +22,7 @@ public class Game extends com.badlogic.gdx.Game {
 	public static OrthographicCamera camera;
 	public static OrthographicCamera UICamera;
 	public static Stage stage;
-	public static BitmapFont defaultFont, defaultLargeFont;
+	public static BitmapFont defaultFont, defaultLargeFont, defaultHugeFont;
 	public static ExecutorService executor;
 	public static EasyAssetManager easyAssetManager;
 
@@ -30,6 +30,7 @@ public class Game extends com.badlogic.gdx.Game {
 	
 	@Override
 	public void create () {
+
 		camera = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 		batch = new SpriteBatch();
 		batch.setProjectionMatrix(camera.combined);
@@ -51,6 +52,10 @@ public class Game extends com.badlogic.gdx.Game {
 		generator = new FreeTypeFontGenerator(Gdx.files.internal("copperplatessibold.ttf"));
 		parameter.size = 28;
 		defaultLargeFont = generator.generateFont(parameter); // font size 12 pixels
+
+		generator = new FreeTypeFontGenerator(Gdx.files.internal("copperplatessibold.ttf"));
+		parameter.size = 60;
+		defaultHugeFont = generator.generateFont(parameter); // font size 12 pixels
 
 		generator.dispose(); // don't forget to dispose to avoid memory leaks!
 

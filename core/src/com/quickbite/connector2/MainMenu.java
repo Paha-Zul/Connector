@@ -1,5 +1,6 @@
-package com.quickbite.connector;
+package com.quickbite.connector2;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 
 /**
@@ -10,15 +11,15 @@ public class MainMenu implements Screen {
 
     public MainMenu(Game game){
         this.game = game;
-
-        GUIManager.MainMenuGUI.inst().makeGUI(game, this);
     }
-
-
 
     @Override
     public void show() {
-        //this.game.setScreen(new GameScreen(this.game));
+        GUIManager.MainMenuGUI.inst().makeGUI(game, this);
+
+        //We put this here to reset the input processor from the GameScreen
+        // when we come back to the main menu.
+        Gdx.input.setInputProcessor(Game.stage);
     }
 
     @Override

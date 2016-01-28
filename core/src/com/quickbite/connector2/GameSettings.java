@@ -1,4 +1,4 @@
-package com.quickbite.connector;
+package com.quickbite.connector2;
 
 /**
  * Created by Paha on 1/12/2016.

@@ -1,4 +1,4 @@
-package com.quickbite.connector;
+package com.quickbite.connector2;
 
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
