@@ -40,7 +40,7 @@ public class GameScreen implements Screen{
     public int lineCounter = 0;
     public int winCounter = 0;
 
-    public int currRound, maxRounds=10, currScore;
+    public int currRound, maxRounds=10, successfulRounds, currScore;
     private volatile boolean gameOver = false;
     private float currScale = 0, currRotation = 0;
     private double startTime, endTime, avgTime, bestTime;
@@ -125,8 +125,9 @@ public class GameScreen implements Screen{
         this.gameOverShapes[1] = new TextureRegion(texture);
 
         //Reset our stuff.
-        this.currRound = this.currScore = 0;
+        this.currRound = this.successfulRounds = 0;
         this.avgTime = 0;
+        this.currScore = 0;
 
         if(GameSettings.gameType == GameSettings.GameType.Timed)
             this.roundTime = this.roundTimeStart;
@@ -147,6 +148,7 @@ public class GameScreen implements Screen{
         this.currRound = 0;
         this.avgTime = 0;
         this.bestTime = 0;
+        this.currScore = 0;
 
         this.initRound();
     }
@@ -409,6 +411,8 @@ public class GameScreen implements Screen{
      */
     private void gameOverTimed(){
         GUIManager.GameScreenGUI.inst().gameOverTimedGUI(this);
+        this.currScore = (int)(successfulRounds *(1/avgTime)*GameSettings.numShapes);
+        Game.resolver.submitScoreGPGS(Constants.LEADERBOARD_TIMED, this.currScore);
     }
 
     /**
@@ -416,6 +420,8 @@ public class GameScreen implements Screen{
      */
     private void gameOverBest(){
         GUIManager.GameScreenGUI.inst().gameOverBestGUI();
+        this.currScore = (int)(successfulRounds *(1/avgTime)*GameSettings.numShapes);
+        Game.resolver.submitScoreGPGS(Constants.LEADERBOARD_BEST, this.currScore);
     }
 
     /**
@@ -461,10 +467,10 @@ public class GameScreen implements Screen{
 
     private void roundOverFastest(boolean failed){
         if(!failed){
-            this.currScore++;
+            this.successfulRounds++;
         }
 
-        GUIManager.GameScreenGUI.inst().roundLabel.setText(this.currScore+" / "+this.currRound+" / "+this.maxRounds);
+        GUIManager.GameScreenGUI.inst().roundLabel.setText(this.successfulRounds +" / "+this.currRound+" / "+this.maxRounds);
     }
 
     private void roundOverBest(boolean failed){

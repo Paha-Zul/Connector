@@ -6,8 +6,8 @@ package com.quickbite.connector2;
 public interface ActionResolver {
     public boolean getSignedInGPGS();
     public void loginGPGS();
-    public void submitScoreGPGS(int score);
+    public void submitScoreGPGS(String tableID, long score);
     public void unlockAchievementGPGS(String achievementId);
-    public void getLeaderboardGPGS();
+    public void getLeaderboardGPGS(String leaderboardID);
     public void getAchievementsGPGS();
 }

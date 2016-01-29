@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import com.badlogic.gdx.backends.android.AndroidApplication;
 import com.badlogic.gdx.backends.android.AndroidApplicationConfiguration;
+import com.google.android.gms.games.Games;
 import com.google.example.games.basegameutils.GameHelper;
 
 public class AndroidLauncher extends AndroidApplication implements GameHelper.GameHelperListener, ActionResolver {
@@ -13,10 +14,11 @@ public class AndroidLauncher extends AndroidApplication implements GameHelper.Ga
 	protected void onCreate (Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		AndroidApplicationConfiguration config = new AndroidApplicationConfiguration();
-		initialize(new Game(), config);
+		initialize(new Game(this), config);
 
 		if (gameHelper == null) {
 			gameHelper = new GameHelper(this, GameHelper.CLIENT_GAMES);
+			gameHelper.setMaxAutoSignInAttempts(0);
 			gameHelper.enableDebugLog(true);
 		}
 		gameHelper.setup(this);
@@ -54,22 +56,31 @@ public class AndroidLauncher extends AndroidApplication implements GameHelper.Ga
 				}
 			});
 		} catch (final Exception ex) {
+
 		}
 	}
 
 	@Override
-	public void submitScoreGPGS(int score) {
-
+	public void submitScoreGPGS(String tableID, long score) {
+        if (gameHelper.isSignedIn()) {
+            Games.Leaderboards.submitScore(gameHelper.getApiClient(), tableID, score);
+        }
 	}
 
 	@Override
 	public void unlockAchievementGPGS(String achievementId) {
-		//gameHelper.getGamesClient().unlockAchievement(achievementId);
+        if (gameHelper.isSignedIn()) {
+            Games.Achievements.unlock(gameHelper.getApiClient(), achievementId);
+        }
 	}
 
 	@Override
-	public void getLeaderboardGPGS() {
-		//startActivityForResult(gameHelper.getGamesClient().getLeaderboardIntent("CgkI6574wJUXEAIQBw"), 100);
+	public void getLeaderboardGPGS(String leaderboardID) {
+		if (gameHelper.isSignedIn()) {
+			startActivityForResult(Games.Leaderboards.getLeaderboardIntent(gameHelper.getApiClient(), leaderboardID), 100);
+		}else if (!gameHelper.isConnecting()) {
+			//loginGPGS();
+		}
 	}
 
 	@Override

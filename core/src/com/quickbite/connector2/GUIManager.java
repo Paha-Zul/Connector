@@ -374,10 +374,13 @@ public class GUIManager {
     public static class MainMenuGUI{
         private static MainMenuGUI instance;
 
-        public Table table;
+        public Table table, leaderSelectionTable;
 
-        public TextButton start, quit, colorSame, colorRandom, matchShape, matchColor, modePractice, modeBest, modeTimed, startGame;
+        public TextButton leaderboards, start, quit, loginGPG;
+        public TextButton colorSame, colorRandom, matchShape, matchColor, modePractice, modeBest, modeTimed, startGame;
         public TextButton threeShapes, fourShapes, fiveShapes, sixShapes;
+
+        public TextButton bestLeaderButton, timedLeaderButton;
 
         public Label TitleLabel;
 
@@ -390,7 +393,7 @@ public class GUIManager {
             TextButton.TextButtonStyle regularStyle = new TextButton.TextButtonStyle();
             regularStyle.up = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("buttonDark_up", Texture.class)));
             regularStyle.down = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("buttonDark_down", Texture.class)));
-            regularStyle.checked = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("buttonDark_down", Texture.class)));
+            regularStyle.checked = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("buttonDark_up", Texture.class)));
             regularStyle.font = Game.defaultFont;
 
             TextButton.TextButtonStyle style = new TextButton.TextButtonStyle();
@@ -401,6 +404,8 @@ public class GUIManager {
 
             start = new TextButton("Start", regularStyle);
             quit = new TextButton("Quit", regularStyle);
+            leaderboards = new TextButton("Leaderboards", regularStyle);
+            loginGPG = new TextButton("Login to \n Google Play", regularStyle);
 
             threeShapes = new TextButton("3", style);
             fourShapes = new TextButton("4", style);
@@ -431,6 +436,20 @@ public class GUIManager {
                 @Override
                 public void changed(ChangeEvent event, Actor actor) {
                     Gdx.app.exit();
+                }
+            });
+
+            leaderboards.addListener(new ChangeListener() {
+                @Override
+                public void changed(ChangeEvent event, Actor actor) {
+                    Game.stage.addActor(leaderSelectionTable);
+                }
+            });
+
+            loginGPG.addListener(new ChangeListener() {
+                @Override
+                public void changed(ChangeEvent event, Actor actor) {
+                    Game.resolver.loginGPGS();
                 }
             });
 
@@ -560,17 +579,80 @@ public class GUIManager {
 
             titleContainer.setActor(TitleLabel);
 
+            this.makeLeaderboardSelectionOverlay();
+            this.formatMainMenu(buttonTable, titleContainer);
+        }
+
+        private void formatMainMenu(Table buttonTable, Container<Label> titleContainer){
             buttonTable.add(start).size(200, 75);
-            buttonTable.row().padTop(75);
+            buttonTable.row().padTop(40);
+            buttonTable.add(loginGPG).size(200, 75);
+            buttonTable.row().padTop(40);
+            buttonTable.add(leaderboards).size(200, 75);
+            buttonTable.row().padTop(40);
             buttonTable.add(quit).size(200, 75);
 
+            this.table.top();
+
+            this.table.row().padTop(50);
             this.table.add(titleContainer);
-            this.table.row().padTop(100);
+            this.table.row().padTop(75);
             this.table.add(buttonTable);
 
             this.table.setFillParent(true);
 
             Game.stage.addActor(this.table);
+        }
+
+        private void makeLeaderboardSelectionOverlay(){
+            leaderSelectionTable = new Table();
+            leaderSelectionTable.setFillParent(true);
+
+            TextureRegionDrawable drawable = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("selectionBackground", Texture.class)));
+
+            Table innerTable = new Table();
+            innerTable.setBackground(drawable);
+
+            TextButton.TextButtonStyle style = new TextButton.TextButtonStyle();
+            style.font = Game.defaultFont;
+            style.up = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("defaultButton_clear", Texture.class)));
+            style.over = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("defaultButton_clear", Texture.class)));
+            style.down = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("defaultButton_green", Texture.class)));
+
+            this.bestLeaderButton = new TextButton("Best", style);
+            this.timedLeaderButton = new TextButton("Timed", style);
+            TextButton back = new TextButton("Back", style);
+
+            this.bestLeaderButton.addListener(new ChangeListener() {
+                @Override
+                public void changed(ChangeEvent event, Actor actor) {
+                    Game.resolver.getLeaderboardGPGS("CgkI3sW1wbAUEAIQBw");
+                    leaderSelectionTable.remove();
+                }
+            });
+
+            this.timedLeaderButton.addListener(new ChangeListener() {
+                @Override
+                public void changed(ChangeEvent event, Actor actor) {
+                    Game.resolver.getLeaderboardGPGS("CgkI3sW1wbAUEAIQCA");
+                    leaderSelectionTable.remove();
+                }
+            });
+
+            back.addListener(new ChangeListener() {
+                @Override
+                public void changed(ChangeEvent event, Actor actor) {
+                    leaderSelectionTable.remove();
+                }
+            });
+
+            innerTable.add(bestLeaderButton).width(100).height(75);
+            innerTable.row();
+            innerTable.add(timedLeaderButton).width(100).height(75);
+            innerTable.row();
+            innerTable.add(back).width(100).height(75);
+
+            leaderSelectionTable.add(innerTable);
         }
 
         private void choicesMenu(){

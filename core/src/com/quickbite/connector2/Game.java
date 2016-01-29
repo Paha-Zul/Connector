@@ -25,8 +25,13 @@ public class Game extends com.badlogic.gdx.Game {
 	public static BitmapFont defaultFont, defaultLargeFont, defaultHugeFont;
 	public static ExecutorService executor;
 	public static EasyAssetManager easyAssetManager;
+	public static ActionResolver resolver;
 
 	public static TextureRegion defaultButtonUp, defaultButtonDown;
+
+	public Game(ActionResolver actionResolver){
+		this.resolver = actionResolver;
+	}
 	
 	@Override
 	public void create () {
