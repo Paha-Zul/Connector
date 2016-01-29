@@ -411,7 +411,7 @@ public class GameScreen implements Screen{
      */
     private void gameOverTimed(){
         GUIManager.GameScreenGUI.inst().gameOverTimedGUI(this);
-        this.currScore = (int)(successfulRounds *(1/avgTime)*GameSettings.numShapes);
+        this.currScore = (int)(currRound *(1f/(avgTime/1000))*GameSettings.numShapes);
         Game.resolver.submitScoreGPGS(Constants.LEADERBOARD_TIMED, this.currScore);
     }
 
@@ -420,7 +420,7 @@ public class GameScreen implements Screen{
      */
     private void gameOverBest(){
         GUIManager.GameScreenGUI.inst().gameOverBestGUI();
-        this.currScore = (int)(successfulRounds *(1/avgTime)*GameSettings.numShapes);
+        this.currScore = (int)(successfulRounds *(1f/(avgTime/1000))*GameSettings.numShapes);
         Game.resolver.submitScoreGPGS(Constants.LEADERBOARD_BEST, this.currScore);
     }
 
@@ -458,7 +458,7 @@ public class GameScreen implements Screen{
         if(GameSettings.gameType == GameSettings.GameType.Fastest)
             this.roundOverFastest(failed);
         else if(GameSettings.gameType == GameSettings.GameType.Timed)
-            this.roundOverBest(failed);
+            this.roundOverTimed(failed);
         else if(GameSettings.gameType == GameSettings.GameType.Practice)
             this.roundOverPractice(failed);
 
@@ -473,7 +473,7 @@ public class GameScreen implements Screen{
         GUIManager.GameScreenGUI.inst().roundLabel.setText(this.successfulRounds +" / "+this.currRound+" / "+this.maxRounds);
     }
 
-    private void roundOverBest(boolean failed){
+    private void roundOverTimed(boolean failed){
 
     }
 
