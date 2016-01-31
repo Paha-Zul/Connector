@@ -396,7 +396,7 @@ public class GUIManager {
 
         public Label TitleLabel;
 
-        private TextButton.TextButtonStyle darkButtonStyle;
+        private TextButton.TextButtonStyle darkButtonStyle, clearGreenSelectionStyle;
         private Label.LabelStyle bigLabelStyle;
 
         public void makeGUI(final Game game, final MainMenu mainMenu){
@@ -404,6 +404,7 @@ public class GUIManager {
 
             this.titleContainer = new Container<Label>();
             this.leaderDisplayTable = new Table();
+            this.leaderSelectionTable = new Table();
             this.mainMenuTable = new Table();
 
             this.darkButtonStyle = new TextButton.TextButtonStyle();
@@ -413,6 +414,14 @@ public class GUIManager {
             this.darkButtonStyle.checked = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("buttonDark_up", Texture.class)));
             this.darkButtonStyle.disabled = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("buttonDark_up", Texture.class)));
             this.darkButtonStyle.disabledFontColor = new Color(1, 1, 1, 0.5f);
+
+            this.clearGreenSelectionStyle = new TextButton.TextButtonStyle();
+            this.clearGreenSelectionStyle.font = Game.defaultFont;
+            this.clearGreenSelectionStyle.up = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("defaultButton_clear", Texture.class)));
+            this.clearGreenSelectionStyle.down = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("defaultButton_clear", Texture.class)));
+            this.clearGreenSelectionStyle.checked = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("defaultButton_green", Texture.class)));
+            this.clearGreenSelectionStyle.disabled = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("defaultButton_clear", Texture.class)));
+            this.clearGreenSelectionStyle.disabledFontColor = new Color(1, 1, 1, 0.5f);
 
             this.bigLabelStyle = new Label.LabelStyle(Game.defaultLargeFont, Color.WHITE);
 
@@ -472,7 +481,8 @@ public class GUIManager {
             leaderboards.addListener(new ChangeListener() {
                 @Override
                 public void changed(ChangeEvent event, Actor actor) {
-                    Game.stage.addActor(leaderSelectionTable);
+                    table.clear();
+                    table.add(leaderSelectionTable);
                 }
             });
 
@@ -649,10 +659,11 @@ public class GUIManager {
             this.table.add(this.mainMenuTable);
         }
 
+        /**
+         * Creates the leaderboard selection overlay, but does not add it to the game. All
+         * data is stored in leaderboardSelectionTable and can be added later to display it.
+         */
         private void makeLeaderboardSelectionOverlay(){
-            leaderSelectionTable = new Table();
-            leaderSelectionTable.setFillParent(true);
-
             TextureRegionDrawable drawable = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("selectionBackground", Texture.class)));
 
             Table innerTable = new Table();
@@ -666,21 +677,20 @@ public class GUIManager {
             Label leaderboardTitleLabel = new Label("Select \nLeaderboard", labelStyle);
             leaderboardTitleLabel.setAlignment(Align.center);
 
-            TextButton.TextButtonStyle style = new TextButton.TextButtonStyle();
-            style.font = Game.defaultFont;
-            style.up = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("buttonDark_up", Texture.class)));
-            style.over = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("buttonDark_up", Texture.class)));
-            style.down = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("buttonDark_down", Texture.class)));
-
-            this.bestLeaderButton = new TextButton("Best", style);
-            this.timedLeaderButton = new TextButton("Timed", style);
-            TextButton back = new TextButton("Back", style);
+            this.bestLeaderButton = new TextButton("Best", clearGreenSelectionStyle);
+            this.timedLeaderButton = new TextButton("Timed", clearGreenSelectionStyle);
+            final TextButton leaderPublic = new TextButton("Public", clearGreenSelectionStyle);
+            final TextButton leaderSocial = new TextButton("Social", clearGreenSelectionStyle);
+            final TextButton daily = new TextButton("Daily", clearGreenSelectionStyle);
+            final TextButton weekly = new TextButton("Weekly", clearGreenSelectionStyle);
+            final TextButton allTime = new TextButton("All Time", clearGreenSelectionStyle);
+            TextButton back = new TextButton("Back", darkButtonStyle);
 
             this.bestLeaderButton.addListener(new ChangeListener() {
                 @Override
                 public void changed(ChangeEvent event, Actor actor) {
                     Game.resolver.getLeaderboardGPGS(Constants.LEADERBOARD_BEST);
-                    leaderSelectionTable.remove();
+                    formatMainMenu();
                 }
             });
 
@@ -688,7 +698,50 @@ public class GUIManager {
                 @Override
                 public void changed(ChangeEvent event, Actor actor) {
                     Game.resolver.getCenteredLeaderboardScore(Constants.LEADERBOARD_TIMED, 0);
-                    //leaderSelectionTable.remove();
+                    leaderSelectionTable.remove();
+                }
+            });
+
+            leaderPublic.addListener(new ClickListener(){
+                @Override
+                public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
+                    super.touchUp(event, x, y, pointer, button);
+                    leaderSocial.setChecked(false);
+                }
+            });
+
+            leaderSocial.addListener(new ClickListener(){
+                @Override
+                public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
+                    super.touchUp(event, x, y, pointer, button);
+                    leaderPublic.setChecked(false);
+                }
+            });
+
+            daily.addListener(new ClickListener(){
+                @Override
+                public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
+                    super.touchUp(event, x, y, pointer, button);
+                    weekly.setChecked(false);
+                    allTime.setChecked(false);
+                }
+            });
+
+            weekly.addListener(new ClickListener(){
+                @Override
+                public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
+                    super.touchUp(event, x, y, pointer, button);
+                    daily.setChecked(false);
+                    allTime.setChecked(false);
+                }
+            });
+
+            allTime.addListener(new ClickListener(){
+                @Override
+                public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
+                    super.touchUp(event, x, y, pointer, button);
+                    weekly.setChecked(false);
+                    daily.setChecked(false);
                 }
             });
 
@@ -807,7 +860,7 @@ public class GUIManager {
          * @param scores The scores.
          */
         public void loadLeaderboardScores(Array<String> ranks, Array<String> names, Array<String> scores){
-            this.leaderSelectionTable.remove();
+            this.table.clear();
             this.leaderDisplayTable.clear();
 
             Table innerTable = new Table();
@@ -837,14 +890,16 @@ public class GUIManager {
             backButton.addListener(new ChangeListener() {
                 @Override
                 public void changed(ChangeEvent event, Actor actor) {
-                    leaderDisplayTable.remove();
-                    formatMainMenu();
+                    table.clear();
+                    table.add(leaderSelectionTable); // Go back to the selection table.
                 }
             });
 
             this.leaderDisplayTable.add(innerTable);
             this.leaderDisplayTable.row().padTop(50);
             this.leaderDisplayTable.add(backButton);
+
+            this.table.add(this.leaderDisplayTable);
            //this.leaderSelectionTable.debugAll();
         }
 
