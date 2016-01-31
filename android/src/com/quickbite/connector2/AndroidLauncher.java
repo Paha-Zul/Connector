@@ -2,9 +2,15 @@ package com.quickbite.connector2;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import com.badlogic.gdx.backends.android.AndroidApplication;
 import com.badlogic.gdx.backends.android.AndroidApplicationConfiguration;
+import com.badlogic.gdx.utils.Array;
+import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.games.Games;
+import com.google.android.gms.games.leaderboard.LeaderboardScore;
+import com.google.android.gms.games.leaderboard.LeaderboardVariant;
+import com.google.android.gms.games.leaderboard.Leaderboards;
 import com.google.example.games.basegameutils.GameHelper;
 
 public class AndroidLauncher extends AndroidApplication implements GameHelper.GameHelperListener, ActionResolver {
@@ -62,21 +68,21 @@ public class AndroidLauncher extends AndroidApplication implements GameHelper.Ga
 
 	@Override
 	public void submitScoreGPGS(String tableID, long score) {
-        if (gameHelper.isSignedIn()) {
+        if (getSignedInGPGS()) {
             Games.Leaderboards.submitScore(gameHelper.getApiClient(), tableID, score);
         }
 	}
 
 	@Override
 	public void unlockAchievementGPGS(String achievementId) {
-        if (gameHelper.isSignedIn()) {
+        if (getSignedInGPGS()) {
             Games.Achievements.unlock(gameHelper.getApiClient(), achievementId);
         }
 	}
 
 	@Override
 	public void getLeaderboardGPGS(String leaderboardID) {
-		if (gameHelper.isSignedIn()) {
+		if (getSignedInGPGS()) {
 			startActivityForResult(Games.Leaderboards.getLeaderboardIntent(gameHelper.getApiClient(), leaderboardID), 100);
 		}else if (!gameHelper.isConnecting()) {
 			//loginGPGS();
@@ -89,10 +95,45 @@ public class AndroidLauncher extends AndroidApplication implements GameHelper.Ga
 	}
 
 	@Override
+	public void getLeaderboardScore(String leaderboardID, int timeSpan) {
+		Games.Leaderboards.loadCurrentPlayerLeaderboardScore(gameHelper.getApiClient(), leaderboardID,
+				timeSpan, LeaderboardVariant.COLLECTION_PUBLIC);
+	}
+
+	@Override
+	public void getCenteredLeaderboardScore(String leaderboardID, int timeSpan) {
+		Games.Leaderboards.loadPlayerCenteredScores(gameHelper.getApiClient(), leaderboardID, timeSpan,
+				LeaderboardVariant.COLLECTION_PUBLIC, 10).setResultCallback(new ResultCallback<Leaderboards.LoadScoresResult>() {
+            @Override
+            public void onResult(@NonNull Leaderboards.LoadScoresResult loadScoresResult) {
+                //GUIManager.MainMenuGUI.inst().loadLeaderboardScores();
+                Array<String> ranks = new Array<>();
+                Array<String> names = new Array<>();
+                Array<String> scores = new Array<>();
+
+                for(LeaderboardScore score : loadScoresResult.getScores()){
+                    ranks.add(score.getDisplayRank());
+                    names.add(score.getScoreHolderDisplayName());
+                    scores.add(score.getDisplayScore());
+                }
+
+                GUIManager.MainMenuGUI.inst().loadLeaderboardScores(ranks, names, scores);
+            }
+        });
+	}
+
+	@Override
+	public void getTopLeaderboardScores(String leaderboardID, int timeSpan, int numScores) {
+		Games.Leaderboards.loadTopScores(gameHelper.getApiClient(), leaderboardID, timeSpan, LeaderboardVariant.COLLECTION_PUBLIC, 10);
+	}
+
+	@Override
 	public void onSignInFailed() {
+
 	}
 
 	@Override
 	public void onSignInSucceeded() {
+
 	}
 }

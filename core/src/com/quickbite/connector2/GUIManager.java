@@ -11,6 +11,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Align;
+import com.badlogic.gdx.utils.Array;
 
 /**
  * Created by Paha on 1/23/2016.
@@ -21,7 +22,7 @@ public class GUIManager {
         public Table mainTable = new Table();
         public Image gameOverImage;
         public Label roundLabel, avgTimeLabel, colorTypeLabel, matchTypeLabel, gameTypeLabel, timerLabel;
-        public Label roundsSurvivedLabel, bestTimeLabel, lostReasonLabel, avgTimeLabel2;
+        public Label roundsSurvivedLabel, bestTimeLabel, lostReasonLabel, avgTimeLabel2, scoreLabel;
         public TextButton restartButton, mainMenuButton;
         public ImageButton backButton;
 
@@ -104,6 +105,9 @@ public class GUIManager {
 
             Label.LabelStyle labelStyle = new Label.LabelStyle(Game.defaultFont, Color.WHITE);
             Label.LabelStyle titleLabelStyle = new Label.LabelStyle(Game.defaultLargeFont, Color.WHITE);
+
+            this.scoreLabel = new Label("", titleLabelStyle);
+            this.scoreLabel.setAlignment(Align.center);
 
             this.bestTimeLabel = new Label("", titleLabelStyle);
             this.bestTimeLabel.setAlignment(Align.center);
@@ -321,6 +325,8 @@ public class GUIManager {
         }
 
         public void gameOverGUI(){
+            this.mainTable.add(this.scoreLabel).expandX().fillX();
+            this.mainTable.row().padTop(50f);
             this.mainTable.add(this.avgTimeLabel2).expandX().fillX();
             this.mainTable.row().padTop(50f);
             this.mainTable.add(this.bestTimeLabel).expandX().fillX();
@@ -359,6 +365,11 @@ public class GUIManager {
                 this.avgTimeLabel2.setText(text);
         }
 
+        public void setScoreLabel(String text){
+            if(this.scoreLabel != null)
+                this.scoreLabel.setText(text);
+        }
+
         public void reset(){
             this.state = 0;
             this.innerState = 0;
@@ -374,27 +385,44 @@ public class GUIManager {
     public static class MainMenuGUI{
         private static MainMenuGUI instance;
 
-        public Table table, leaderSelectionTable;
+        public Table table, leaderSelectionTable, choicesTable, leaderDisplayTable, mainMenuTable;
 
         public TextButton leaderboards, start, quit, loginGPG;
         public TextButton colorSame, colorRandom, matchShape, matchColor, modePractice, modeBest, modeTimed, startGame;
         public TextButton threeShapes, fourShapes, fiveShapes, sixShapes;
 
         public TextButton bestLeaderButton, timedLeaderButton;
+        public Container<Label> titleContainer;
 
         public Label TitleLabel;
+
+        private TextButton.TextButtonStyle darkButtonStyle;
+        private Label.LabelStyle bigLabelStyle;
 
         public void makeGUI(final Game game, final MainMenu mainMenu){
             this.table = new Table();
 
-            Table buttonTable = new Table();
-            Container<Label> titleContainer = new Container<Label>();
+            this.titleContainer = new Container<Label>();
+            this.leaderDisplayTable = new Table();
+            this.mainMenuTable = new Table();
+
+            this.darkButtonStyle = new TextButton.TextButtonStyle();
+            this.darkButtonStyle.font = Game.defaultFont;
+            this.darkButtonStyle.up = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("buttonDark_up", Texture.class)));
+            this.darkButtonStyle.down = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("buttonDark_down", Texture.class)));
+            this.darkButtonStyle.checked = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("buttonDark_up", Texture.class)));
+            this.darkButtonStyle.disabled = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("buttonDark_up", Texture.class)));
+            this.darkButtonStyle.disabledFontColor = new Color(1, 1, 1, 0.5f);
+
+            this.bigLabelStyle = new Label.LabelStyle(Game.defaultLargeFont, Color.WHITE);
 
             TextButton.TextButtonStyle regularStyle = new TextButton.TextButtonStyle();
             regularStyle.up = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("buttonDark_up", Texture.class)));
             regularStyle.down = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("buttonDark_down", Texture.class)));
             regularStyle.checked = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("buttonDark_up", Texture.class)));
             regularStyle.font = Game.defaultFont;
+            regularStyle.disabled = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("buttonDark_up", Texture.class)));
+            regularStyle.disabledFontColor = new Color(1, 1, 1, 0.5f);
 
             TextButton.TextButtonStyle style = new TextButton.TextButtonStyle();
             style.up = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("defaultButton_clear", Texture.class)));
@@ -402,8 +430,10 @@ public class GUIManager {
             style.checked = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("defaultButton_green", Texture.class)));
             style.font = Game.defaultFont;
 
+
             start = new TextButton("Start", regularStyle);
             quit = new TextButton("Quit", regularStyle);
+
             leaderboards = new TextButton("Leaderboards", regularStyle);
             loginGPG = new TextButton("Login to \n Google Play", regularStyle);
 
@@ -572,6 +602,11 @@ public class GUIManager {
                 }
             });
 
+            if(Game.resolver.getSignedInGPGS())
+                loginGPG.setDisabled(true);
+            else
+                leaderboards.setDisabled(true);
+
             Label.LabelStyle titleStyle = new Label.LabelStyle(Game.defaultHugeFont, Color.WHITE);
             this.TitleLabel = new Label("Connector", titleStyle);
             this.TitleLabel.setAlignment(Align.top);
@@ -580,10 +615,22 @@ public class GUIManager {
             titleContainer.setActor(TitleLabel);
 
             this.makeLeaderboardSelectionOverlay();
-            this.formatMainMenu(buttonTable, titleContainer);
+            this.formatMainMenu();
+
+            this.table.setFillParent(true);
+            Game.stage.addActor(this.table);
         }
 
-        private void formatMainMenu(Table buttonTable, Container<Label> titleContainer){
+        /**
+         * Simply lays out already constructed components on the main menu
+         *
+         */
+        private void formatMainMenu(){
+            this.table.clear();
+            this.mainMenuTable.clear();
+
+            Table buttonTable = new Table();
+
             buttonTable.add(start).size(200, 75);
             buttonTable.row().padTop(40);
             buttonTable.add(loginGPG).size(200, 75);
@@ -592,16 +639,14 @@ public class GUIManager {
             buttonTable.row().padTop(40);
             buttonTable.add(quit).size(200, 75);
 
-            this.table.top();
+            this.mainMenuTable.top();
 
-            this.table.row().padTop(50);
-            this.table.add(titleContainer);
-            this.table.row().padTop(75);
-            this.table.add(buttonTable);
+            this.mainMenuTable.row().padTop(50);
+            this.mainMenuTable.add(titleContainer);
+            this.mainMenuTable.row().padTop(75);
+            this.mainMenuTable.add(buttonTable);
 
-            this.table.setFillParent(true);
-
-            Game.stage.addActor(this.table);
+            this.table.add(this.mainMenuTable);
         }
 
         private void makeLeaderboardSelectionOverlay(){
@@ -613,11 +658,19 @@ public class GUIManager {
             Table innerTable = new Table();
             innerTable.setBackground(drawable);
 
+            drawable = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("pixelDark", Texture.class)));
+            leaderSelectionTable.setBackground(drawable);
+
+            Label.LabelStyle labelStyle = new Label.LabelStyle(Game.defaultLargeFont, Color.WHITE);
+
+            Label leaderboardTitleLabel = new Label("Select \nLeaderboard", labelStyle);
+            leaderboardTitleLabel.setAlignment(Align.center);
+
             TextButton.TextButtonStyle style = new TextButton.TextButtonStyle();
             style.font = Game.defaultFont;
-            style.up = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("defaultButton_clear", Texture.class)));
-            style.over = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("defaultButton_clear", Texture.class)));
-            style.down = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("defaultButton_green", Texture.class)));
+            style.up = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("buttonDark_up", Texture.class)));
+            style.over = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("buttonDark_up", Texture.class)));
+            style.down = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("buttonDark_down", Texture.class)));
 
             this.bestLeaderButton = new TextButton("Best", style);
             this.timedLeaderButton = new TextButton("Timed", style);
@@ -626,7 +679,7 @@ public class GUIManager {
             this.bestLeaderButton.addListener(new ChangeListener() {
                 @Override
                 public void changed(ChangeEvent event, Actor actor) {
-                    Game.resolver.getLeaderboardGPGS("CgkI3sW1wbAUEAIQBw");
+                    Game.resolver.getLeaderboardGPGS(Constants.LEADERBOARD_BEST);
                     leaderSelectionTable.remove();
                 }
             });
@@ -634,8 +687,8 @@ public class GUIManager {
             this.timedLeaderButton.addListener(new ChangeListener() {
                 @Override
                 public void changed(ChangeEvent event, Actor actor) {
-                    Game.resolver.getLeaderboardGPGS("CgkI3sW1wbAUEAIQCA");
-                    leaderSelectionTable.remove();
+                    Game.resolver.getCenteredLeaderboardScore(Constants.LEADERBOARD_TIMED, 0);
+                    //leaderSelectionTable.remove();
                 }
             });
 
@@ -646,20 +699,46 @@ public class GUIManager {
                 }
             });
 
-            innerTable.add(bestLeaderButton).width(100).height(75);
-            innerTable.row();
-            innerTable.add(timedLeaderButton).width(100).height(75);
-            innerTable.row();
-            innerTable.add(back).width(100).height(75);
+            innerTable.row().pad(25,25,0,25);
+            innerTable.add(leaderboardTitleLabel).width(300).height(100);
+            innerTable.row().pad(10,25,0,25);
+            innerTable.add(bestLeaderButton).width(150).height(50);
+            innerTable.row().pad(10,25,0,25);
+            innerTable.add(timedLeaderButton).width(150).height(50);
+            innerTable.row().pad(10,25,0,25);
+            innerTable.add(back).width(150).height(50);
+            innerTable.row().pad(50,25,0,25);
+            innerTable.add();
+
+            //innerTable.debugAll();
 
             leaderSelectionTable.add(innerTable);
         }
 
+        /**
+         * Makes the choices menu which is all contained in the choicesTable.
+         */
         private void choicesMenu(){
+            this.choicesTable = new Table();
+
+            TextButton.TextButtonStyle buttonStyle = new  TextButton.TextButtonStyle();
+            buttonStyle.font = Game.defaultFont;
+            buttonStyle.up = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("buttonDark_up", Texture.class)));
+            buttonStyle.over = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("buttonDark_up", Texture.class)));
+            buttonStyle.down = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("buttonDark_down", Texture.class)));
+
+            TextButton backButton = new TextButton("Back", buttonStyle);
+
+            backButton.addListener(new ChangeListener() {
+                @Override
+                public void changed(ChangeEvent event, Actor actor) {
+                    table.clear();
+                    formatMainMenu();
+                }
+            });
+
             Label.LabelStyle titleStyle = new Label.LabelStyle(Game.defaultFont, Color.WHITE);
             titleStyle.background = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("darkStrip", Texture.class)));
-
-            Label.LabelStyle style = new Label.LabelStyle(Game.defaultFont, Color.WHITE);
 
             Label numShapesLabel = new Label("Number of Shapes", titleStyle);
             numShapesLabel.setAlignment(Align.center);
@@ -692,34 +771,88 @@ public class GUIManager {
             modeTable.add(this.modeBest).size(125, 50).padRight(1);
             modeTable.add(this.modeTimed).size(125, 50).padRight(1);
 
-            this.table.add(numShapesLabel).expandX().fillX().center().padBottom(10).height(40);
-            this.table.row();
-            this.table.add(numShapesTable).expandX();
-            this.table.row().padTop(50);
+            Table startTable = new Table();
+            startTable.add(this.startGame).size(125, 50).padRight(50);
+            startTable.add(backButton).size(125, 50);
 
-            this.table.add(colorLabel).expandX().fillX().center().padBottom(10).height(40);
-            this.table.row();
-            this.table.add(colorTable).expandX();
-            this.table.row().padTop(50);
+            this.choicesTable.add(numShapesLabel).expandX().fillX().center().padBottom(10).height(40);
+            this.choicesTable.row();
+            this.choicesTable.add(numShapesTable).expandX();
+            this.choicesTable.row().padTop(50);
 
-            this.table.add(matchLabel).expandX().fillX().center().padBottom(10).height(40);
-            this.table.row().padTop(10);
-            this.table.add(matchTable).expandX();
-            this.table.row().padTop(50);
+            this.choicesTable.add(colorLabel).expandX().fillX().center().padBottom(10).height(40);
+            this.choicesTable.row();
+            this.choicesTable.add(colorTable).expandX();
+            this.choicesTable.row().padTop(50);
 
-            this.table.add(modeLabel).expandX().fillX().center().padBottom(10).height(40);
-            this.table.row().padTop(10);
-            this.table.add(modeTable).expandX();
-            this.table.row().padTop(50);
+            this.choicesTable.add(matchLabel).expandX().fillX().center().padBottom(10).height(40);
+            this.choicesTable.row().padTop(10);
+            this.choicesTable.add(matchTable).expandX();
+            this.choicesTable.row().padTop(50);
 
-            this.table.add(this.startGame).size(125, 50);
+            this.choicesTable.add(modeLabel).expandX().fillX().center().padBottom(10).height(40);
+            this.choicesTable.row().padTop(10);
+            this.choicesTable.add(modeTable).expandX();
+            this.choicesTable.row().padTop(50);
 
+            this.choicesTable.add(startTable);
+
+            this.table.add(this.choicesTable).expand().fill();
+        }
+
+        /**
+         * Takes in information and creates a table layout with the information.
+         * @param ranks The ranks.
+         * @param names The names.
+         * @param scores The scores.
+         */
+        public void loadLeaderboardScores(Array<String> ranks, Array<String> names, Array<String> scores){
+            this.leaderSelectionTable.remove();
+            this.leaderDisplayTable.clear();
+
+            Table innerTable = new Table();
+            Label.LabelStyle style = new Label.LabelStyle(Game.defaultFont, Color.WHITE);
+
+            innerTable.add(new Label("Rank", style));
+            innerTable.add().padRight(10);
+            innerTable.add(new Label("Name", style));
+            innerTable.add().padRight(10);
+            innerTable.add(new Label("Score", style));
+            innerTable.row().padTop(20);
+
+            for(int i=0;i<names.size;i++){
+                Label rank = new Label(ranks.get(i), style);
+                Label name = new Label(names.get(i), style);
+                Label score = new Label(scores.get(i), style);
+
+                innerTable.add(rank);
+                innerTable.add().padRight(10);
+                innerTable.add(name);
+                innerTable.add().padRight(10);
+                innerTable.add(score);
+                innerTable.row();
+            }
+
+            TextButton backButton = new TextButton("Back", darkButtonStyle);
+            backButton.addListener(new ChangeListener() {
+                @Override
+                public void changed(ChangeEvent event, Actor actor) {
+                    leaderDisplayTable.remove();
+                    formatMainMenu();
+                }
+            });
+
+            this.leaderDisplayTable.add(innerTable);
+            this.leaderDisplayTable.row().padTop(50);
+            this.leaderDisplayTable.add(backButton);
+           //this.leaderSelectionTable.debugAll();
         }
 
         public static MainMenuGUI inst(){
             if(instance == null) instance = new MainMenuGUI();
             return instance;
         }
+
 
     }
 }

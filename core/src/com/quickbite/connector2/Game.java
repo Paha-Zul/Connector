@@ -30,7 +30,7 @@ public class Game extends com.badlogic.gdx.Game {
 	public static TextureRegion defaultButtonUp, defaultButtonDown;
 
 	public Game(ActionResolver actionResolver){
-		this.resolver = actionResolver;
+		resolver = actionResolver;
 	}
 	
 	@Override

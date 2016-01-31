@@ -149,6 +149,7 @@ public class GameScreen implements Screen{
         this.avgTime = 0;
         this.bestTime = 0;
         this.currScore = 0;
+        this.successfulRounds = 0;
 
         this.initRound();
     }
@@ -200,7 +201,7 @@ public class GameScreen implements Screen{
         if(this.bestTime == 0 || this.bestTime >= time)
             this.bestTime = time;
 
-        GUIManager.GameScreenGUI.inst().setAvgTimeLabelText("avgTime-time: "+this.formatter.format(this.avgTime /1000));
+        GUIManager.GameScreenGUI.inst().setAvgTimeLabelText("avg-time: "+this.formatter.format(this.avgTime /1000)+"s");
     }
 
     @Override
@@ -381,8 +382,8 @@ public class GameScreen implements Screen{
      * General game over.
      */
     private void gameOver(){
-        GUIManager.GameScreenGUI.inst().setBestTimeLabelText("Best Time: "+this.formatter.format(this.bestTime/1000));
-        GUIManager.GameScreenGUI.inst().setGameOverAvgTimeLabelText("Average Time: "+this.formatter.format(this.avgTime /1000));
+        GUIManager.GameScreenGUI.inst().setBestTimeLabelText("Best Time: "+this.formatter.format(this.bestTime/1000)+"s");
+        GUIManager.GameScreenGUI.inst().setGameOverAvgTimeLabelText("Average Time: "+this.formatter.format(this.avgTime /1000)+"s");
 
         String gameOverReason = "You Won!";
         if(this.roundOverReason == RoundOver.HitShape) gameOverReason = "Hit Wrong Shape!";
@@ -411,7 +412,9 @@ public class GameScreen implements Screen{
      */
     private void gameOverTimed(){
         GUIManager.GameScreenGUI.inst().gameOverTimedGUI(this);
-        this.currScore = (int)(currRound *(1f/(avgTime/1000))*GameSettings.numShapes);
+        if(avgTime == 0) this.currScore = 0;
+        else this.currScore = (int)((4*currRound) *(1f/(avgTime/1000))*(GameSettings.numShapes*4));
+        GUIManager.GameScreenGUI.inst().setScoreLabel("Your Score: "+this.currScore);
         Game.resolver.submitScoreGPGS(Constants.LEADERBOARD_TIMED, this.currScore);
     }
 
@@ -420,7 +423,9 @@ public class GameScreen implements Screen{
      */
     private void gameOverBest(){
         GUIManager.GameScreenGUI.inst().gameOverBestGUI();
-        this.currScore = (int)(successfulRounds *(1f/(avgTime/1000))*GameSettings.numShapes);
+        if(avgTime == 0) this.currScore = 0;
+        else this.currScore = (int)((4*successfulRounds) *(1f/(avgTime/1000))*(GameSettings.numShapes*4));
+        GUIManager.GameScreenGUI.inst().setScoreLabel("Your Score: "+this.currScore);
         Game.resolver.submitScoreGPGS(Constants.LEADERBOARD_BEST, this.currScore);
     }
 
