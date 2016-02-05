@@ -2,12 +2,15 @@ package com.quickbite.connector2;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.utils.TimeUtils;
 
 /**
  * Created by Paha on 1/8/2016.
  */
 public class MainMenu implements Screen {
     Game game;
+
+    private double nextTick, interval = 500; //in millis
 
     public MainMenu(Game game){
         this.game = game;
@@ -24,7 +27,14 @@ public class MainMenu implements Screen {
 
     @Override
     public void render(float delta) {
-
+        double time = TimeUtils.millis();
+        if(time >= this.nextTick){
+            this.nextTick =  time + interval;
+            if(Game.resolver.getSignedInGPGS()){
+                GUIManager.MainMenuGUI.inst().loginGPG.setDisabled(true);
+                GUIManager.MainMenuGUI.inst().leaderboards.setDisabled(false);
+            }
+        }
     }
 
     @Override

@@ -3,11 +3,16 @@ package com.quickbite.connector2;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.backends.android.AndroidApplication;
 import com.badlogic.gdx.backends.android.AndroidApplicationConfiguration;
 import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.utils.TimeUtils;
+import com.badlogic.gdx.utils.Timer;
+import com.google.android.gms.common.api.PendingResult;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.games.Games;
+import com.google.android.gms.games.GamesStatusCodes;
 import com.google.android.gms.games.leaderboard.LeaderboardScore;
 import com.google.android.gms.games.leaderboard.LeaderboardVariant;
 import com.google.android.gms.games.leaderboard.Leaderboards;
@@ -83,7 +88,7 @@ public class AndroidLauncher extends AndroidApplication implements GameHelper.Ga
 	@Override
 	public void getLeaderboardGPGS(String leaderboardID) {
 		if (getSignedInGPGS()) {
-			startActivityForResult(Games.Leaderboards.getLeaderboardIntent(gameHelper.getApiClient(), leaderboardID), 100);
+			startActivityForResult(Games.Leaderboards.getAllLeaderboardsIntent(gameHelper.getApiClient()), 100);
 		}else if (!gameHelper.isConnecting()) {
 			//loginGPGS();
 		}
@@ -101,12 +106,25 @@ public class AndroidLauncher extends AndroidApplication implements GameHelper.Ga
 	}
 
 	@Override
-	public void getCenteredLeaderboardScore(String leaderboardID, int timeSpan) {
-		Games.Leaderboards.loadPlayerCenteredScores(gameHelper.getApiClient(), leaderboardID, timeSpan,
-				LeaderboardVariant.COLLECTION_PUBLIC, 10).setResultCallback(new ResultCallback<Leaderboards.LoadScoresResult>() {
+	public void getCenteredLeaderboardScore(String leaderboardID, int timeSpan, int leaderboardType, float timeoutMillis) {
+		final double timeStarted = TimeUtils.millis();
+		final double _timeout = timeoutMillis; //In millis
+
+		final Timer timeOutTimer = new Timer();
+
+		final PendingResult<Leaderboards.LoadScoresResult> pendingResult = Games.Leaderboards.loadPlayerCenteredScores(gameHelper.getApiClient(),
+				leaderboardID, timeSpan, leaderboardType, 10);
+
+		//Create the callback. If valid, call the GUI to load the scores.
+		pendingResult.setResultCallback(new ResultCallback<Leaderboards.LoadScoresResult>() {
             @Override
             public void onResult(@NonNull Leaderboards.LoadScoresResult loadScoresResult) {
-                //GUIManager.MainMenuGUI.inst().loadLeaderboardScores();
+				timeOutTimer.clear(); //Clear the timeOutTimer
+
+				if(loadScoresResult.getStatus().getStatusCode() != GamesStatusCodes.STATUS_OK)
+					return;
+
+				//GUIManager.MainMenuGUI.inst().loadLeaderboardScores();
                 Array<String> ranks = new Array<>();
                 Array<String> names = new Array<>();
                 Array<String> scores = new Array<>();
@@ -120,6 +138,20 @@ public class AndroidLauncher extends AndroidApplication implements GameHelper.Ga
                 GUIManager.MainMenuGUI.inst().loadLeaderboardScores(ranks, names, scores);
             }
         });
+
+		//If we wait too long, cancel the result.
+		timeOutTimer.scheduleTask(new Timer.Task() {
+			@Override
+			public void run() {
+				if(TimeUtils.millis() >= timeStarted + _timeout) {
+					Gdx.app.debug("Leaderboard", "Leaderboard Timed out successfully");
+					pendingResult.cancel();
+					timeOutTimer.clear();
+                    GUIManager.MainMenuGUI.inst().loadLeaderboardScores(null, null, null);
+				}
+			}
+		}, 0, 0.5f);
+
 	}
 
 	@Override

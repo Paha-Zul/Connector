@@ -310,7 +310,7 @@ public class GameScreen implements Screen{
 
     private void updateTimedGame(float delta){
         this.roundTime -= delta;
-        GUIManager.GameScreenGUI.inst().timerLabel.setText(this.formatter.format(this.roundTime)+"");
+        GUIManager.GameScreenGUI.inst().topCenterLabel.setText(this.formatter.format(this.roundTime)+"");
         if(this.roundTime <= 0){
             this.roundTime = 0;
             this.setRoundOver(true, RoundOver.OutOfTime);

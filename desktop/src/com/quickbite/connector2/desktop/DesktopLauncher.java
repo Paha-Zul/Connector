@@ -55,7 +55,7 @@ public class DesktopLauncher implements ActionResolver {
 	}
 
 	@Override
-	public void getCenteredLeaderboardScore(String leaderboardID, int timeSpan) {
+	public void getCenteredLeaderboardScore(String leaderboardID, int timeSpan, int leaderboardType, float timeoutSeconds) {
 		System.out.println("Getting Leaderboard Centered Score with timespane of "+timeSpan);
 
 		//We'll write an example here

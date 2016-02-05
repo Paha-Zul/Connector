@@ -21,7 +21,7 @@ public class GUIManager {
     public static class GameScreenGUI {
         public Table mainTable = new Table();
         public Image gameOverImage;
-        public Label roundLabel, avgTimeLabel, colorTypeLabel, matchTypeLabel, gameTypeLabel, timerLabel;
+        public Label roundLabel, avgTimeLabel, colorTypeLabel, matchTypeLabel, gameTypeLabel, topCenterLabel;
         public Label roundsSurvivedLabel, bestTimeLabel, lostReasonLabel, avgTimeLabel2, scoreLabel;
         public TextButton restartButton, mainMenuButton;
         public ImageButton backButton;
@@ -153,11 +153,11 @@ public class GUIManager {
             }
 
             if (GameSettings.gameType == GameSettings.GameType.Timed) {
-                this.timerLabel = new Label("", titleLabelStyle);
-                this.timerLabel.setAlignment(Align.center);
-                this.timerLabel.setSize(100, 50);
-                this.timerLabel.setPosition(Gdx.graphics.getWidth() / 2 - 50, Gdx.graphics.getHeight() - 75);
-                Game.stage.addActor(this.timerLabel);
+                this.topCenterLabel = new Label("", titleLabelStyle);
+                this.topCenterLabel.setAlignment(Align.center);
+                this.topCenterLabel.setSize(100, 50);
+                this.topCenterLabel.setPosition(Gdx.graphics.getWidth() / 2 - 50, Gdx.graphics.getHeight() - 75);
+                Game.stage.addActor(this.topCenterLabel);
             }
 
             Game.stage.addActor(this.backButton);
@@ -398,6 +398,10 @@ public class GUIManager {
 
         private TextButton.TextButtonStyle darkButtonStyle, clearGreenSelectionStyle;
         private Label.LabelStyle bigLabelStyle;
+
+        /* Variables for the leaderboard selection table */
+        private String leaderboardID;
+        private int leaderboardType, leaderboardTimeSpan;
 
         public void makeGUI(final Game game, final MainMenu mainMenu){
             this.table = new Table();
@@ -666,6 +670,11 @@ public class GUIManager {
         private void makeLeaderboardSelectionOverlay(){
             TextureRegionDrawable drawable = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("selectionBackground", Texture.class)));
 
+            Table leaderTable = new Table();
+            Table typeTable = new Table();
+            Table timeTable = new Table();
+            Table buttonTable = new Table();
+
             Table innerTable = new Table();
             innerTable.setBackground(drawable);
 
@@ -677,6 +686,8 @@ public class GUIManager {
             Label leaderboardTitleLabel = new Label("Select \nLeaderboard", labelStyle);
             leaderboardTitleLabel.setAlignment(Align.center);
 
+            final TextButton oldExample = new TextButton("Other Way", darkButtonStyle);
+
             this.bestLeaderButton = new TextButton("Best", clearGreenSelectionStyle);
             this.timedLeaderButton = new TextButton("Timed", clearGreenSelectionStyle);
             final TextButton leaderPublic = new TextButton("Public", clearGreenSelectionStyle);
@@ -684,21 +695,33 @@ public class GUIManager {
             final TextButton daily = new TextButton("Daily", clearGreenSelectionStyle);
             final TextButton weekly = new TextButton("Weekly", clearGreenSelectionStyle);
             final TextButton allTime = new TextButton("All Time", clearGreenSelectionStyle);
-            TextButton back = new TextButton("Back", darkButtonStyle);
 
-            this.bestLeaderButton.addListener(new ChangeListener() {
+            TextButton backButton = new TextButton("Back", darkButtonStyle);
+            TextButton getButton = new TextButton("Get", darkButtonStyle);
+
+            oldExample.addListener(new ClickListener(){
                 @Override
-                public void changed(ChangeEvent event, Actor actor) {
-                    Game.resolver.getLeaderboardGPGS(Constants.LEADERBOARD_BEST);
-                    formatMainMenu();
+                public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
+                    super.touchUp(event, x, y, pointer, button);
+                    Game.resolver.getLeaderboardGPGS("DoesntMatter");
                 }
             });
 
-            this.timedLeaderButton.addListener(new ChangeListener() {
+            this.bestLeaderButton.addListener(new ClickListener(){
                 @Override
-                public void changed(ChangeEvent event, Actor actor) {
-                    Game.resolver.getCenteredLeaderboardScore(Constants.LEADERBOARD_TIMED, 0);
-                    leaderSelectionTable.remove();
+                public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
+                    super.touchUp(event, x, y, pointer, button);
+                    timedLeaderButton.setChecked(false);
+                    leaderboardID = Constants.LEADERBOARD_BEST;
+                }
+            });
+
+            this.timedLeaderButton.addListener(new ClickListener() {
+                @Override
+                public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
+                    super.touchUp(event, x, y, pointer, button);
+                    bestLeaderButton.setChecked(false);
+                    leaderboardID = Constants.LEADERBOARD_TIMED;
                 }
             });
 
@@ -706,6 +729,7 @@ public class GUIManager {
                 @Override
                 public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
                     super.touchUp(event, x, y, pointer, button);
+                    leaderboardType = 0;
                     leaderSocial.setChecked(false);
                 }
             });
@@ -714,6 +738,7 @@ public class GUIManager {
                 @Override
                 public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
                     super.touchUp(event, x, y, pointer, button);
+                    leaderboardType = 1;
                     leaderPublic.setChecked(false);
                 }
             });
@@ -722,6 +747,7 @@ public class GUIManager {
                 @Override
                 public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
                     super.touchUp(event, x, y, pointer, button);
+                    leaderboardTimeSpan = 0;
                     weekly.setChecked(false);
                     allTime.setChecked(false);
                 }
@@ -731,6 +757,7 @@ public class GUIManager {
                 @Override
                 public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
                     super.touchUp(event, x, y, pointer, button);
+                    leaderboardTimeSpan = 1;
                     daily.setChecked(false);
                     allTime.setChecked(false);
                 }
@@ -740,26 +767,52 @@ public class GUIManager {
                 @Override
                 public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
                     super.touchUp(event, x, y, pointer, button);
+                    leaderboardTimeSpan = 2;
                     weekly.setChecked(false);
                     daily.setChecked(false);
                 }
             });
 
-            back.addListener(new ChangeListener() {
+            backButton.addListener(new ChangeListener() {
                 @Override
                 public void changed(ChangeEvent event, Actor actor) {
-                    leaderSelectionTable.remove();
+                    formatMainMenu();
                 }
             });
+
+            getButton.addListener(new ChangeListener() {
+                @Override
+                public void changed(ChangeEvent event, Actor actor) {
+                    table.clear();
+                    Game.resolver.getCenteredLeaderboardScore(leaderboardID, leaderboardTimeSpan, leaderboardType, 5000);
+                }
+            });
+
+            leaderTable.add(bestLeaderButton).width(150).height(50); //Best
+            leaderTable.add(timedLeaderButton).width(150).height(50); //Timed
+
+            typeTable.add(leaderPublic).width(150).height(50);
+            typeTable.add(leaderSocial).width(150).height(50);
+
+            timeTable.add(daily).width(150).height(50);
+            timeTable.add(weekly).width(150).height(50);
+            timeTable.add(allTime).width(150).height(50);
+
+            buttonTable.add(getButton).width(100).height(50).padRight(50);
+            buttonTable.add(backButton).width(100).height(50);
 
             innerTable.row().pad(25,25,0,25);
             innerTable.add(leaderboardTitleLabel).width(300).height(100);
             innerTable.row().pad(10,25,0,25);
-            innerTable.add(bestLeaderButton).width(150).height(50);
+            innerTable.add(oldExample).width(150).height(50); //Best
             innerTable.row().pad(10,25,0,25);
-            innerTable.add(timedLeaderButton).width(150).height(50);
-            innerTable.row().pad(10,25,0,25);
-            innerTable.add(back).width(150).height(50);
+            innerTable.add(leaderTable); //Best
+            innerTable.row().pad(50,25,0,25);
+            innerTable.add(typeTable);
+            innerTable.row().pad(50,25,0,25);
+            innerTable.add(timeTable);
+            innerTable.row().pad(50,25,0,25);
+            innerTable.add(buttonTable).width(150).height(50);
             innerTable.row().pad(50,25,0,25);
             innerTable.add();
 
@@ -860,6 +913,12 @@ public class GUIManager {
          * @param scores The scores.
          */
         public void loadLeaderboardScores(Array<String> ranks, Array<String> names, Array<String> scores){
+            if(ranks == null || names == null || scores == null){
+                table.clear();
+                table.add(leaderSelectionTable);
+                return;
+            }
+
             this.table.clear();
             this.leaderDisplayTable.clear();
 

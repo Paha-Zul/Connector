@@ -11,6 +11,6 @@ public interface ActionResolver {
     public void getLeaderboardGPGS(String leaderboardID);
     public void getAchievementsGPGS();
     public void getLeaderboardScore(String leaderboardID, int timeSpan);
-    public void getCenteredLeaderboardScore(String leaderboardID, int timeSpan);
+    public void getCenteredLeaderboardScore(String leaderboardID, int timeSpan, int leaderboardType, float timeoutSeconds);
     public void getTopLeaderboardScores(String leaderboardID, int timeSpan, int numScores);
 }
