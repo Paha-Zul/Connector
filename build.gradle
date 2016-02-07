@@ -67,10 +67,10 @@ project(":android") {
         natives "com.badlogicgames.gdx:gdx-freetype-platform:$gdxVersion:natives-armeabi"
         natives "com.badlogicgames.gdx:gdx-freetype-platform:$gdxVersion:natives-armeabi-v7a"
         natives "com.badlogicgames.gdx:gdx-freetype-platform:$gdxVersion:natives-x86"
-        //compile 'com.android.support:appcompat-v7:20.0.+'
-        //compile 'com.android.support:support-v4:20.0.+'
-        //compile 'com.google.android.gms:play-services:+'
+        compile 'com.android.support:appcompat-v7:+'
+        compile 'com.android.support:support-v4:+'
         compile 'com.google.android.gms:play-services-games:+'
+        compile 'com.google.android.gms:play-services-ads:8.4.0'
     }
 
 }

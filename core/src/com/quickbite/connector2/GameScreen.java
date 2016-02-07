@@ -71,6 +71,8 @@ public class GameScreen implements Screen{
 
     @Override
     public void show() {
+        GUIManager.GameScreenGUI.inst().makeGUI(this.game, this);
+
         float startingY = Game.camera.viewportHeight/2 - Game.camera.viewportHeight*this.topArea - sizeOfSpots/2;
         float startingX = Game.camera.position.x + Game.camera.viewportWidth/2 - sizeOfSpots/2;
 
@@ -80,15 +82,15 @@ public class GameScreen implements Screen{
 
         this.topTexture = new TextureRegion(Game.easyAssetManager.get("Top", Texture.class));
 
-        positions = new Vector2[num];
+        this.positions = new Vector2[num];
         for(int i=0;i<num;i++){
             Vector2 vec = new Vector2(startingX - ((i*sizeOfSpots)%(sizeOfSpots*(xSpots))), startingY - ((i/xSpots)*sizeOfSpots));
-            positions[i] = vec;
+            this.positions[i] = vec;
         }
 
         this.colorIDs = new Integer[GameSettings.numShapes *2];
         for(int i=0;i<this.colorIDs.length;i++)
-            colorIDs[i] = i/2;
+            this.colorIDs[i] = i/2;
 
         shapes = new TextureRegion[6];
         shapes[0] = new TextureRegion(Game.easyAssetManager.get("Star", Texture.class));
@@ -131,11 +133,12 @@ public class GameScreen implements Screen{
 
         if(GameSettings.gameType == GameSettings.GameType.Timed)
             this.roundTime = this.roundTimeStart;
+        else if(GameSettings.gameType == GameSettings.GameType.Fastest)
+            GUIManager.GameScreenGUI.inst().setTopCenterLabel(this.successfulRounds+" / "+this.currRound+" / "+this.maxRounds);
 
         this.shapeList = new Array<GameShape>();
         this.initLists();
 
-        GUIManager.GameScreenGUI.inst().makeGUI(this.game, this);
 
         this.currGameState = GameState.Beginning;
     }
@@ -310,7 +313,8 @@ public class GameScreen implements Screen{
 
     private void updateTimedGame(float delta){
         this.roundTime -= delta;
-        GUIManager.GameScreenGUI.inst().topCenterLabel.setText(this.formatter.format(this.roundTime)+"");
+        GUIManager.GameScreenGUI.inst().setTopCenterLabel(this.formatter.format(this.roundTime)+"");
+
         if(this.roundTime <= 0){
             this.roundTime = 0;
             this.setRoundOver(true, RoundOver.OutOfTime);
@@ -475,7 +479,8 @@ public class GameScreen implements Screen{
             this.successfulRounds++;
         }
 
-        GUIManager.GameScreenGUI.inst().roundLabel.setText(this.successfulRounds +" / "+this.currRound+" / "+this.maxRounds);
+        //GUIManager.GameScreenGUI.inst().roundLabel.setText(this.successfulRounds +" / "+this.currRound+" / "+this.maxRounds);
+        GUIManager.GameScreenGUI.inst().setTopCenterLabel(this.successfulRounds+" / "+this.currRound+" / "+this.maxRounds);
     }
 
     private void roundOverTimed(boolean failed){

@@ -23,6 +23,7 @@ public class MainMenu implements Screen {
         //We put this here to reset the input processor from the GameScreen
         // when we come back to the main menu.
         Gdx.input.setInputProcessor(Game.stage);
+
     }
 
     @Override

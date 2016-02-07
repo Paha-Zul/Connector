@@ -21,7 +21,7 @@ public class GUIManager {
     public static class GameScreenGUI {
         public Table mainTable = new Table();
         public Image gameOverImage;
-        public Label roundLabel, avgTimeLabel, colorTypeLabel, matchTypeLabel, gameTypeLabel, topCenterLabel;
+        public Label avgTimeLabel, colorTypeLabel, matchTypeLabel, gameTypeLabel;
         public Label roundsSurvivedLabel, bestTimeLabel, lostReasonLabel, avgTimeLabel2, scoreLabel;
         public TextButton restartButton, mainMenuButton;
         public ImageButton backButton;
@@ -29,7 +29,7 @@ public class GUIManager {
 
         /* Starting screen stuff */
         private int state = 0, innerState = 0;
-        private Label startingColorType, startingMatchType, startingGameType;
+        private Label startingColorType, startingMatchType, startingGameType, topCenterLabel;
         private Table startingTable;
         private Image firstShape, secondShape, overlay;
         private float waitTime = 0;
@@ -144,21 +144,14 @@ public class GUIManager {
                 otherTable.add(avgTimeLabel);
                 otherTable.row();
 
-                this.roundLabel = new Label("0 / 0 / 0", labelStyle);
-                this.roundLabel.setAlignment(Align.center);
-                this.roundLabel.setSize(100, 50);
-                otherTable.add(roundLabel);
-
                 Game.stage.addActor(otherTable);
             }
 
-            if (GameSettings.gameType == GameSettings.GameType.Timed) {
-                this.topCenterLabel = new Label("", titleLabelStyle);
-                this.topCenterLabel.setAlignment(Align.center);
-                this.topCenterLabel.setSize(100, 50);
-                this.topCenterLabel.setPosition(Gdx.graphics.getWidth() / 2 - 50, Gdx.graphics.getHeight() - 75);
-                Game.stage.addActor(this.topCenterLabel);
-            }
+            this.topCenterLabel = new Label("", titleLabelStyle);
+            this.topCenterLabel.setAlignment(Align.center);
+            this.topCenterLabel.setSize(100, 50);
+            this.topCenterLabel.setPosition(Gdx.graphics.getWidth() / 2 - 50, Gdx.graphics.getHeight() - 75);
+            Game.stage.addActor(this.topCenterLabel);
 
             Game.stage.addActor(this.backButton);
             Game.stage.addActor(labelTable);
@@ -368,6 +361,11 @@ public class GUIManager {
         public void setScoreLabel(String text){
             if(this.scoreLabel != null)
                 this.scoreLabel.setText(text);
+        }
+
+        public void setTopCenterLabel(String text){
+            if(this.topCenterLabel != null)
+                this.topCenterLabel.setText(text);
         }
 
         public void reset(){
@@ -661,6 +659,10 @@ public class GUIManager {
             this.mainMenuTable.add(buttonTable);
 
             this.table.add(this.mainMenuTable);
+            this.table.setFillParent(true);
+            this.table.top();
+
+            this.table.debugAll();
         }
 
         /**
