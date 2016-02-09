@@ -26,11 +26,13 @@ public class Game extends com.badlogic.gdx.Game {
 	public static ExecutorService executor;
 	public static EasyAssetManager easyAssetManager;
 	public static ActionResolver resolver;
+	public static AdInterface adInterface;
 
 	public static TextureRegion defaultButtonUp, defaultButtonDown;
 
-	public Game(ActionResolver actionResolver){
+	public Game(ActionResolver actionResolver, AdInterface ads){
 		resolver = actionResolver;
+		adInterface = ads;
 	}
 	
 	@Override

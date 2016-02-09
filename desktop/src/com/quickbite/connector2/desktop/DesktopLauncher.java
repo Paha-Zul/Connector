@@ -4,10 +4,11 @@ import com.badlogic.gdx.backends.lwjgl.LwjglApplication;
 import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration;
 import com.badlogic.gdx.utils.Array;
 import com.quickbite.connector2.ActionResolver;
+import com.quickbite.connector2.AdInterface;
 import com.quickbite.connector2.GUIManager;
 import com.quickbite.connector2.Game;
 
-public class DesktopLauncher implements ActionResolver {
+public class DesktopLauncher implements ActionResolver, AdInterface {
 
 	public static void main (String[] arg) {
 		LwjglApplicationConfiguration config = new LwjglApplicationConfiguration();
@@ -16,7 +17,7 @@ public class DesktopLauncher implements ActionResolver {
 		config.height = 800;
 
 		DesktopLauncher instance = new DesktopLauncher();
-		new LwjglApplication(new Game(instance), config);
+		new LwjglApplication(new Game(instance, instance), config);
 	}
 
 	@Override
@@ -81,5 +82,30 @@ public class DesktopLauncher implements ActionResolver {
 	@Override
 	public void getTopLeaderboardScores(String leaderboardID, int timeSpan, int numScores) {
 		System.out.println("Getting top leaderboard Score");
+	}
+
+	@Override
+	public void showBannerAd() {
+		System.out.println("Showing banner");
+	}
+
+	@Override
+	public void hideBannerAd() {
+		System.out.println("Hiding banner");
+	}
+
+	@Override
+	public void loadInterAd() {
+		System.out.println("Loading inter");
+	}
+
+	@Override
+	public void showInterAd() {
+		System.out.println("Showing inter");
+	}
+
+	@Override
+	public void hideInterAd() {
+		System.out.println("Hiding inter");
 	}
 }

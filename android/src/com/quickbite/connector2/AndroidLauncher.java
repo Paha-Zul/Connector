@@ -3,12 +3,17 @@ package com.quickbite.connector2;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.view.View;
+import android.view.WindowManager;
+import android.widget.RelativeLayout;
+import android.widget.Toast;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.backends.android.AndroidApplication;
 import com.badlogic.gdx.backends.android.AndroidApplicationConfiguration;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.TimeUtils;
 import com.badlogic.gdx.utils.Timer;
+import com.google.android.gms.ads.*;
 import com.google.android.gms.common.api.PendingResult;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.games.Games;
@@ -18,21 +23,147 @@ import com.google.android.gms.games.leaderboard.LeaderboardVariant;
 import com.google.android.gms.games.leaderboard.Leaderboards;
 import com.google.example.games.basegameutils.GameHelper;
 
-public class AndroidLauncher extends AndroidApplication implements GameHelper.GameHelperListener, ActionResolver {
+public class AndroidLauncher extends AndroidApplication implements GameHelper.GameHelperListener, ActionResolver, AdInterface {
 	GameHelper gameHelper;
+
+	private AdView adView;
+	private View gameView;
+	private AdListener adListener;
+	private InterstitialAd interstitialAd;
 
 	@Override
 	protected void onCreate (Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
+		Game game = new Game(this, this);
+
 		AndroidApplicationConfiguration config = new AndroidApplicationConfiguration();
-		initialize(new Game(this), config);
+		initialize(game, config);
 
 		if (gameHelper == null) {
 			gameHelper = new GameHelper(this, GameHelper.CLIENT_GAMES);
 			gameHelper.setMaxAutoSignInAttempts(0);
 			gameHelper.enableDebugLog(true);
 		}
+
 		gameHelper.setup(this);
+
+		super.onCreate(savedInstanceState);
+
+		AndroidApplicationConfiguration cfg = new AndroidApplicationConfiguration();
+		cfg.useAccelerometer = false;
+		cfg.useCompass = false;
+
+		// Do the stuff that initialize() would do for you
+		//requestWindowFeature(Window.FEATURE_NO_TITLE);
+		getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+		getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
+
+		RelativeLayout layout = new RelativeLayout(this);
+		RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT);
+		layout.setLayoutParams(params);
+
+		AdView admobView = createAdView();
+		layout.addView(admobView);
+
+		View gameView = createGameView(cfg, game);
+		layout.addView(gameView);
+
+		setContentView(layout);
+		startAdvertising(admobView);
+
+		interstitialAd = new InterstitialAd(this);
+		interstitialAd.setAdUnitId(getString(R.string.inter_ad_unit_id));
+		interstitialAd.setAdListener(new AdListener() {
+			@Override
+			public void onAdLoaded() {
+				Toast.makeText(getApplicationContext(), "Finished Loading Interstitial", Toast.LENGTH_SHORT).show();
+			}
+			@Override
+			public void onAdClosed() {
+				Toast.makeText(getApplicationContext(), "Closed Interstitial", Toast.LENGTH_SHORT).show();
+			}
+		});
+	}
+
+	private AdView createAdView() {
+		adView = new AdView(this);
+		adView.setAdSize(AdSize.SMART_BANNER);
+		adView.setAdUnitId(getString(R.string.banner_ad_unit_id));
+		adView.setId(R.id.adViewId); // this is an arbitrary id, allows for relative positioning in createGameView()
+		RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+		params.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM, RelativeLayout.TRUE);
+		params.addRule(RelativeLayout.CENTER_HORIZONTAL, RelativeLayout.TRUE);
+		adView.setLayoutParams(params);
+		adView.setBackgroundColor(android.graphics.Color.BLACK);
+		return adView;
+	}
+
+	private View createGameView(AndroidApplicationConfiguration cfg, Game game) {
+		gameView = initializeForView(game, cfg);
+		RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+		params.addRule(RelativeLayout.ALIGN_PARENT_TOP, RelativeLayout.TRUE);
+		params.addRule(RelativeLayout.CENTER_HORIZONTAL, RelativeLayout.TRUE);
+		params.addRule(RelativeLayout.ABOVE, adView.getId());
+		gameView.setLayoutParams(params);
+		return gameView;
+	}
+
+	private void startAdvertising(AdView adView) {
+		AdRequest.Builder builder = new AdRequest.Builder();
+		builder.addTestDevice("BE119EDAB7342FD3CF2C0405E4AFF269");
+		AdRequest adRequest = builder.build();
+		adView.loadAd(adRequest);
+		adView.setVisibility(View.GONE);
+	}
+
+	@Override
+	public void showBannerAd() {
+		runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				adView.setVisibility(View.VISIBLE);
+			}
+		});
+	}
+
+	@Override
+	public void hideBannerAd() {
+		runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				adView.setVisibility(View.GONE);
+			}
+		});
+	}
+
+	@Override
+	public void loadInterAd() {
+
+	}
+
+	@Override
+	public void showInterAd() {
+		try {
+			runOnUiThread(new Runnable() {
+				public void run() {
+				  if (interstitialAd.isLoaded()) {
+					interstitialAd.show();
+					Toast.makeText(getApplicationContext(), "Showing Interstitial", Toast.LENGTH_SHORT).show();
+				  }
+				  else {
+					AdRequest interstitialRequest = new AdRequest.Builder().build();
+					interstitialAd.loadAd(interstitialRequest);
+					Toast.makeText(getApplicationContext(), "Loading Interstitial", Toast.LENGTH_SHORT).show();
+				  }
+				}
+			});
+	   	} catch (Exception e) {
+
+		}
+	}
+
+	@Override
+	public void hideInterAd() {
+
 	}
 
 	@Override

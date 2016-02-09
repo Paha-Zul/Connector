@@ -21,10 +21,11 @@ public class GUIManager {
     public static class GameScreenGUI {
         public Table mainTable = new Table();
         public Image gameOverImage;
-        public Label avgTimeLabel, colorTypeLabel, matchTypeLabel, gameTypeLabel;
-        public Label roundsSurvivedLabel, bestTimeLabel, lostReasonLabel, avgTimeLabel2, scoreLabel;
         public TextButton restartButton, mainMenuButton;
         public ImageButton backButton;
+
+        /* Game over screen */
+        public Label roundsSurvivedLabel, bestTimeLabel, lostReasonLabel, avgTimeLabel2, scoreLabel;
 
 
         /* Starting screen stuff */
@@ -55,8 +56,7 @@ public class GUIManager {
                 @Override
                 public void changed(ChangeEvent event, Actor actor) {
                     Game.stage.clear();
-                    gameScreen.dispose();
-                    game.setScreen(new MainMenu(game));
+                    toMainMenu(gameScreen, game);
                 }
             });
 
@@ -83,8 +83,8 @@ public class GUIManager {
                 @Override
                 public void changed(ChangeEvent event, Actor actor) {
                     Game.stage.clear();
-                    gameScreen.dispose();
-                    game.setScreen(new MainMenu(game));
+                    toMainMenu(gameScreen, game);
+
                 }
             });
 
@@ -118,35 +118,6 @@ public class GUIManager {
             this.avgTimeLabel2 = new Label("", titleLabelStyle);
             this.avgTimeLabel2.setAlignment(Align.center);
 
-            this.colorTypeLabel = new Label(colorType, labelStyle);
-            this.matchTypeLabel = new Label(matchType, labelStyle);
-            this.gameTypeLabel = new Label(gameType, labelStyle);
-
-            Table labelTable = new Table();
-            labelTable.left().top();
-            labelTable.setFillParent(true);
-
-            labelTable.add(colorTypeLabel).left();
-            labelTable.row();
-            labelTable.add(matchTypeLabel).left();
-            labelTable.row();
-            labelTable.add(gameTypeLabel).left();
-
-            if (GameSettings.gameType == GameSettings.GameType.Fastest) {
-                Table otherTable = new Table();
-                otherTable.setFillParent(true);
-                otherTable.right().top();
-                labelStyle = new Label.LabelStyle(Game.defaultFont, Color.WHITE);
-
-                this.avgTimeLabel = new Label("avg-time: 0", labelStyle);
-                this.avgTimeLabel.setAlignment(Align.center);
-                this.avgTimeLabel.setSize(100, 50);
-                otherTable.add(avgTimeLabel);
-                otherTable.row();
-
-                Game.stage.addActor(otherTable);
-            }
-
             this.topCenterLabel = new Label("", titleLabelStyle);
             this.topCenterLabel.setAlignment(Align.center);
             this.topCenterLabel.setSize(100, 50);
@@ -154,7 +125,6 @@ public class GUIManager {
             Game.stage.addActor(this.topCenterLabel);
 
             Game.stage.addActor(this.backButton);
-            Game.stage.addActor(labelTable);
 
             this.makeStartingGUI(game, gameScreen);
         }
@@ -339,8 +309,7 @@ public class GUIManager {
         }
 
         public void setAvgTimeLabelText(String text){
-            if(this.avgTimeLabel != null)
-                this.avgTimeLabel.setText(text);
+
         }
 
         public void setBestTimeLabelText(String text){
@@ -371,6 +340,12 @@ public class GUIManager {
         public void reset(){
             this.state = 0;
             this.innerState = 0;
+        }
+
+        private void toMainMenu(GameScreen gameScreen, Game game){
+            gameScreen.dispose();
+            game.setScreen(new MainMenu(game));
+            Game.adInterface.showInterAd();
         }
 
         public static GameScreenGUI inst(){
@@ -610,6 +585,7 @@ public class GUIManager {
                 public void clicked(InputEvent event, float x, float y) {
                     super.clicked(event, x, y);
                     Game.stage.clear();
+                    mainMenu.dispose();
                     game.setScreen(new GameScreen(game));
                 }
             });
