@@ -85,27 +85,27 @@ public class DesktopLauncher implements ActionResolver, AdInterface {
 	}
 
 	@Override
-	public void showBannerAd() {
+	public void showAdmobBannerAd() {
 		System.out.println("Showing banner");
 	}
 
 	@Override
-	public void hideBannerAd() {
+	public void hideAdmobBannerAd() {
 		System.out.println("Hiding banner");
 	}
 
 	@Override
-	public void loadInterAd() {
+	public void loadAdmobInterAd() {
 		System.out.println("Loading inter");
 	}
 
 	@Override
-	public void showInterAd() {
+	public void showAdmobInterAd() {
 		System.out.println("Showing inter");
 	}
 
 	@Override
-	public void hideInterAd() {
+	public void hideAdmobInterAd() {
 		System.out.println("Hiding inter");
 	}
 }

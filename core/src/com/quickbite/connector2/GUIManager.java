@@ -6,7 +6,13 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
-import com.badlogic.gdx.scenes.scene2d.ui.*;
+import com.badlogic.gdx.scenes.scene2d.actions.Actions;
+import com.badlogic.gdx.scenes.scene2d.ui.Container;
+import com.badlogic.gdx.scenes.scene2d.ui.Image;
+import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
+import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import com.badlogic.gdx.scenes.scene2d.ui.Table;
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
@@ -20,6 +26,7 @@ public class GUIManager {
 
     public static class GameScreenGUI {
         public Table mainTable = new Table();
+        public Table gameOverTable = new Table();
         public Image gameOverImage;
         public TextButton restartButton, mainMenuButton;
         public ImageButton backButton;
@@ -269,14 +276,20 @@ public class GUIManager {
         }
 
         public void gameOverTimedGUI(GameScreen screen){
+            Game.stage.clear();
+            gameOverTable.clear();
+
             Label.LabelStyle style = new Label.LabelStyle(Game.defaultLargeFont, Color.WHITE);
             this.roundsSurvivedLabel = new Label("Made it to round "+screen.currRound, style);
             this.roundsSurvivedLabel.setAlignment(Align.center);
 
-            this.mainTable.add(this.lostReasonLabel).fillX().expandX();
-            this.mainTable.row().padTop(50);
-            this.mainTable.add(this.roundsSurvivedLabel).fillX().expandX();
-            this.mainTable.row().padTop(50);
+            this.gameOverTable.add(this.lostReasonLabel).fillX().expandX();
+            this.gameOverTable.row().padTop(50);
+            this.gameOverTable.add(this.roundsSurvivedLabel).fillX().expandX();
+            this.gameOverTable.row().padTop(50);
+
+            gameOverTable.setFillParent(true);
+            Game.stage.addActor(gameOverTable);
         }
 
         public void gameOverBestGUI(){
@@ -288,15 +301,33 @@ public class GUIManager {
         }
 
         public void gameOverGUI(){
-            this.mainTable.add(this.scoreLabel).expandX().fillX();
-            this.mainTable.row().padTop(50f);
-            this.mainTable.add(this.avgTimeLabel2).expandX().fillX();
-            this.mainTable.row().padTop(50f);
-            this.mainTable.add(this.bestTimeLabel).expandX().fillX();
-            this.mainTable.row().padTop(50f);
-            this.mainTable.add(this.restartButton).size(200f, 75f);
-            this.mainTable.row().padTop(50f);
-            this.mainTable.add(this.mainMenuButton).size(200f, 75f);
+            Game.stage.clear();
+            gameOverTable.clear();
+
+            this.gameOverTable.add(this.scoreLabel).expandX().fillX();
+            this.gameOverTable.row().padTop(50f);
+            this.gameOverTable.add(this.avgTimeLabel2).expandX().fillX();
+            this.gameOverTable.row().padTop(50f);
+            this.gameOverTable.add(this.bestTimeLabel).expandX().fillX();
+            this.gameOverTable.row().padTop(50f);
+            this.gameOverTable.add(this.restartButton).size(200f, 75f);
+            this.gameOverTable.row().padTop(50f);
+            this.gameOverTable.add(this.mainMenuButton).size(200f, 75f);
+
+            this.scoreLabel.getColor().a = 0f;
+            this.avgTimeLabel2.getColor().a = 0f;
+            this.bestTimeLabel.getColor().a = 0f;
+            this.restartButton.getColor().a = 0f;
+            this.mainMenuButton.getColor().a = 0f;
+
+            this.scoreLabel.addAction(Actions.fadeIn(0.5f));
+            this.avgTimeLabel2.addAction(Actions.sequence(Actions.delay(0.1f), Actions.fadeIn(0.5f)));
+            this.bestTimeLabel.addAction(Actions.sequence(Actions.delay(0.2f), Actions.fadeIn(0.5f)));
+            this.restartButton.addAction(Actions.sequence(Actions.delay(0.3f), Actions.fadeIn(0.5f)));
+            this.mainMenuButton.addAction(Actions.sequence(Actions.delay(0.4f), Actions.fadeIn(0.5f)));
+
+            gameOverTable.setFillParent(true);
+            Game.stage.addActor(gameOverTable);
         }
 
         public void roundOverGUI(TextureRegion gameOverTexture){
@@ -345,7 +376,7 @@ public class GUIManager {
         private void toMainMenu(GameScreen gameScreen, Game game){
             gameScreen.dispose();
             game.setScreen(new MainMenu(game));
-            Game.adInterface.showInterAd();
+            Game.adInterface.showAdmobInterAd();
         }
 
         public static GameScreenGUI inst(){

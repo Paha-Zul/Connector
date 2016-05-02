@@ -4,6 +4,10 @@ import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.scenes.scene2d.Action;
+import com.badlogic.gdx.scenes.scene2d.actions.Actions;
+import com.badlogic.gdx.scenes.scene2d.ui.Image;
+import com.badlogic.gdx.utils.Align;
 
 /**
  * Created by Paha on 1/20/2016.
@@ -27,26 +31,28 @@ public class LogoScreen implements Screen{
         this.alphaFadeInAmount = (1f/60f)/fadeInTime;
         this.alphaFadeOutAmount = (1f/60f)/fadeOutTime;
         this.currNextTime = this.fadeInTime*60f;
+
+        Image logoImage = new Image(logo);
+        logoImage.getColor().a = 0f;
+        logoImage.setSize(256, 256);
+        logoImage.setOrigin(Align.center);
+        logoImage.setPosition(Game.viewport.getWorldWidth()/2f - 128f, Game.viewport.getWorldHeight()/2f - 128f);
+
+        logoImage.addAction(Actions.sequence(Actions.fadeIn(1f), Actions.delay(1f), Actions.fadeOut(1f), new Action() {
+            @Override
+            public boolean act(float delta) {
+                game.setScreen(new MainMenu(game));
+                return true;
+            }
+        }));
+        logoImage.addAction(Actions.scaleTo(1.2f, 1.2f, 3f));
+
+        Game.stage.addActor(logoImage);
     }
 
     @Override
     public void render(float delta) {
         this.currCounter++;
-        if(this.currCounter >= this.currNextTime){
-            this.state++;
-            if(this.state == 1) this.currNextTime = this.idleTime*60f;
-            else if(this.state == 2) this.currNextTime = this.fadeOutTime*60f;
-            this.currCounter = 0;
-
-        }else{
-            if(this.state == 0) this.currAlpha += this.alphaFadeInAmount;
-            else if(this.state == 1) this.currAlpha = 1;
-            else if(this.state == 2) this.currAlpha -= this.alphaFadeOutAmount;
-            else if(this.state == 3) this.game.setScreen(new MainMenu(this.game));
-
-            if(this.currAlpha > 1) this.currAlpha = 1;
-            if(this.currAlpha < 0) this.currAlpha = 0;
-        }
 
         Game.batch.begin();
 

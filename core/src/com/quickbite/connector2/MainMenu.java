@@ -24,7 +24,7 @@ public class MainMenu implements Screen {
         // when we come back to the main menu.
         Gdx.input.setInputProcessor(Game.stage);
 
-        Game.adInterface.showBannerAd();
+        Game.adInterface.showAdmobBannerAd();
     }
 
     @Override
@@ -61,6 +61,6 @@ public class MainMenu implements Screen {
 
     @Override
     public void dispose() {
-        Game.adInterface.hideBannerAd();
+        Game.adInterface.hideAdmobBannerAd();
     }
 }

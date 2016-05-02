@@ -12,6 +12,8 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.utils.viewport.StretchViewport;
+import com.badlogic.gdx.utils.viewport.Viewport;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -21,6 +23,7 @@ public class Game extends com.badlogic.gdx.Game {
 	public static ShapeRenderer renderer;
 	public static OrthographicCamera camera;
 	public static OrthographicCamera UICamera;
+	public static Viewport viewport;
 	public static Stage stage;
 	public static BitmapFont defaultFont, defaultLargeFont, defaultHugeFont;
 	public static ExecutorService executor;
@@ -38,10 +41,11 @@ public class Game extends com.badlogic.gdx.Game {
 	@Override
 	public void create () {
 
-		camera = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+		camera = new OrthographicCamera(480, 800);
+		viewport = new StretchViewport(480, 800, camera);
 		batch = new SpriteBatch();
 		batch.setProjectionMatrix(camera.combined);
-		stage = new Stage();
+		stage = new Stage(viewport);
 		renderer = new ShapeRenderer();
 		renderer.setProjectionMatrix(camera.combined);
 
@@ -101,6 +105,7 @@ public class Game extends com.badlogic.gdx.Game {
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 		super.render();
 
+		Game.stage.act();
 		Game.stage.draw();
 	}
 }

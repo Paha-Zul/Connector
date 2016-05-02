@@ -48,6 +48,11 @@ public class AndroidLauncher extends AndroidApplication implements GameHelper.Ga
 
 		super.onCreate(savedInstanceState);
 
+//		Chartboost.startWithAppId(this, getString(R.string.chartboost_id), getString(R.string.chartboost_sig));
+		/* Optional: If you want to program responses to Chartboost events, supply a delegate object here and see step (10) for more information */
+		//Chartboost.setDelegate(delegate);
+//		Chartboost.onCreate(this);
+
 		AndroidApplicationConfiguration cfg = new AndroidApplicationConfiguration();
 		cfg.useAccelerometer = false;
 		cfg.useCompass = false;
@@ -116,7 +121,7 @@ public class AndroidLauncher extends AndroidApplication implements GameHelper.Ga
 	}
 
 	@Override
-	public void showBannerAd() {
+	public void showAdmobBannerAd() {
 		runOnUiThread(new Runnable() {
 			@Override
 			public void run() {
@@ -126,7 +131,7 @@ public class AndroidLauncher extends AndroidApplication implements GameHelper.Ga
 	}
 
 	@Override
-	public void hideBannerAd() {
+	public void hideAdmobBannerAd() {
 		runOnUiThread(new Runnable() {
 			@Override
 			public void run() {
@@ -136,12 +141,12 @@ public class AndroidLauncher extends AndroidApplication implements GameHelper.Ga
 	}
 
 	@Override
-	public void loadInterAd() {
+	public void loadAdmobInterAd() {
 
 	}
 
 	@Override
-	public void showInterAd() {
+	public void showAdmobInterAd() {
 		try {
 			runOnUiThread(new Runnable() {
 				public void run() {
@@ -162,7 +167,7 @@ public class AndroidLauncher extends AndroidApplication implements GameHelper.Ga
 	}
 
 	@Override
-	public void hideInterAd() {
+	public void hideAdmobInterAd() {
 
 	}
 
@@ -182,6 +187,27 @@ public class AndroidLauncher extends AndroidApplication implements GameHelper.Ga
 	public void onActivityResult(int request, int response, Intent data) {
 		super.onActivityResult(request, response, data);
 		gameHelper.onActivityResult(request, response, data);
+	}
+
+	@Override
+	public void onResume() {
+		super.onResume();
+	}
+
+	@Override
+	public void onPause() {
+		super.onPause();
+	}
+
+	@Override
+	public void onDestroy() {
+		super.onDestroy();
+	}
+
+
+	@Override
+	public void onBackPressed() {
+		super.onBackPressed();
 	}
 
 	@Override

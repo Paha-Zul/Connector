@@ -72,6 +72,7 @@ project(":android") {
         compile 'com.android.support:support-v4:+'
         compile 'com.google.android.gms:play-services-games:+'
         compile "com.google.android.gms:play-services-ads:$adMobVersion"
+        files('libs/chartboost.jar')
     }
 
 }

@@ -35,7 +35,7 @@ public class GameScreenClickListener implements InputProcessor {
 
     @Override
     public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-        Vector3 worldPos = Game.camera.unproject(new Vector3(screenX, screenY, 0));
+        Vector3 worldPos = Game.viewport.unproject(new Vector3(screenX, screenY, 0));
         this.screen.currShape = null;
 
         //Check if we clicked/touched on a shape. If so, record it and start dragging.

@@ -120,4 +120,5 @@ idea {
     }
 }
 dependencies {
+    files('libs/chartboost.jar')
 }

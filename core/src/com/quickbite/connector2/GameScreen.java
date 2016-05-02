@@ -83,8 +83,9 @@ public class GameScreen implements Screen{
         this.topTexture = new TextureRegion(Game.easyAssetManager.get("Top", Texture.class));
 
         this.positions = new Vector2[num];
+        //We should probably go from 0-480 and 0-800
         for(int i=0;i<num;i++){
-            Vector2 vec = new Vector2(startingX - ((i*sizeOfSpots)%(sizeOfSpots*(xSpots))), startingY - ((i/xSpots)*sizeOfSpots));
+            Vector2 vec = new Vector2(sizeOfSpots/2 + ((i*sizeOfSpots)%(sizeOfSpots*(xSpots))), sizeOfSpots/2 + ((i/xSpots)*sizeOfSpots));
             this.positions[i] = vec;
         }
 
@@ -212,7 +213,9 @@ public class GameScreen implements Screen{
         update(delta);
 
         Game.renderer.begin(ShapeRenderer.ShapeType.Filled);
-        this.drawUsingShapeRenderer(Game.renderer);
+        this.drawLines(Game.renderer);
+        this.debugDrawGrid(Game.renderer);
+        this.debugDrawShapes(Game.renderer);
         Game.renderer.end();
 
         Game.batch.begin();
@@ -222,9 +225,9 @@ public class GameScreen implements Screen{
 
     private void draw(SpriteBatch batch){
         batch.setColor(Color.WHITE);
-        batch.draw(this.topTexture, Game.camera.position.x - Game.camera.viewportWidth/2,
-                Game.camera.position.y + Game.camera.viewportHeight/2 - Game.camera.viewportHeight*this.topArea,
-                Gdx.graphics.getWidth(), Game.camera.viewportHeight*this.topArea);
+        batch.draw(this.topTexture, Game.camera.position.x - Game.viewport.getScreenWidth()/2,
+                Game.camera.position.y + Game.viewport.getScreenHeight()/2 - Game.viewport.getScreenHeight()*this.topArea,
+                Gdx.graphics.getWidth(), Game.viewport.getScreenHeight()*this.topArea);
 
 
         this.drawShapes(batch);
@@ -238,11 +241,12 @@ public class GameScreen implements Screen{
             batch.setColor(this.shapeColors[shape.getColorID()]);
             if(shape.locked) region = shapesGlow[shape.getShapeType()];
             else region = shapes[shape.getShapeType()];
-            batch.draw(region, shape.position.x - radius, shape.position.y - radius, radius, radius, sizeOfShapes, sizeOfShapes, this.currScale, this.currScale, this.currRotation);
+            batch.draw(region, -Game.viewport.getScreenWidth()/2f + shape.position.x - radius, -Game.viewport.getScreenHeight()/2f + shape.position.y - radius,
+                    radius, radius, sizeOfShapes, sizeOfShapes, this.currScale, this.currScale, this.currRotation);
         }
     }
 
-    private void drawUsingShapeRenderer(ShapeRenderer shapeRenderer){
+    private void drawLines(ShapeRenderer shapeRenderer){
         //Draws all the lines
         for (Array<Vector2> list : this.lists) {
             int length = list.size - 1;
@@ -253,18 +257,31 @@ public class GameScreen implements Screen{
             }
         }
 
-        //this.debugDrawShapeAreas(shapeRenderer);
+        //this.debugDrawGrid(shapeRenderer);
 
 //        for(GameShape shape : this.shapeList)
 //            shapeRenderer.rect(shape.bounds.x, shape.bounds.y, shape.bounds.width, shape.bounds.height);
     }
 
-    private void debugDrawShapeAreas(ShapeRenderer shapeRenderer){
+    private void debugDrawGrid(ShapeRenderer shapeRenderer){
         shapeRenderer.end();
+        shapeRenderer.setColor(Color.WHITE);
         shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
         for(int i=0;i<this.positions.length;i++){
             Vector2 pos = this.positions[i];
             shapeRenderer.rect(pos.x - this.sizeOfSpots/2, pos.y - this.sizeOfSpots/2, this.sizeOfSpots, this.sizeOfSpots);
+        }
+        shapeRenderer.end();
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+    }
+
+    private void debugDrawShapes(ShapeRenderer shapeRenderer){
+        shapeRenderer.end();
+        shapeRenderer.setColor(Color.RED);
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
+        for(int i=0;i<this.shapeList.size;i++){
+            GameShape shape = this.shapeList.get(i);
+            shapeRenderer.rect(shape.position.x - this.sizeOfSpots/2, shape.position.y - this.sizeOfSpots/2, this.sizeOfSpots, this.sizeOfSpots);
         }
         shapeRenderer.end();
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
