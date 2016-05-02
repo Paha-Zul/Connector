@@ -19,10 +19,8 @@ import java.text.DecimalFormat;
  */
 public class GameScreen implements Screen{
     public enum GameState {Beginning, Starting, Running, Ending, Over, Limbo}
-    public enum RoundOver {HitShape, HitLine, OutOfTime, Won}
 
     private GameState currGameState;
-    private RoundOver roundOverReason;
 
     private TextureRegion topTexture;
 
@@ -32,22 +30,15 @@ public class GameScreen implements Screen{
     public Vector2[] positions;
     public TextureRegion[] shapes;
     public TextureRegion[] shapesGlow;
-    public TextureRegion[] gameOverShapes;
     public Color[] shapeColors;
     public Array<GameShape> shapeList;
-    public Array<Vector2>[] lists;
+    public Array<Vector2>[] lineLists;
     public GameShape currShape = null;
     public int lineCounter = 0;
-    public int winCounter = 0;
 
-    public int currRound, maxRounds=10, successfulRounds, currScore;
     private volatile boolean gameOver = false;
     private float currScale = 0, currRotation = 0;
-    private double startTime, endTime, avgTime, bestTime;
-    private boolean failedLastRound = false;
     private DecimalFormat formatter = new DecimalFormat("0.00");
-
-    private float roundTime, roundTimeDecreaseAmount = 1, roundTimeStart = 10;
 
     private final float topArea = 0.1f;
     private float sizeOfSpots = 480/5, sizeOfShapes = 480/6;
@@ -63,7 +54,7 @@ public class GameScreen implements Screen{
         multi.addProcessor(Game.stage);
         Gdx.input.setInputProcessor(multi);
 
-        lists = new Array[GameSettings.numShapes];
+        lineLists = new Array[GameSettings.numShapes];
 
         this.sizeOfSpots = Gdx.graphics.getWidth()/6;
         this.sizeOfShapes = Gdx.graphics.getWidth()/6;
@@ -71,8 +62,6 @@ public class GameScreen implements Screen{
 
     @Override
     public void show() {
-        GUIManager.GameScreenGUI.inst().makeGUI(this.game, this);
-
         float startingY = Game.camera.viewportHeight/2 - Game.camera.viewportHeight*this.topArea - sizeOfSpots/2;
         float startingX = Game.camera.position.x + Game.camera.viewportWidth/2 - sizeOfSpots/2;
 
@@ -117,44 +106,33 @@ public class GameScreen implements Screen{
         shapeColors[4] = Color.ORANGE;
         shapeColors[5] = Color.BLUE;
 
-        this.gameOverShapes = new TextureRegion[2];
 
-        Texture texture = Game.easyAssetManager.get("checkmark", Texture.class);
-        texture.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
-        this.gameOverShapes[0] = new TextureRegion(texture);
-
-        texture = Game.easyAssetManager.get("X", Texture.class);
-        texture.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
-        this.gameOverShapes[1] = new TextureRegion(texture);
-
-        //Reset our stuff.
-        this.currRound = this.successfulRounds = 0;
-        this.avgTime = 0;
-        this.currScore = 0;
-
-        if(GameSettings.gameType == GameSettings.GameType.Timed)
-            this.roundTime = this.roundTimeStart;
-        else if(GameSettings.gameType == GameSettings.GameType.Fastest)
-            GUIManager.GameScreenGUI.inst().setTopCenterLabel(this.successfulRounds+" / "+this.currRound+" / "+this.maxRounds);
+        this.reset();
 
         this.shapeList = new Array<GameShape>();
-        this.initLists();
-
+        this.initLineLists();
 
         this.currGameState = GameState.Beginning;
+
+        GUIManager.GameScreenGUI.inst().initGameScreenGUI(this.game, this);
+    }
+
+    public void reset(){
+        GUIManager.GameScreenGUI.inst().mainTable.clear();
+
+        GameStats.currRound = GameStats.successfulRounds = 0;
+        GameStats.avgTime = 0;
+        GameStats.bestTime = 0;
+        GameStats.currScore = 0;
+        GameStats.successfulRounds = 0;
+        GameStats.roundTime = GameStats.roundTimeStart;
     }
 
     /**
      * Restarts the current game mode.
      */
-    public void restart(){
-        GUIManager.GameScreenGUI.inst().mainTable.clear();
-        this.currRound = 0;
-        this.avgTime = 0;
-        this.bestTime = 0;
-        this.currScore = 0;
-        this.successfulRounds = 0;
-
+    public void restartGame(){
+        this.reset();
         this.initRound();
     }
 
@@ -162,16 +140,14 @@ public class GameScreen implements Screen{
      * Initializes the new round.
      */
     private void initRound(){
-        if(GameSettings.gameType == GameSettings.GameType.Fastest){
-            if(this.currRound >= this.maxRounds){
+        if(GameSettings.gameType == GameSettings.GameType.Fastest)
+            if(GameStats.currRound >= GameStats.maxRounds)
                 return;
-            }
-        }
 
-        this.roundTime = this.roundTimeStart - this.roundTimeDecreaseAmount*this.currRound;
-        this.winCounter = 0;
+        GameStats.roundTime = GameStats.roundTimeStart - GameStats.roundTimeDecreaseAmount*GameStats.currRound;
+        GameStats.winCounter = 0;
+        GameStats.failedLastRound = false;
         this.currScale = 0;
-        this.failedLastRound = false;
 
         //Shuffle some arrays
         shuffleArray(this.positions);
@@ -195,17 +171,15 @@ public class GameScreen implements Screen{
      * Records the average and best time of the round. Sets the label if available.
      */
     public void recordTime(){
-        this.endTime = System.currentTimeMillis();
+        GameStats.endTime = System.currentTimeMillis();
 
-        double time = this.endTime - this.startTime;
+        double time = GameStats.endTime - GameStats.startTime;
         //Show the avgTime time including the new one.
-        if(this.avgTime == 0) this.avgTime = time;
-        else this.avgTime = (this.avgTime + time)/2;
+        if(GameStats.avgTime == 0) GameStats.avgTime = time;
+        else GameStats.avgTime = (GameStats.avgTime + time)/2;
 
-        if(this.bestTime == 0 || this.bestTime >= time)
-            this.bestTime = time;
-
-        GUIManager.GameScreenGUI.inst().setAvgTimeLabelText("avg-time: "+this.formatter.format(this.avgTime /1000)+"s");
+        if(GameStats.bestTime == 0 || GameStats.bestTime >= time)
+            GameStats.bestTime = time;
     }
 
     @Override
@@ -248,7 +222,7 @@ public class GameScreen implements Screen{
 
     private void drawLines(ShapeRenderer shapeRenderer){
         //Draws all the lines
-        for (Array<Vector2> list : this.lists) {
+        for (Array<Vector2> list : this.lineLists) {
             int length = list.size - 1;
             for (int j = 0; j < length; j++) {
                 Vector2 curr = list.get(j);
@@ -299,9 +273,9 @@ public class GameScreen implements Screen{
             if(GameSettings.gameType == GameSettings.GameType.Timed)
                 this.updateTimedGame(delta);
 
-            if(winCounter >= GameSettings.numShapes){
-                this.winCounter = 0;
-                this.setRoundOver(false, RoundOver.Won);
+            if(GameStats.winCounter >= GameSettings.numShapes){
+                GameStats.winCounter = 0;
+                this.setRoundOver(false, GameStats.RoundOver.Won);
             }
 
         //If starting, spin the shapes in!
@@ -329,12 +303,11 @@ public class GameScreen implements Screen{
     }
 
     private void updateTimedGame(float delta){
-        this.roundTime -= delta;
-        GUIManager.GameScreenGUI.inst().setTopCenterLabel(this.formatter.format(this.roundTime)+"");
+        GameStats.roundTime -= delta;
 
-        if(this.roundTime <= 0){
-            this.roundTime = 0;
-            this.setRoundOver(true, RoundOver.OutOfTime);
+        if(GameStats.roundTime <= 0){
+            GameStats.roundTime = 0;
+            this.setRoundOver(true, GameStats.RoundOver.OutOfTime);
         }
     }
 
@@ -352,11 +325,11 @@ public class GameScreen implements Screen{
 
     private void started(){
         this.currGameState = GameState.Running;
-        this.startTime = System.currentTimeMillis();
+        GameStats.startTime = System.currentTimeMillis();
     }
 
     private void roundEnding(){
-        this.initLists();
+        this.initLineLists();
     }
 
     /**
@@ -372,7 +345,7 @@ public class GameScreen implements Screen{
             this.roundEndedBest();
 
         //If it was the time game type, game over if we failed once.
-        }else if(GameSettings.gameType == GameSettings.GameType.Timed && this.failedLastRound){
+        }else if(GameSettings.gameType == GameSettings.GameType.Timed && GameStats.failedLastRound){
             this.roundEndedTimed();
         }
 
@@ -380,7 +353,7 @@ public class GameScreen implements Screen{
         if(this.currGameState == GameState.Starting)
             this.initRound();
 
-        this.currRound++;
+        GameStats.currRound++;
     }
 
     /**
@@ -394,7 +367,7 @@ public class GameScreen implements Screen{
      * Specific Best round ending.
      */
     private void roundEndedBest(){
-        if(this.currRound >= this.maxRounds){
+        if(GameStats.currRound >= GameStats.maxRounds){
             this.currGameState = GameState.Over;
         }
     }
@@ -403,15 +376,10 @@ public class GameScreen implements Screen{
      * General game over.
      */
     private void gameOver(){
-        GUIManager.GameScreenGUI.inst().setBestTimeLabelText("Best Time: "+this.formatter.format(this.bestTime/1000)+"s");
-        GUIManager.GameScreenGUI.inst().setGameOverAvgTimeLabelText("Average Time: "+this.formatter.format(this.avgTime /1000)+"s");
-
         String gameOverReason = "You Won!";
-        if(this.roundOverReason == RoundOver.HitShape) gameOverReason = "Hit Wrong Shape!";
-        else if(this.roundOverReason == RoundOver.HitLine) gameOverReason = "Hit Another Line!";
-        else if(this.roundOverReason == RoundOver.OutOfTime) gameOverReason = "Out Of Time!";
-
-        GUIManager.GameScreenGUI.inst().setLostReasonLabelText(gameOverReason);
+        if(GameStats.roundOverReason == GameStats.RoundOver.HitShape) gameOverReason = "Hit Wrong Shape!";
+        else if(GameStats.roundOverReason == GameStats.RoundOver.HitLine) gameOverReason = "Hit Another Line!";
+        else if(GameStats.roundOverReason == GameStats.RoundOver.OutOfTime) gameOverReason = "Out Of Time!";
 
         switch(GameSettings.gameType){
             case Timed:
@@ -433,10 +401,9 @@ public class GameScreen implements Screen{
      */
     private void gameOverTimed(){
         GUIManager.GameScreenGUI.inst().gameOverTimedGUI(this);
-        if(avgTime == 0) this.currScore = 0;
-        else this.currScore = (int)((4*currRound) *(1f/(avgTime/1000))*(GameSettings.numShapes*4));
-        GUIManager.GameScreenGUI.inst().setScoreLabel("Your Score: "+this.currScore);
-        Game.resolver.submitScoreGPGS(Constants.LEADERBOARD_TIMED, this.currScore);
+        if(GameStats.avgTime == 0) GameStats.currScore = 0;
+        else GameStats.currScore = (int)((4*GameStats.currRound) *(1f/(GameStats.avgTime/1000))*(GameSettings.numShapes*4));
+        Game.resolver.submitScoreGPGS(Constants.LEADERBOARD_TIMED, GameStats.currScore);
     }
 
     /**
@@ -444,10 +411,9 @@ public class GameScreen implements Screen{
      */
     private void gameOverBest(){
         GUIManager.GameScreenGUI.inst().gameOverBestGUI();
-        if(avgTime == 0) this.currScore = 0;
-        else this.currScore = (int)((4*successfulRounds) *(1f/(avgTime/1000))*(GameSettings.numShapes*4));
-        GUIManager.GameScreenGUI.inst().setScoreLabel("Your Score: "+this.currScore);
-        Game.resolver.submitScoreGPGS(Constants.LEADERBOARD_BEST, this.currScore);
+        if(GameStats.avgTime == 0) GameStats.currScore = 0;
+        else GameStats.currScore = (int)((4*GameStats.successfulRounds) *(1f/(GameStats.avgTime/1000))*(GameSettings.numShapes*4));
+        Game.resolver.submitScoreGPGS(Constants.LEADERBOARD_BEST, GameStats.currScore);
     }
 
     /**
@@ -461,25 +427,20 @@ public class GameScreen implements Screen{
      * Called when the round should be ended.
      * @param failed True if we failed the round, false otherwise...
      */
-    public void setRoundOver(boolean failed, RoundOver roundOverReason){
-        this.roundOverReason = roundOverReason;
+    public void setRoundOver(boolean failed, GameStats.RoundOver roundOverReason){
+        GameStats.roundOverReason = roundOverReason;
 
         //Set the state to roundEnding and stop dragging.
         this.currGameState = GameState.Ending;
         this.clickListener.dragging = false;
-        this.failedLastRound = failed;
+        GameStats.failedLastRound = failed;
 
-        TextureRegion gameOverImage;
-
-        //If we passed, do stuff!
         if(!failed) {
-            gameOverImage = this.gameOverShapes[0];
-        }else {
-            gameOverImage = this.gameOverShapes[1];
+            this.recordTime();
+            GameStats.successfulRounds++;
         }
 
-        if(!failed) this.recordTime();
-        GUIManager.GameScreenGUI.inst().roundOverGUI(gameOverImage);
+        GUIManager.GameScreenGUI.inst().roundOverGUI();
 
         if(GameSettings.gameType == GameSettings.GameType.Fastest)
             this.roundOverFastest(failed);
@@ -492,12 +453,7 @@ public class GameScreen implements Screen{
     }
 
     private void roundOverFastest(boolean failed){
-        if(!failed){
-            this.successfulRounds++;
-        }
 
-        //GUIManager.GameScreenGUI.inst().roundLabel.setText(this.successfulRounds +" / "+this.currRound+" / "+this.maxRounds);
-        GUIManager.GameScreenGUI.inst().setTopCenterLabel(this.successfulRounds+" / "+this.currRound+" / "+this.maxRounds);
     }
 
     private void roundOverTimed(boolean failed){
@@ -508,9 +464,12 @@ public class GameScreen implements Screen{
 
     }
 
-    private void initLists(){
+    /**
+     * Creates new shape lineLists.
+     */
+    private void initLineLists(){
         for(int i=0;i<GameSettings.numShapes;i++){
-            this.lists[i] = new Array<Vector2>(100);
+            this.lineLists[i] = new Array<Vector2>(100);
         }
     }
 
@@ -561,7 +520,6 @@ public class GameScreen implements Screen{
         this.shapeList = null;
         this.shapes = null;
         this.colorIDs = null;
-        this.gameOverShapes = null;
         GUIManager.GameScreenGUI.inst().reset();
     }
 

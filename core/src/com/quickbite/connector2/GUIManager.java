@@ -32,8 +32,7 @@ public class GUIManager {
         public ImageButton backButton;
 
         /* Game over screen */
-        public Label roundsSurvivedLabel, bestTimeLabel, lostReasonLabel, avgTimeLabel2, scoreLabel;
-
+        public Label roundsSurvivedLabel, bestTimeLabel, lostReasonLabel, avgTimeLabel, scoreLabel;
 
         /* Starting screen stuff */
         private int state = 0, innerState = 0;
@@ -41,14 +40,25 @@ public class GUIManager {
         private Table startingTable;
         private Image firstShape, secondShape, overlay;
         private float waitTime = 0;
+        private TextureRegion[] gameOverShapes;
 
 
         private static GameScreenGUI instance;
 
-        public void makeGUI(final Game game, final GameScreen gameScreen) {
+        public void initGameScreenGUI(final Game game, final GameScreen gameScreen) {
             this.mainTable = new Table();
             this.mainTable.setFillParent(true);
             Game.stage.addActor(this.mainTable);
+
+            gameOverShapes = new TextureRegion[2];
+
+            Texture texture = Game.easyAssetManager.get("checkmark", Texture.class);
+            texture.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
+            gameOverShapes[0] = new TextureRegion(texture);
+
+            texture = Game.easyAssetManager.get("X", Texture.class);
+            texture.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
+            gameOverShapes[1] = new TextureRegion(texture);
 
             TextureRegion arrow = new TextureRegion(Game.easyAssetManager.get("leftArrow", Texture.class));
 
@@ -75,7 +85,7 @@ public class GUIManager {
             style.down = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("buttonDark_down", Texture.class)));
             style.font = Game.defaultFont;
 
-        /* The restart and main menu button for when the game ends */
+        /* The restartGame and main menu button for when the game ends */
 
             this.restartButton = new TextButton("Restart", style);
             this.mainMenuButton = new TextButton("Main Menu", style);
@@ -83,7 +93,7 @@ public class GUIManager {
             this.restartButton.addListener(new ChangeListener() {
                 @Override
                 public void changed(ChangeEvent event, Actor actor) {
-                    gameScreen.restart();
+                    gameScreen.restartGame();
                 }
             });
             this.mainMenuButton.addListener(new ChangeListener() {
@@ -122,8 +132,8 @@ public class GUIManager {
             this.lostReasonLabel = new Label("", titleLabelStyle);
             this.lostReasonLabel.setAlignment(Align.center);
 
-            this.avgTimeLabel2 = new Label("", titleLabelStyle);
-            this.avgTimeLabel2.setAlignment(Align.center);
+            this.avgTimeLabel = new Label("", titleLabelStyle);
+            this.avgTimeLabel.setAlignment(Align.center);
 
             this.topCenterLabel = new Label("", titleLabelStyle);
             this.topCenterLabel.setAlignment(Align.center);
@@ -280,7 +290,7 @@ public class GUIManager {
             gameOverTable.clear();
 
             Label.LabelStyle style = new Label.LabelStyle(Game.defaultLargeFont, Color.WHITE);
-            this.roundsSurvivedLabel = new Label("Made it to round "+screen.currRound, style);
+            this.roundsSurvivedLabel = new Label("Made it to round "+GameStats.currRound, style);
             this.roundsSurvivedLabel.setAlignment(Align.center);
 
             this.gameOverTable.add(this.lostReasonLabel).fillX().expandX();
@@ -300,13 +310,20 @@ public class GUIManager {
 
         }
 
+        /**
+         * Displays the GUI at the end of the game (whether it's win or lose)
+         */
         public void gameOverGUI(){
             Game.stage.clear();
             gameOverTable.clear();
 
+            this.scoreLabel.setText(GameStats.successfulRounds+" Rounds Completed!");
+            this.avgTimeLabel.setText("Average Time: "+(GameStats.avgTime/1000)+"s.");
+            this.bestTimeLabel.setText("Best Time: "+(GameStats.bestTime/1000)+"s.");
+
             this.gameOverTable.add(this.scoreLabel).expandX().fillX();
             this.gameOverTable.row().padTop(50f);
-            this.gameOverTable.add(this.avgTimeLabel2).expandX().fillX();
+            this.gameOverTable.add(this.avgTimeLabel).expandX().fillX();
             this.gameOverTable.row().padTop(50f);
             this.gameOverTable.add(this.bestTimeLabel).expandX().fillX();
             this.gameOverTable.row().padTop(50f);
@@ -315,13 +332,13 @@ public class GUIManager {
             this.gameOverTable.add(this.mainMenuButton).size(200f, 75f);
 
             this.scoreLabel.getColor().a = 0f;
-            this.avgTimeLabel2.getColor().a = 0f;
+            this.avgTimeLabel.getColor().a = 0f;
             this.bestTimeLabel.getColor().a = 0f;
             this.restartButton.getColor().a = 0f;
             this.mainMenuButton.getColor().a = 0f;
 
             this.scoreLabel.addAction(Actions.fadeIn(0.5f));
-            this.avgTimeLabel2.addAction(Actions.sequence(Actions.delay(0.1f), Actions.fadeIn(0.5f)));
+            this.avgTimeLabel.addAction(Actions.sequence(Actions.delay(0.1f), Actions.fadeIn(0.5f)));
             this.bestTimeLabel.addAction(Actions.sequence(Actions.delay(0.2f), Actions.fadeIn(0.5f)));
             this.restartButton.addAction(Actions.sequence(Actions.delay(0.3f), Actions.fadeIn(0.5f)));
             this.mainMenuButton.addAction(Actions.sequence(Actions.delay(0.4f), Actions.fadeIn(0.5f)));
@@ -330,42 +347,19 @@ public class GUIManager {
             Game.stage.addActor(gameOverTable);
         }
 
-        public void roundOverGUI(TextureRegion gameOverTexture){
-            this.gameOverImage = new Image(gameOverTexture);
+        /**
+         * Displays stuff at the end of a round.
+         */
+        public void roundOverGUI(){
+            if(GameStats.failedLastRound)
+                this.gameOverImage = new Image(gameOverShapes[1]);
+            else
+                this.gameOverImage = new Image(gameOverShapes[0]);
 
             //Add the game over image.
             this.gameOverImage.setSize(Gdx.graphics.getWidth(), Gdx.graphics.getWidth());
             this.gameOverImage.setPosition(0f, Gdx.graphics.getHeight()/2f - this.gameOverImage.getHeight()/2f);
             Game.stage.addActor(this.gameOverImage);
-        }
-
-        public void setAvgTimeLabelText(String text){
-
-        }
-
-        public void setBestTimeLabelText(String text){
-            if(this.bestTimeLabel != null)
-                this.bestTimeLabel.setText(text);
-        }
-
-        public void setLostReasonLabelText(String text){
-            if(this.lostReasonLabel != null)
-                this.lostReasonLabel.setText(text);
-        }
-
-        public void setGameOverAvgTimeLabelText(String text){
-            if(this.avgTimeLabel2 != null)
-                this.avgTimeLabel2.setText(text);
-        }
-
-        public void setScoreLabel(String text){
-            if(this.scoreLabel != null)
-                this.scoreLabel.setText(text);
-        }
-
-        public void setTopCenterLabel(String text){
-            if(this.topCenterLabel != null)
-                this.topCenterLabel.setText(text);
         }
 
         public void reset(){

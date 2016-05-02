@@ -41,7 +41,7 @@ public class CheckCollision implements Runnable{
             else if(GameSettings.matchType == GameSettings.MatchType.Color) condition = shape.getColorID() == this.currShape.getColorID();
 
             if(intersect && !condition){
-                this.game.setRoundOver(true, GameScreen.RoundOver.HitShape);
+                this.game.setRoundOver(true, GameStats.RoundOver.HitShape);
                 return;
             }
         }
@@ -57,7 +57,7 @@ public class CheckCollision implements Runnable{
                 boolean intersect = Intersector.intersectSegments(_curr, _next, this.prev, this.curr, intersection);
 
                 if(intersect){
-                    this.game.setRoundOver(true, GameScreen.RoundOver.HitLine);
+                    this.game.setRoundOver(true, GameStats.RoundOver.HitLine);
                     return;
                 }
             }

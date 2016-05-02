@@ -42,7 +42,7 @@ public class GameScreenClickListener implements InputProcessor {
         for(GameShape shape : this.screen.shapeList){
             if(!shape.locked && shape.isOver(worldPos.x, worldPos.y)){
                 this.screen.currShape = shape;
-                this.screen.lists[this.screen.lineCounter].add(new Vector2(shape.position.x, shape.position.y));
+                this.screen.lineLists[this.screen.lineCounter].add(new Vector2(shape.position.x, shape.position.y));
                 this.dragging = true;
             }
         }
@@ -68,35 +68,35 @@ public class GameScreenClickListener implements InputProcessor {
 
                 //Correct one? one more victory point
                 if(condition) {
-                    this.screen.winCounter++;
+                    GameStats.winCounter++;
 
                     //Lock the shapes.
                     this.screen.currShape.locked = true;
                     shape.locked = true;
                     onShape = true;
-                    this.screen.lists[this.screen.lineCounter].add(new Vector2(shape.position.x, shape.position.y));
+                    this.screen.lineLists[this.screen.lineCounter].add(new Vector2(shape.position.x, shape.position.y));
                     this.screen.lineCounter = (this.screen.lineCounter+1)%GameSettings.numShapes;
                 }
                 break;
             }
         }
 
-        //If we didn't let go on a shape, restart the list.
-        if(!onShape) this.screen.lists[this.screen.lineCounter] = new Array<Vector2>(200);
+        //If we didn't let go on a shape, restartGame the list.
+        if(!onShape) this.screen.lineLists[this.screen.lineCounter] = new Array<Vector2>(200);
         return false;
     }
 
     @Override
     public boolean touchDragged(int screenX, int screenY, int pointer) {
         if(this.screen.currShape == null || !this.dragging) return false;
-        Array<Vector2> list = this.screen.lists[this.screen.lineCounter];
+        Array<Vector2> list = this.screen.lineLists[this.screen.lineCounter];
         if(list.size == 0) return false;
 
         Vector3 worldPos = Game.camera.unproject(new Vector3(screenX, screenY, 0));
 
         if(list.get(list.size-1).dst(worldPos.x, worldPos.y) > this.disBetweenPositions){
             list.add(new Vector2(worldPos.x, worldPos.y));
-            Game.executor.submit(new CheckCollision(this.screen, this.screen.shapeList, this.screen.lineCounter, this.screen.lists,
+            Game.executor.submit(new CheckCollision(this.screen, this.screen.shapeList, this.screen.lineCounter, this.screen.lineLists,
                     this.screen.currShape, worldPos.x, worldPos.y, list.get(list.size-2), list.get(list.size-1)));
         }
         return false;
