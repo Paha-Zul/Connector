@@ -7,10 +7,12 @@ package com.quickbite.connector2;
 public class GameStats {
     public enum RoundOver {HitShape, HitLine, OutOfTime, Won}
 
-    static int currRound, maxRounds=10, successfulRounds, currScore, winCounter;
-    static float roundTime, roundTimeDecreaseAmount = 1, roundTimeStart = 10;
-    static double startTime, endTime, bestTime, avgTime;
-    static boolean failedLastRound;
-    static RoundOver roundOverReason;
+    public static int currRound, maxRounds=10, successfulRounds, currScore, winCounter;
+    public static float roundTimeLeft;
+    public static float roundTimeDecreaseAmount = 1;
+    public static float roundTimeStart = 10;
+    public static double startTime, endTime, bestTime, avgTime;
+    public static boolean failedLastRound;
+    public static RoundOver roundOverReason;
 
 }

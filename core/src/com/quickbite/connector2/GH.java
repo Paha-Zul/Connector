@@ -25,4 +25,17 @@ public class GH {
 
         return curr;
     }
+
+    public static String getLostReason(){
+        String reason = "";
+        if(GameStats.roundOverReason == GameStats.RoundOver.HitLine)
+            reason = "Hit Line";
+        if(GameStats.roundOverReason == GameStats.RoundOver.HitShape)
+            reason = "Hit Wrong Shape";
+        if(GameStats.roundOverReason == GameStats.RoundOver.OutOfTime)
+            reason = "Out of Time";
+
+        return reason;
+    }
+
 }
