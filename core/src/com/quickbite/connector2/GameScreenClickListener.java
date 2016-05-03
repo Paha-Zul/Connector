@@ -89,6 +89,7 @@ public class GameScreenClickListener implements InputProcessor {
     @Override
     public boolean touchDragged(int screenX, int screenY, int pointer) {
         if(this.screen.currShape == null || !this.dragging) return false;
+
         Array<Vector2> list = this.screen.lineLists[this.screen.lineCounter];
         if(list.size == 0) return false;
 

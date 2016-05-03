@@ -13,7 +13,11 @@ import com.badlogic.gdx.backends.android.AndroidApplicationConfiguration;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.TimeUtils;
 import com.badlogic.gdx.utils.Timer;
-import com.google.android.gms.ads.*;
+import com.google.android.gms.ads.AdListener;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdSize;
+import com.google.android.gms.ads.AdView;
+import com.google.android.gms.ads.InterstitialAd;
 import com.google.android.gms.common.api.PendingResult;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.games.Games;
@@ -22,6 +26,7 @@ import com.google.android.gms.games.leaderboard.LeaderboardScore;
 import com.google.android.gms.games.leaderboard.LeaderboardVariant;
 import com.google.android.gms.games.leaderboard.Leaderboards;
 import com.google.example.games.basegameutils.GameHelper;
+import com.quickbite.connector2.gui.MainMenuGUI;
 
 public class AndroidLauncher extends AndroidApplication implements GameHelper.GameHelperListener, ActionResolver, AdInterface {
 	GameHelper gameHelper;
@@ -292,7 +297,7 @@ public class AndroidLauncher extends AndroidApplication implements GameHelper.Ga
                     scores.add(score.getDisplayScore());
                 }
 
-                GUIManager.MainMenuGUI.inst().loadLeaderboardScores(ranks, names, scores);
+                MainMenuGUI.loadLeaderboardScores(ranks, names, scores);
             }
         });
 
@@ -304,7 +309,7 @@ public class AndroidLauncher extends AndroidApplication implements GameHelper.Ga
 					Gdx.app.debug("Leaderboard", "Leaderboard Timed out successfully");
 					pendingResult.cancel();
 					timeOutTimer.clear();
-                    GUIManager.MainMenuGUI.inst().loadLeaderboardScores(null, null, null);
+                    MainMenuGUI.loadLeaderboardScores(null, null, null);
 				}
 			}
 		}, 0, 0.5f);

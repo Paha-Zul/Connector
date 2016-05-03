@@ -17,6 +17,7 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 public class Game extends com.badlogic.gdx.Game {
 	public static SpriteBatch batch;
@@ -40,7 +41,6 @@ public class Game extends com.badlogic.gdx.Game {
 	
 	@Override
 	public void create () {
-
 		camera = new OrthographicCamera(480, 800);
 		viewport = new StretchViewport(480, 800, camera);
 		batch = new SpriteBatch();
@@ -72,6 +72,21 @@ public class Game extends com.badlogic.gdx.Game {
 
 		defaultButtonUp = new TextureRegion(easyAssetManager.get("defaultButton_normal", Texture.class));
 		defaultButtonDown = new TextureRegion(easyAssetManager.get("defaultButton_down", Texture.class));
+
+		Runtime.getRuntime().addShutdownHook(new Thread(){
+			@Override
+			public void run() {
+				System.out.println("Shutting down threads");
+				executor.shutdownNow();
+				System.out.println("shut down threads");
+				try {
+					executor.awaitTermination(5, TimeUnit.SECONDS);
+					System.out.println("Awaited");
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+		});
 
 		Gdx.input.setInputProcessor(stage);
 		this.setScreen(new LogoScreen(this));

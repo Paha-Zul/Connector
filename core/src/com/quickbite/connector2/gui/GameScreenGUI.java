@@ -293,10 +293,6 @@ public class GameScreenGUI {
         return false;
     }
 
-    public static void roundEndedGUI(){
-        gameOverImage.remove();
-    }
-
     public static void gameOverTimedGUI(GameScreen screen){
         mainTable.remove();
         gameOverTable.clear();
@@ -364,20 +360,30 @@ public class GameScreenGUI {
         Game.stage.addActor(gameOverTable);
     }
 
+
+    public static void roundEndedGUI(){
+        if(gameOverImage != null) {
+            gameOverImage.remove();
+            gameOverImage = null;
+        }
+    }
+
     /**
      * Displays stuff at the end of a round.
      */
     public static void roundOverGUI(){
-        if(GameStats.failedLastRound)
-            gameOverImage = new Image(gameOverShapes[1]);
-        else
-            gameOverImage = new Image(gameOverShapes[0]);
+    if(gameOverImage != null) return;
 
-        //Add the game over image.
-        gameOverImage.setSize(Gdx.graphics.getWidth(), Gdx.graphics.getWidth());
-        gameOverImage.setPosition(0f, Gdx.graphics.getHeight()/2f - gameOverImage.getHeight()/2f);
-        Game.stage.addActor(gameOverImage);
-    }
+    if(GameStats.failedLastRound)
+    gameOverImage = new Image(gameOverShapes[1]);
+    else
+    gameOverImage = new Image(gameOverShapes[0]);
+
+    //Add the game over image.
+    gameOverImage.setSize(Gdx.graphics.getWidth(), Gdx.graphics.getWidth());
+    gameOverImage.setPosition(0f, Gdx.graphics.getHeight()/2f - gameOverImage.getHeight()/2f);
+    Game.stage.addActor(gameOverImage);
+}
 
     public static void reset(){
         state = 0;

@@ -5,8 +5,8 @@ import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration;
 import com.badlogic.gdx.utils.Array;
 import com.quickbite.connector2.ActionResolver;
 import com.quickbite.connector2.AdInterface;
-import com.quickbite.connector2.GUIManager;
 import com.quickbite.connector2.Game;
+import com.quickbite.connector2.gui.MainMenuGUI;
 
 public class DesktopLauncher implements ActionResolver, AdInterface {
 
@@ -76,7 +76,7 @@ public class DesktopLauncher implements ActionResolver, AdInterface {
 		scores.add("125");
 		scores.add("98");
 
-		GUIManager.MainMenuGUI.inst().loadLeaderboardScores(ranks, names, scores);
+		MainMenuGUI.loadLeaderboardScores(ranks, names, scores);
 	}
 
 	@Override

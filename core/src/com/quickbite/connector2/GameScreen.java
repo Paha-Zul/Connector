@@ -20,6 +20,8 @@ public class GameScreen implements Screen{
     public enum GameState {Beginning, Starting, Running, Ending, Over, Limbo}
     private GameState currGameState;
 
+    private boolean startedRoundEnd = false;
+
     private TextureRegion topTexture;
     private Game game;
 
@@ -284,6 +286,8 @@ public class GameScreen implements Screen{
             }
         //If roundEnding, spin the shapes out!
         }else if(currGameState == GameState.Ending){
+            if(!startedRoundEnd)
+                this.startRoundEnd();
             this.currScale = lerpScale(1, 0, this.currScale, 1500);
             this.currRotation += 20;
             if(this.currScale <= 0) {
@@ -327,6 +331,24 @@ public class GameScreen implements Screen{
         this.initLineLists();
     }
 
+    private void startRoundEnd(){
+        if(!GameStats.failedLastRound) {
+            this.recordTime();
+            GameStats.successfulRounds++;
+        }
+
+        GameScreenGUI.roundOverGUI();
+
+        if(GameSettings.gameType == GameSettings.GameType.Fastest)
+            this.roundOverFastest(GameStats.failedLastRound);
+        else if(GameSettings.gameType == GameSettings.GameType.Timed)
+            this.roundOverTimed(GameStats.failedLastRound);
+        else if(GameSettings.gameType == GameSettings.GameType.Practice)
+            this.roundOverPractice(GameStats.failedLastRound);
+
+        this.roundEnding();
+    }
+
     /**
      * Called when the round should be ended.
      */
@@ -349,6 +371,21 @@ public class GameScreen implements Screen{
             this.initRound();
 
         GameStats.currRound++;
+        this.startedRoundEnd = false;
+    }
+
+    /**
+     * Called when the round should be ended.
+     * @param failed True if we failed the round, false otherwise...
+     */
+    public synchronized void setRoundOver(boolean failed, GameStats.RoundOver roundOverReason){
+        GameStats.roundOverReason = roundOverReason;
+        GameStats.failedLastRound = failed;
+
+        //Set the state to roundEnding and stop dragging.
+        this.currGameState = GameState.Ending;
+        this.clickListener.dragging = false;
+
     }
 
     /**
@@ -418,34 +455,7 @@ public class GameScreen implements Screen{
 
     }
 
-    /**
-     * Called when the round should be ended.
-     * @param failed True if we failed the round, false otherwise...
-     */
-    public void setRoundOver(boolean failed, GameStats.RoundOver roundOverReason){
-        GameStats.roundOverReason = roundOverReason;
 
-        //Set the state to roundEnding and stop dragging.
-        this.currGameState = GameState.Ending;
-        this.clickListener.dragging = false;
-        GameStats.failedLastRound = failed;
-
-        if(!failed) {
-            this.recordTime();
-            GameStats.successfulRounds++;
-        }
-
-        GameScreenGUI.roundOverGUI();
-
-        if(GameSettings.gameType == GameSettings.GameType.Fastest)
-            this.roundOverFastest(failed);
-        else if(GameSettings.gameType == GameSettings.GameType.Timed)
-            this.roundOverTimed(failed);
-        else if(GameSettings.gameType == GameSettings.GameType.Practice)
-            this.roundOverPractice(failed);
-
-        this.roundEnding();
-    }
 
     private void roundOverFastest(boolean failed){
 
