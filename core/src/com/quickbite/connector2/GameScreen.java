@@ -5,6 +5,8 @@ import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.ParticleEffect;
+import com.badlogic.gdx.graphics.g2d.ParticleEffectPool;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
@@ -40,6 +42,9 @@ public class GameScreen implements Screen{
 
     private final float topArea = 0.1f;
     private float sizeOfSpots = 480/5, sizeOfShapes = 480/6;
+
+    private Array<ParticleEffect> particleEffects = new Array<ParticleEffect>();
+    private ParticleEffectPool explosionEffectPool;
 
     private GameScreenClickListener clickListener;
 
@@ -113,6 +118,14 @@ public class GameScreen implements Screen{
         this.currGameState = GameState.Beginning;
 
         GameScreenGUI.initGameScreenGUI(this.game, this);
+        initParticleEffects();
+    }
+
+    private void initParticleEffects(){
+        ParticleEffect effect = new ParticleEffect();
+        effect.load(Gdx.files.internal("particles/explosion.p"), Gdx.files.internal("particles/"));
+
+        explosionEffectPool = new ParticleEffectPool(effect, 4, 10);
     }
 
     public void reset(){
@@ -178,14 +191,34 @@ public class GameScreen implements Screen{
             GameStats.bestTime = time;
     }
 
+    public void shapesConnected(GameShape shape1, GameShape shape2){
+        //Lock the shapes.
+        shape1.locked = true;
+        shape2.locked = true;
+
+        ParticleEffect effect = explosionEffectPool.obtain();
+        effect.setPosition(shape1.position.x - Game.viewport.getScreenWidth()/2f, shape1.position.y - Game.viewport.getScreenHeight()/2f);
+        effect.getEmitters().get(0).getTint().setColors(new float[]{shapeColors[shape1.getColorID()].r, shapeColors[shape1.getColorID()].g, shapeColors[shape1.getColorID()].b});
+        effect.start();
+
+        particleEffects.add(effect);
+
+        ParticleEffect effect2 = explosionEffectPool.obtain();
+        effect2.setPosition(shape2.position.x - Game.viewport.getScreenWidth()/2f, shape2.position.y - Game.viewport.getScreenHeight()/2f);
+        effect2.getEmitters().get(0).getTint().setColors(new float[]{shapeColors[shape2.getColorID()].r, shapeColors[shape2.getColorID()].g, shapeColors[shape2.getColorID()].b});
+        effect2.start();
+
+        particleEffects.add(effect2);
+    }
+
     @Override
     public void render(float delta) {
         update(delta);
 
         Game.renderer.begin(ShapeRenderer.ShapeType.Filled);
         this.drawLines(Game.renderer);
-        this.debugDrawGrid(Game.renderer);
-        this.debugDrawShapes(Game.renderer);
+//        this.debugDrawGrid(Game.renderer);
+//        this.debugDrawShapes(Game.renderer);
         Game.renderer.end();
 
         Game.batch.begin();
@@ -200,7 +233,17 @@ public class GameScreen implements Screen{
                 Gdx.graphics.getWidth(), Game.viewport.getScreenHeight()*this.topArea);
 
 
+
+        this.drawParticles(batch, Gdx.graphics.getDeltaTime());
         this.drawShapes(batch);
+    }
+
+    private void drawParticles(SpriteBatch batch, float delta){
+        for(int i=particleEffects.size-1; i >= 0; i--){
+            particleEffects.get(i).draw(batch, delta);
+            if(particleEffects.get(i).isComplete())
+                particleEffects.removeIndex(i);
+        }
     }
 
     private void drawShapes(SpriteBatch batch){
@@ -233,6 +276,10 @@ public class GameScreen implements Screen{
 //            shapeRenderer.rect(shape.bounds.x, shape.bounds.y, shape.bounds.width, shape.bounds.height);
     }
 
+    /**
+     * Draws the grid for debugging.
+     * @param shapeRenderer The shape renderer to use
+     */
     private void debugDrawGrid(ShapeRenderer shapeRenderer){
         shapeRenderer.end();
         shapeRenderer.setColor(Color.WHITE);
@@ -245,6 +292,10 @@ public class GameScreen implements Screen{
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
     }
 
+    /**
+     * Draws the shape click areas (not the actual shapes themselves) for debugging.
+     * @param shapeRenderer The shape renderer to use.
+     */
     private void debugDrawShapes(ShapeRenderer shapeRenderer){
         shapeRenderer.end();
         shapeRenderer.setColor(Color.RED);
@@ -257,6 +308,10 @@ public class GameScreen implements Screen{
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
     }
 
+    /**
+     * General update. Can be used for stuff that is common to all game types.
+     * @param delta The time between frames.
+     */
     private void update(float delta){
 
         if(currGameState == GameState.Beginning) {
@@ -275,14 +330,14 @@ public class GameScreen implements Screen{
             }
 
             GameScreenGUI.update(delta);
-        //If starting, spin the shapes in!
+        //If roundStarting, spin the shapes in!
         }else if(currGameState == GameState.Starting){
             this.currScale = lerpScale(0, 1, this.currScale, 1500);
             this.currRotation += 20;
             if(this.currScale >= 1) {
                 this.currScale = 1;
                 this.currRotation = 0;
-                this.started();
+                this.roundStarted();
             }
         //If roundEnding, spin the shapes out!
         }else if(currGameState == GameState.Ending){
@@ -301,6 +356,10 @@ public class GameScreen implements Screen{
         }
     }
 
+    private void updateChallengeGame(float delta){
+
+    }
+
     private void updateTimedGame(float delta){
         GameStats.roundTimeLeft -= delta;
 
@@ -310,19 +369,27 @@ public class GameScreen implements Screen{
         }
     }
 
+    /**
+     * Update function for 'best' game mode specifics.
+     * @param delta The time between frames.
+     */
     private void updateBestGame(float delta){
 
     }
 
+    /**
+     * Update function for 'practice' game mode specifics.
+     * @param delta The time between frames.
+     */
     private void updatePractice(float delta){
 
     }
 
-    private void starting(){
+    private void roundStarting(){
 
     }
 
-    private void started(){
+    private void roundStarted(){
         this.currGameState = GameState.Running;
         GameStats.startTime = System.currentTimeMillis();
     }
@@ -336,6 +403,8 @@ public class GameScreen implements Screen{
             this.recordTime();
             GameStats.successfulRounds++;
         }
+
+        this.startedRoundEnd = true;
 
         GameScreenGUI.roundOverGUI();
 
@@ -355,7 +424,7 @@ public class GameScreen implements Screen{
     private void roundEnded(){
         this.shapeList = new Array<GameShape>();
         GameScreenGUI.roundEndedGUI();
-        this.currGameState = GameState.Starting; //By default, set it to starting the round again.
+        this.currGameState = GameState.Starting; //By default, set it to roundStarting the round again.
 
         //If it was the fastest game type, check if we finished all of our rounds.
         if(GameSettings.gameType == GameSettings.GameType.Fastest){
@@ -366,7 +435,7 @@ public class GameScreen implements Screen{
             this.roundEndedTimed();
         }
 
-        //If we are still starting, init the round.
+        //If we are still roundStarting, init the round.
         if(this.currGameState == GameState.Starting)
             this.initRound();
 
@@ -385,7 +454,6 @@ public class GameScreen implements Screen{
         //Set the state to roundEnding and stop dragging.
         this.currGameState = GameState.Ending;
         this.clickListener.dragging = false;
-
     }
 
     /**
@@ -434,7 +502,7 @@ public class GameScreen implements Screen{
     private void gameOverTimed(){
         GameScreenGUI.gameOverTimedGUI(this);
         if(GameStats.avgTime == 0) GameStats.currScore = 0;
-        else GameStats.currScore = (int)((4*GameStats.currRound) *(1f/(GameStats.avgTime/1000))*(GameSettings.numShapes*4));
+        else GameStats.currScore = (int)((2*(GameStats.currRound-1)) * (20f/(GameStats.avgTime/1000)) * (GameSettings.numShapes*3));
         Game.resolver.submitScoreGPGS(Constants.LEADERBOARD_TIMED, GameStats.currScore);
     }
 
@@ -444,7 +512,7 @@ public class GameScreen implements Screen{
     private void gameOverBest(){
         GameScreenGUI.gameOverBestGUI();
         if(GameStats.avgTime == 0) GameStats.currScore = 0;
-        else GameStats.currScore = (int)((4*GameStats.successfulRounds) *(1f/(GameStats.avgTime/1000))*(GameSettings.numShapes*4));
+        else GameStats.currScore = (int)((3*GameStats.successfulRounds)*(20f/(GameStats.avgTime/1000))*(GameSettings.numShapes*3));
         Game.resolver.submitScoreGPGS(Constants.LEADERBOARD_BEST, GameStats.currScore);
     }
 

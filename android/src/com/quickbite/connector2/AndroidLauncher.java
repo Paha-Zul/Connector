@@ -3,8 +3,10 @@ package com.quickbite.connector2;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.view.Gravity;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.FrameLayout;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 import com.badlogic.gdx.Gdx;
@@ -53,31 +55,27 @@ public class AndroidLauncher extends AndroidApplication implements GameHelper.Ga
 
 		super.onCreate(savedInstanceState);
 
-//		Chartboost.startWithAppId(this, getString(R.string.chartboost_id), getString(R.string.chartboost_sig));
-		/* Optional: If you want to program responses to Chartboost events, supply a delegate object here and see step (10) for more information */
-		//Chartboost.setDelegate(delegate);
-//		Chartboost.onCreate(this);
-
 		AndroidApplicationConfiguration cfg = new AndroidApplicationConfiguration();
 		cfg.useAccelerometer = false;
 		cfg.useCompass = false;
 
 		// Do the stuff that initialize() would do for you
-		//requestWindowFeature(Window.FEATURE_NO_TITLE);
 		getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
 		getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
 
-		RelativeLayout layout = new RelativeLayout(this);
-		RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT);
-		layout.setLayoutParams(params);
+		FrameLayout fLayout = new FrameLayout(this);
+		FrameLayout.LayoutParams fParams = new FrameLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT,
+				Gravity.BOTTOM|android.view.Gravity.CENTER_HORIZONTAL);
+		fLayout.setLayoutParams(fParams);
 
 		AdView admobView = createAdView();
-		layout.addView(admobView);
 
 		View gameView = createGameView(cfg, game);
-		layout.addView(gameView);
 
-		setContentView(layout);
+		fLayout.addView(gameView);
+		fLayout.addView(admobView);
+
+		setContentView(fLayout);
 		startAdvertising(admobView);
 
 		interstitialAd = new InterstitialAd(this);
@@ -90,8 +88,13 @@ public class AndroidLauncher extends AndroidApplication implements GameHelper.Ga
 			@Override
 			public void onAdClosed() {
 				Toast.makeText(getApplicationContext(), "Closed Interstitial", Toast.LENGTH_SHORT).show();
+                AdRequest interstitialRequest = new AdRequest.Builder().build();
+                interstitialAd.loadAd(interstitialRequest);
 			}
 		});
+
+		AdRequest interstitialRequest = new AdRequest.Builder().build();
+		interstitialAd.loadAd(interstitialRequest);
 	}
 
 	private AdView createAdView() {
@@ -99,21 +102,15 @@ public class AndroidLauncher extends AndroidApplication implements GameHelper.Ga
 		adView.setAdSize(AdSize.SMART_BANNER);
 		adView.setAdUnitId(getString(R.string.banner_ad_unit_id));
 		adView.setId(R.id.adViewId); // this is an arbitrary id, allows for relative positioning in createGameView()
-		RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
-		params.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM, RelativeLayout.TRUE);
-		params.addRule(RelativeLayout.CENTER_HORIZONTAL, RelativeLayout.TRUE);
-		adView.setLayoutParams(params);
+		FrameLayout.LayoutParams fParams = new FrameLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT,
+				Gravity.BOTTOM|android.view.Gravity.CENTER_HORIZONTAL);
+		adView.setLayoutParams(fParams);
 		adView.setBackgroundColor(android.graphics.Color.BLACK);
 		return adView;
 	}
 
 	private View createGameView(AndroidApplicationConfiguration cfg, Game game) {
 		gameView = initializeForView(game, cfg);
-		RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
-		params.addRule(RelativeLayout.ALIGN_PARENT_TOP, RelativeLayout.TRUE);
-		params.addRule(RelativeLayout.CENTER_HORIZONTAL, RelativeLayout.TRUE);
-		params.addRule(RelativeLayout.ABOVE, adView.getId());
-		gameView.setLayoutParams(params);
 		return gameView;
 	}
 
@@ -157,11 +154,11 @@ public class AndroidLauncher extends AndroidApplication implements GameHelper.Ga
 				public void run() {
 				  if (interstitialAd.isLoaded()) {
 					interstitialAd.show();
-					Toast.makeText(getApplicationContext(), "Showing Interstitial", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getApplicationContext(), "Showing Interstitial", Toast.LENGTH_SHORT).show();
 				  }
 				  else {
-					AdRequest interstitialRequest = new AdRequest.Builder().build();
-					interstitialAd.loadAd(interstitialRequest);
+//					AdRequest interstitialRequest = new AdRequest.Builder().build();
+//					interstitialAd.loadAd(interstitialRequest);
 					Toast.makeText(getApplicationContext(), "Loading Interstitial", Toast.LENGTH_SHORT).show();
 				  }
 				}

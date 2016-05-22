@@ -38,14 +38,14 @@ public class LogoScreen implements Screen{
         logoImage.setOrigin(Align.center);
         logoImage.setPosition(Game.viewport.getWorldWidth()/2f - 128f, Game.viewport.getWorldHeight()/2f - 128f);
 
-        logoImage.addAction(Actions.sequence(Actions.fadeIn(1f), Actions.delay(1f), Actions.fadeOut(1f), new Action() {
+        logoImage.addAction(Actions.sequence(Actions.fadeIn(1f), Actions.delay(1.5f), Actions.fadeOut(1f), new Action() {
             @Override
             public boolean act(float delta) {
                 game.setScreen(new MainMenu(game));
                 return true;
             }
         }));
-        logoImage.addAction(Actions.scaleTo(1.2f, 1.2f, 3f));
+        logoImage.addAction(Actions.scaleTo(1.1f, 1.1f, 4f));
 
         Game.stage.addActor(logoImage);
     }

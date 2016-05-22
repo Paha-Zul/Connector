@@ -127,8 +127,9 @@ public class MainMenuGUI {
         leaderboards.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
-                table.clear();
-                table.add(leaderSelectionTable);
+//                table.clear();
+                Game.resolver.getLeaderboardGPGS("DoesntMatter");
+//                table.add(leaderSelectionTable);
             }
         });
 

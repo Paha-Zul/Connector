@@ -70,9 +70,8 @@ public class GameScreenClickListener implements InputProcessor {
                 if(condition) {
                     GameStats.winCounter++;
 
-                    //Lock the shapes.
-                    this.screen.currShape.locked = true;
-                    shape.locked = true;
+                    this.screen.shapesConnected(this.screen.currShape, shape);
+
                     onShape = true;
                     this.screen.lineLists[this.screen.lineCounter].add(new Vector2(shape.position.x, shape.position.y));
                     this.screen.lineCounter = (this.screen.lineCounter+1)%GameSettings.numShapes;

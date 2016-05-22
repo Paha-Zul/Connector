@@ -7,6 +7,7 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.ParticleEffect;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
@@ -53,6 +54,7 @@ public class Game extends com.badlogic.gdx.Game {
         easyAssetManager = new EasyAssetManager();
 
         this.loadAllPng(Gdx.files.internal("art/"));
+        this.loadParticles(Gdx.files.internal("particles/"));
         this.loadAssets();
 
 		FreeTypeFontGenerator generator = new FreeTypeFontGenerator(Gdx.files.internal("copperplatessibold.ttf"));
@@ -105,6 +107,13 @@ public class Game extends com.badlogic.gdx.Game {
 				this.loadAllPng(Gdx.files.internal(h.path()+"/"));
 			}
 		}
+	}
+
+	public void loadParticles(FileHandle handle){
+        for(FileHandle h : handle.list()){
+            if(h.name().endsWith(".p"))
+                easyAssetManager.load(h.path(), ParticleEffect.class);
+        }
 	}
 
 	public void loadAssets(){

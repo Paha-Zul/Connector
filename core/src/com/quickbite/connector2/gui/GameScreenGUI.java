@@ -27,14 +27,16 @@ import java.text.DecimalFormat;
  * Created by Paha on 5/2/2016.
  */
 public class GameScreenGUI {
-    private static Table mainTable = new Table();
+    private static Table centerTable = new Table();
+    private static Table leftTable = new Table();
+    private static Table rightTable = new Table();
     private static Table gameOverTable = new Table();
     private static Image gameOverImage;
     private static TextButton restartButton, mainMenuButton;
     private static ImageButton backButton;
 
     /* Game over screen */
-    private static Label roundsSurvivedLabel, bestTimeLabel, lostReasonLabel, avgTimeLabel, scoreLabel;
+    private static Label roundsSurvivedLabel, bestTimeLabel, lostReasonLabel, avgTimeLabel, scoreLabel, roundsLabel;
 
     /* Starting screen stuff */
     private static int state = 0, innerState = 0;
@@ -48,12 +50,14 @@ public class GameScreenGUI {
     public static void update(float delta){
         if(GameSettings.gameType == GameSettings.GameType.Timed)
             topCenterLabel.setText(formatter.format(GameStats.roundTimeLeft)+"");
+        else if(GameSettings.gameType == GameSettings.GameType.Fastest)
+            topCenterLabel.setText("Round: "+GameStats.currRound+"/"+GameStats.maxRounds);
     }
 
     public static void initGameScreenGUI(final Game game, final GameScreen gameScreen) {
-        mainTable = new Table();
-        mainTable.setFillParent(true);
-        Game.stage.addActor(mainTable);
+        centerTable = new Table();
+        centerTable.setFillParent(true);
+        Game.stage.addActor(centerTable);
 
         gameOverShapes = new TextureRegion[2];
 
@@ -100,7 +104,9 @@ public class GameScreenGUI {
             public void changed(ChangeEvent event, Actor actor) {
                 gameScreen.restartGame();
                 gameOverTable.remove();
-                Game.stage.addActor(mainTable);
+                Game.stage.addActor(centerTable);
+                Game.stage.addActor(leftTable);
+                Game.stage.addActor(rightTable);
             }
         });
         mainMenuButton.addListener(new ChangeListener() {
@@ -108,7 +114,6 @@ public class GameScreenGUI {
             public void changed(ChangeEvent event, Actor actor) {
                 Game.stage.clear();
                 toMainMenu(gameScreen, game);
-
             }
         });
 
@@ -133,6 +138,9 @@ public class GameScreenGUI {
         scoreLabel = new Label("", titleLabelStyle);
         scoreLabel.setAlignment(Align.center);
 
+        roundsLabel = new Label("", titleLabelStyle);
+        roundsLabel.setAlignment(Align.center);
+
         bestTimeLabel = new Label("", titleLabelStyle);
         bestTimeLabel.setAlignment(Align.center);
 
@@ -142,18 +150,22 @@ public class GameScreenGUI {
         avgTimeLabel = new Label("", titleLabelStyle);
         avgTimeLabel.setAlignment(Align.center);
 
-        topCenterLabel = new Label("", titleLabelStyle);
+        topCenterLabel = new Label("LOL", titleLabelStyle);
         topCenterLabel.setAlignment(Align.center);
         topCenterLabel.setSize(100, 50);
-        topCenterLabel.setPosition(Gdx.graphics.getWidth() / 2 - 50, Gdx.graphics.getHeight() - 75);
+        topCenterLabel.setPosition(Game.viewport.getWorldWidth() / 2f - 50, Game.viewport.getScreenHeight() - 75);
+        topCenterLabel.setFontScale(0.8f);
 
-        mainTable.add(backButton);
-        mainTable.row();
-        mainTable.add(topCenterLabel);
+        centerTable.add(backButton);
 
-        mainTable.top();
+        leftTable.add(topCenterLabel);
+        leftTable.left().top();
+        leftTable.setFillParent(true);
 
-        Game.stage.addActor(mainTable);
+        centerTable.top();
+
+        Game.stage.addActor(centerTable);
+        Game.stage.addActor(leftTable);
 
         makeStartingGUI(game, gameScreen);
     }
@@ -282,7 +294,6 @@ public class GameScreenGUI {
             }
         }
 
-
         //Second, show what we are matching (shapes/colors)
 
         //Third, show two shapes, if matching random color shapes, 2 diff shapes with different colors.
@@ -294,8 +305,7 @@ public class GameScreenGUI {
     }
 
     public static void gameOverTimedGUI(GameScreen screen){
-        mainTable.remove();
-        gameOverTable.clear();
+        gameOverTableReset();
 
         Label.LabelStyle style = new Label.LabelStyle(Game.defaultLargeFont, Color.WHITE);
         roundsSurvivedLabel = new Label("Made it to round "+GameStats.currRound, style);
@@ -322,19 +332,22 @@ public class GameScreenGUI {
      * Displays the GUI at the end of the game (whether it's win or lose)
      */
     public static void gameOverGUI(){
-        mainTable.remove();
-        gameOverTable.clear();
+        gameOverTableReset();
 
         lostReasonLabel.setText(GH.getLostReason());
-        scoreLabel.setText(GameStats.successfulRounds+" Rounds Completed!");
-        avgTimeLabel.setText("Average Time: "+(GameStats.avgTime/1000)+"s.");
-        bestTimeLabel.setText("Best Time: "+(GameStats.bestTime/1000)+"s.");
+        scoreLabel.setText("Score: "+GameStats.currScore);
+        roundsLabel.setText(GameStats.successfulRounds+" Rounds Completed!");
+        avgTimeLabel.setText("Average Time: "+formatter.format(GameStats.avgTime/1000)+"s.");
+        bestTimeLabel.setText("Best Time: "+formatter.format(GameStats.bestTime/1000)+"s.");
 
         if(GameSettings.gameType == GameSettings.GameType.Timed){
             gameOverTable.add(lostReasonLabel).expandX().fillX();
             gameOverTable.row().padTop(50f);
         }
+
         gameOverTable.add(scoreLabel).expandX().fillX();
+        gameOverTable.row().padTop(50f);
+        gameOverTable.add(roundsLabel).expandX().fillX();
         gameOverTable.row().padTop(50f);
         gameOverTable.add(avgTimeLabel).expandX().fillX();
         gameOverTable.row().padTop(50f);
@@ -358,6 +371,14 @@ public class GameScreenGUI {
 
         gameOverTable.setFillParent(true);
         Game.stage.addActor(gameOverTable);
+    }
+
+    private static void gameOverTableReset(){
+        centerTable.remove();
+        leftTable.remove();
+        rightTable.remove();
+
+        gameOverTable.clear();
     }
 
 
@@ -392,7 +413,17 @@ public class GameScreenGUI {
 
     private static void toMainMenu(GameScreen gameScreen, Game game){
         gameScreen.dispose();
-        game.setScreen(new MainMenu(game));
         Game.adInterface.showAdmobInterAd();
+        resetTables();
+        Game.stage.clear();
+        game.setScreen(new MainMenu(game));
+    }
+
+    private static void resetTables(){
+        centerTable.clear();
+        leftTable.clear();
+        rightTable.clear();
+
+        gameOverTable.clear();
     }
 }
