@@ -108,12 +108,14 @@ public class MainMenuGUI {
         modeTimed = new TextButton("Timed", style);
 
         startGame = new TextButton("Start", regularStyle);
+        startGame.setDisabled(true);
+        startGame.getColor().a = 0.5f;
 
         start.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
                 table.clear();
-                choicesMenu();
+                showChoicesMenu();
             }
         });
 
@@ -148,6 +150,8 @@ public class MainMenuGUI {
                 fourShapes.setChecked(false);
                 fiveShapes.setChecked(false);
                 sixShapes.setChecked(false);
+                threeShapes.setChecked(true);
+                checkAllOptionsSelected();
             }
         });
 
@@ -157,8 +161,10 @@ public class MainMenuGUI {
                 super.clicked(event, x, y);
                 GameSettings.numShapes = 4;
                 threeShapes.setChecked(false);
+                fourShapes.setChecked(true);
                 fiveShapes.setChecked(false);
                 sixShapes.setChecked(false);
+                checkAllOptionsSelected();
             }
         });
 
@@ -169,7 +175,9 @@ public class MainMenuGUI {
                 GameSettings.numShapes = 5;
                 threeShapes.setChecked(false);
                 fourShapes.setChecked(false);
+                fiveShapes.setChecked(true);
                 sixShapes.setChecked(false);
+                checkAllOptionsSelected();
             }
         });
 
@@ -181,6 +189,8 @@ public class MainMenuGUI {
                 threeShapes.setChecked(false);
                 fourShapes.setChecked(false);
                 fiveShapes.setChecked(false);
+                sixShapes.setChecked(true);
+                checkAllOptionsSelected();
             }
         });
 
@@ -190,6 +200,8 @@ public class MainMenuGUI {
                 super.clicked(event, x, y);
                 GameSettings.colorType = GameSettings.ColorType.Normal;
                 colorRandom.setChecked(false);
+                colorSame.setChecked(true);
+                checkAllOptionsSelected();
             }
         });
 
@@ -199,6 +211,8 @@ public class MainMenuGUI {
                 super.clicked(event, x, y);
                 GameSettings.colorType = GameSettings.ColorType.Random;
                 colorSame.setChecked(false);
+                colorRandom.setChecked(true);
+                checkAllOptionsSelected();
             }
         });
 
@@ -208,6 +222,8 @@ public class MainMenuGUI {
                 super.clicked(event, x, y);
                 GameSettings.matchType = GameSettings.MatchType.Shapes;
                 matchColor.setChecked(false);
+                matchShape.setChecked(true);
+                checkAllOptionsSelected();
             }
         });
 
@@ -217,6 +233,8 @@ public class MainMenuGUI {
                 super.clicked(event, x, y);
                 GameSettings.matchType = GameSettings.MatchType.Color;
                 matchShape.setChecked(false);
+                matchColor.setChecked(true);
+                checkAllOptionsSelected();
             }
         });
 
@@ -227,6 +245,8 @@ public class MainMenuGUI {
                 GameSettings.gameType = GameSettings.GameType.Practice;
                 modeTimed.setChecked(false);
                 modeBest.setChecked(false);
+                modePractice.setChecked(true);
+                checkAllOptionsSelected();
             }
         });
 
@@ -236,7 +256,9 @@ public class MainMenuGUI {
                 super.clicked(event, x, y);
                 GameSettings.gameType = GameSettings.GameType.Fastest;
                 modeTimed.setChecked(false);
+                modeBest.setChecked(true);
                 modePractice.setChecked(false);
+                checkAllOptionsSelected();
             }
         });
 
@@ -245,15 +267,16 @@ public class MainMenuGUI {
             public void clicked(InputEvent event, float x, float y) {
                 super.clicked(event, x, y);
                 GameSettings.gameType = GameSettings.GameType.Timed;
+                modeTimed.setChecked(true);
                 modeBest.setChecked(false);
                 modePractice.setChecked(false);
+                checkAllOptionsSelected();
             }
         });
 
-        startGame.addListener(new ClickListener() {
+        startGame.addListener(new ChangeListener() {
             @Override
-            public void clicked(InputEvent event, float x, float y) {
-                super.clicked(event, x, y);
+            public void changed(ChangeEvent event, Actor actor) {
                 Game.stage.clear();
                 mainMenu.dispose();
                 game.setScreen(new GameScreen(game));
@@ -273,17 +296,30 @@ public class MainMenuGUI {
         titleContainer.setActor(TitleLabel);
 
         makeLeaderboardSelectionOverlay();
-        formatMainMenu();
+        showManinMenu();
 
         table.setFillParent(true);
         Game.stage.addActor(table);
+    }
+
+    private static boolean checkAllOptionsSelected(){
+        boolean selected = GameSettings.checkAllSelected();
+        if(selected) {
+            startGame.setDisabled(false);
+            startGame.getColor().a = 1f;
+            startGame.getStyle().fontColor = Color.WHITE;
+        }else{
+            startGame.setDisabled(true);
+            startGame.getColor().a = 0.5f;
+        }
+        return selected;
     }
 
     /**
      * Simply lays out already constructed components on the main menu
      *
      */
-    private static void formatMainMenu(){
+    private static void showManinMenu(){
         table.clear();
         mainMenuTable.clear();
 
@@ -308,7 +344,7 @@ public class MainMenuGUI {
         table.setFillParent(true);
         table.top();
 
-        table.debugAll();
+        GameSettings.reset();
     }
 
     /**
@@ -424,7 +460,7 @@ public class MainMenuGUI {
         backButton.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
-                formatMainMenu();
+                showManinMenu();
             }
         });
 
@@ -472,7 +508,7 @@ public class MainMenuGUI {
     /**
      * Makes the choices menu which is all contained in the choicesTable.
      */
-    private static void choicesMenu(){
+    private static void showChoicesMenu(){
         choicesTable = new Table();
 
         TextButton.TextButtonStyle buttonStyle = new  TextButton.TextButtonStyle();
@@ -487,7 +523,7 @@ public class MainMenuGUI {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
                 table.clear();
-                formatMainMenu();
+                showManinMenu();
             }
         });
 
@@ -497,7 +533,7 @@ public class MainMenuGUI {
         Label numShapesLabel = new Label("Number of Shapes", titleStyle);
         numShapesLabel.setAlignment(Align.center);
 
-        Label colorLabel = new Label("Color", titleStyle);
+        Label colorLabel = new Label("Color per Shape Pair", titleStyle);
         colorLabel.setAlignment(Align.center);
 
         Label matchLabel = new Label("Matching", titleStyle);
@@ -550,6 +586,8 @@ public class MainMenuGUI {
         choicesTable.row().padTop(50);
 
         choicesTable.add(startTable);
+
+        choicesTable.top();
 
         table.add(choicesTable).expand().fill();
     }

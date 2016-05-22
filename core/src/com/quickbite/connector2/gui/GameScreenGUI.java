@@ -52,6 +52,8 @@ public class GameScreenGUI {
             topCenterLabel.setText(formatter.format(GameStats.roundTimeLeft)+"");
         else if(GameSettings.gameType == GameSettings.GameType.Fastest)
             topCenterLabel.setText("Round: "+GameStats.currRound+"/"+GameStats.maxRounds);
+        else if(GameSettings.gameType == GameSettings.GameType.Practice)
+            topCenterLabel.setText("Practice");
     }
 
     public static void initGameScreenGUI(final Game game, final GameScreen gameScreen) {
@@ -103,10 +105,6 @@ public class GameScreenGUI {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
                 gameScreen.restartGame();
-                gameOverTable.remove();
-                Game.stage.addActor(centerTable);
-                Game.stage.addActor(leftTable);
-                Game.stage.addActor(rightTable);
             }
         });
         mainMenuButton.addListener(new ChangeListener() {
@@ -167,10 +165,15 @@ public class GameScreenGUI {
         Game.stage.addActor(centerTable);
         Game.stage.addActor(leftTable);
 
-        makeStartingGUI(game, gameScreen);
+        createStartingGUI(game, gameScreen);
     }
 
-    public static void makeStartingGUI(final Game game, final GameScreen scren){
+    /**
+     * Creates and lays out the starting GUI.
+     * @param game The Game instance.
+     * @param scren The GameScreen instance.
+     */
+    public static void createStartingGUI(final Game game, final GameScreen scren){
         String numShapes, colorType="Colors: Normal", matchType="Matching: Shapes", gameType="Practice!";
 
         if(GameSettings.colorType == GameSettings.ColorType.Random)
@@ -205,14 +208,24 @@ public class GameScreenGUI {
 
         Table shapeTable = new Table();
 
-        if(GameSettings.matchType == GameSettings.MatchType.Shapes){
-            firstShape = new Image(new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("Square", Texture.class))));
-            secondShape = new Image(new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("Square", Texture.class))));
+        if(GameSettings.matchType == GameSettings.MatchType.Shapes && GameSettings.colorType == GameSettings.ColorType.Random){
+            firstShape = new Image(new TextureRegionDrawable(Game.shapeAtlas.findRegion("Square")));
+            secondShape = new Image(new TextureRegionDrawable(Game.shapeAtlas.findRegion("Square")));
             firstShape.setColor(Color.YELLOW);
             secondShape.setColor(Color.RED);
-        }else{
-            firstShape = new Image(new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("Star", Texture.class))));
-            secondShape = new Image(new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("Square", Texture.class))));
+        }else if(GameSettings.matchType == GameSettings.MatchType.Shapes){
+            firstShape = new Image(new TextureRegionDrawable(Game.shapeAtlas.findRegion("Square")));
+            secondShape = new Image(new TextureRegionDrawable(Game.shapeAtlas.findRegion("Square")));
+            firstShape.setColor(Color.RED);
+            secondShape.setColor(Color.RED);
+        }else if(GameSettings.matchType == GameSettings.MatchType.Color && GameSettings.colorType == GameSettings.ColorType.Random){
+            firstShape = new Image(new TextureRegionDrawable(Game.shapeAtlas.findRegion("Star")));
+            secondShape = new Image(new TextureRegionDrawable(Game.shapeAtlas.findRegion("Square")));
+            firstShape.setColor(Color.RED);
+            secondShape.setColor(Color.YELLOW);
+        }else if(GameSettings.matchType == GameSettings.MatchType.Color){
+            firstShape = new Image(new TextureRegionDrawable(Game.shapeAtlas.findRegion("Star")));
+            secondShape = new Image(new TextureRegionDrawable(Game.shapeAtlas.findRegion("Square")));
             firstShape.setColor(Color.RED);
             secondShape.setColor(Color.RED);
         }
@@ -225,7 +238,6 @@ public class GameScreenGUI {
 
         startingTable = new Table();
         startingTable.setFillParent(true);
-        //startingTable.debugAll();
 
         startingTable.add(startingColorType).expandX().fillX();
         startingTable.row().padTop(40);
@@ -236,9 +248,33 @@ public class GameScreenGUI {
         startingTable.add(startingGameType).expandX().fillX();
     }
 
+    public static void showGameGUI(){
+        Game.stage.addActor(centerTable);
+        Game.stage.addActor(leftTable);
+        Game.stage.addActor(rightTable);
+        gameOverTable.remove();
+    }
+
+    public static void hideGameGUI(){
+        centerTable.remove();
+        leftTable.remove();
+        rightTable.remove();
+
+        Game.stage.addActor(gameOverTable);
+    }
+
     public static boolean showStartingScreen(float delta){
-        //First, show color type (random, same)
-        if(state == 0){
+        if(state == -1) {
+            startingColorType.getColor().a = 0;
+            startingMatchType.getColor().a = 0;
+            startingGameType.getColor().a = 0;
+            firstShape.getColor().a = 0;
+            secondShape.getColor().a = 0;
+            startingTable.getColor().a = 1f;
+            state++;
+
+        //show color type (random, same)
+        }else if(state == 0){
             Game.stage.addActor(overlay);
             Game.stage.addActor(startingTable);
             state++;
@@ -266,7 +302,6 @@ public class GameScreenGUI {
                 innerState = 0;
                 state++;
             }
-
         }else if(state == 4){
             //Show game type
             startingGameType.getColor().a = GH.lerpValue(startingGameType.getColor().a, 0, 1, 0.5f);
@@ -290,14 +325,15 @@ public class GameScreenGUI {
                 waitTime = 0;
                 startingTable.remove();
                 overlay.remove();
+                state = -1;
                 return true;
             }
         }
 
-        //Second, show what we are matching (shapes/colors)
+        //Second, show what we are matching (shapeTextures/colors)
 
-        //Third, show two shapes, if matching random color shapes, 2 diff shapes with different colors.
-        //Otherwise, 2 same shapes with same/random colors, either is fine...
+        //Third, show two shapeTextures, if matching random color shapeTextures, 2 diff shapeTextures with different colors.
+        //Otherwise, 2 same shapeTextures with same/random colors, either is fine...
 
         //Lastly, display game type (Practice, Best out of 10, TimeAttack)
 
@@ -370,7 +406,7 @@ public class GameScreenGUI {
         mainMenuButton.addAction(Actions.sequence(Actions.delay(0.4f), Actions.fadeIn(0.5f)));
 
         gameOverTable.setFillParent(true);
-        Game.stage.addActor(gameOverTable);
+        hideGameGUI();
     }
 
     private static void gameOverTableReset(){

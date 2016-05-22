@@ -39,7 +39,7 @@ public class GameScreenClickListener implements InputProcessor {
         this.screen.currShape = null;
 
         //Check if we clicked/touched on a shape. If so, record it and start dragging.
-        for(GameShape shape : this.screen.shapeList){
+        for(GameShape shape : this.screen.gameShapeList){
             if(!shape.locked && shape.isOver(worldPos.x, worldPos.y)){
                 this.screen.currShape = shape;
                 this.screen.lineLists[this.screen.lineCounter].add(new Vector2(shape.position.x, shape.position.y));
@@ -57,7 +57,7 @@ public class GameScreenClickListener implements InputProcessor {
         boolean onShape = false;
         this.dragging = false;
 
-        for(GameShape shape : this.screen.shapeList){
+        for(GameShape shape : this.screen.gameShapeList){
             //If a shape is clicked.
             if(shape.isOver(worldPos.x, worldPos.y)){
                 if(shape == this.screen.currShape) break;
@@ -96,7 +96,7 @@ public class GameScreenClickListener implements InputProcessor {
 
         if(list.get(list.size-1).dst(worldPos.x, worldPos.y) > this.disBetweenPositions){
             list.add(new Vector2(worldPos.x, worldPos.y));
-            Game.executor.submit(new CheckCollision(this.screen, this.screen.shapeList, this.screen.lineCounter, this.screen.lineLists,
+            Game.executor.submit(new CheckCollision(this.screen, this.screen.gameShapeList, this.screen.lineCounter, this.screen.lineLists,
                     this.screen.currShape, worldPos.x, worldPos.y, list.get(list.size-2), list.get(list.size-1)));
         }
         return false;

@@ -8,7 +8,7 @@ import com.badlogic.gdx.math.Vector2;
  */
 public class GameShape {
     public Vector2 position;
-    public boolean locked = false;
+    public boolean locked = false, starting = false;
 
     private int shapeType, colorID;
     public Rectangle bounds;
@@ -22,6 +22,8 @@ public class GameShape {
         this.bounds = new Rectangle(this.position.x - 32*bonus, this.position.y - 32*bonus, 64*bonus, 64*bonus);
 
         this.colorID = colorID;
+
+        this.starting = true;
     }
 
     public boolean isOver(float mouseX, float mouseY){

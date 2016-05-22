@@ -9,6 +9,7 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.ParticleEffect;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
@@ -34,6 +35,7 @@ public class Game extends com.badlogic.gdx.Game {
 	public static AdInterface adInterface;
 
 	public static TextureRegion defaultButtonUp, defaultButtonDown;
+	public static TextureAtlas shapeAtlas;
 
 	public Game(ActionResolver actionResolver, AdInterface ads){
 		resolver = actionResolver;
@@ -53,9 +55,12 @@ public class Game extends com.badlogic.gdx.Game {
 		executor = Executors.newFixedThreadPool(3);
         easyAssetManager = new EasyAssetManager();
 
-        this.loadAllPng(Gdx.files.internal("art/"));
+        this.loadAllPng(Gdx.files.internal("art/load/"));
+        this.loadSheets(Gdx.files.internal("art/sheets/"));
         this.loadParticles(Gdx.files.internal("particles/"));
         this.loadAssets();
+
+		Game.shapeAtlas = easyAssetManager.get("shapes", TextureAtlas.class);
 
 		FreeTypeFontGenerator generator = new FreeTypeFontGenerator(Gdx.files.internal("copperplatessibold.ttf"));
 		FreeTypeFontGenerator.FreeTypeFontParameter parameter = new FreeTypeFontGenerator.FreeTypeFontParameter();
@@ -106,6 +111,13 @@ public class Game extends com.badlogic.gdx.Game {
 			}else if(h.isDirectory()){
 				this.loadAllPng(Gdx.files.internal(h.path()+"/"));
 			}
+		}
+	}
+
+	public void loadSheets(FileHandle handle){
+		for(FileHandle h : handle.list()){
+			if(h.name().endsWith(".pack"))
+				easyAssetManager.load(h.path(), TextureAtlas.class);
 		}
 	}
 

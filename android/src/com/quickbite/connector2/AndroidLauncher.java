@@ -8,7 +8,6 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
 import android.widget.RelativeLayout;
-import android.widget.Toast;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.backends.android.AndroidApplication;
 import com.badlogic.gdx.backends.android.AndroidApplicationConfiguration;
@@ -83,11 +82,11 @@ public class AndroidLauncher extends AndroidApplication implements GameHelper.Ga
 		interstitialAd.setAdListener(new AdListener() {
 			@Override
 			public void onAdLoaded() {
-				Toast.makeText(getApplicationContext(), "Finished Loading Interstitial", Toast.LENGTH_SHORT).show();
+//				Toast.makeText(getApplicationContext(), "Finished Loading Interstitial", Toast.LENGTH_SHORT).show();
 			}
 			@Override
 			public void onAdClosed() {
-				Toast.makeText(getApplicationContext(), "Closed Interstitial", Toast.LENGTH_SHORT).show();
+//				Toast.makeText(getApplicationContext(), "Closed Interstitial", Toast.LENGTH_SHORT).show();
                 AdRequest interstitialRequest = new AdRequest.Builder().build();
                 interstitialAd.loadAd(interstitialRequest);
 			}
@@ -154,12 +153,12 @@ public class AndroidLauncher extends AndroidApplication implements GameHelper.Ga
 				public void run() {
 				  if (interstitialAd.isLoaded()) {
 					interstitialAd.show();
-                    Toast.makeText(getApplicationContext(), "Showing Interstitial", Toast.LENGTH_SHORT).show();
+//                    Toast.makeText(getApplicationContext(), "Showing Interstitial", Toast.LENGTH_SHORT).show();
 				  }
 				  else {
 //					AdRequest interstitialRequest = new AdRequest.Builder().build();
 //					interstitialAd.loadAd(interstitialRequest);
-					Toast.makeText(getApplicationContext(), "Loading Interstitial", Toast.LENGTH_SHORT).show();
+//					Toast.makeText(getApplicationContext(), "Loading Interstitial", Toast.LENGTH_SHORT).show();
 				  }
 				}
 			});
