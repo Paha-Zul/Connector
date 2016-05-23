@@ -61,17 +61,14 @@ public class GameScreen implements Screen{
 
         lineLists = new Array[GameSettings.numShapes];
 
-        this.sizeOfSpots = Gdx.graphics.getWidth()/6;
-        this.sizeOfShapes = Gdx.graphics.getWidth()/6;
+        this.sizeOfSpots = Game.camera.viewportWidth/6;
+        this.sizeOfShapes = Game.camera.viewportWidth/6;
     }
 
     @Override
     public void show() {
-        float startingY = Game.camera.viewportHeight/2 - Game.camera.viewportHeight*this.topArea - sizeOfSpots/2;
-        float startingX = Game.camera.position.x + Game.camera.viewportWidth/2 - sizeOfSpots/2;
-
         int xSpots = (int)(Game.camera.viewportWidth/sizeOfSpots);
-        int ySpots = (int)((Gdx.graphics.getHeight()- sizeOfSpots - (Gdx.graphics.getHeight()*this.topArea))/sizeOfSpots)+1;
+        int ySpots = (int)((Game.camera.viewportHeight - sizeOfSpots - (Game.camera.viewportHeight*this.topArea))/sizeOfSpots)+1;
         int num = xSpots*ySpots;
 
         this.topTexture = new TextureRegion(Game.easyAssetManager.get("Top", Texture.class));
@@ -209,7 +206,7 @@ public class GameScreen implements Screen{
         shape2.locked = true;
 
         ParticleEffect effect = explosionEffectPool.obtain();
-        effect.setPosition(shape1.position.x - Game.viewport.getScreenWidth()/2f, shape1.position.y - Game.viewport.getScreenHeight()/2f);
+        effect.setPosition(shape1.position.x - Game.viewport.getWorldWidth()/2f, shape1.position.y - Game.viewport.getWorldHeight()/2f);
         effect.getEmitters().get(0).getTint().setColors(new float[]{shapeColors[shape1.getColorID()].r, shapeColors[shape1.getColorID()].g, shapeColors[shape1.getColorID()].b});
         effect.getEmitters().get(0).setSprite(new Sprite(new TextureRegion(shapeTextures[shape1.getShapeType()])));
         effect.start();
@@ -217,7 +214,7 @@ public class GameScreen implements Screen{
         particleEffects.add(effect);
 
         ParticleEffect effect2 = explosionEffectPool.obtain();
-        effect2.setPosition(shape2.position.x - Game.viewport.getScreenWidth()/2f, shape2.position.y - Game.viewport.getScreenHeight()/2f);
+        effect2.setPosition(shape2.position.x - Game.viewport.getWorldWidth()/2f, shape2.position.y - Game.viewport.getWorldHeight()/2f);
         effect2.getEmitters().get(0).getTint().setColors(new float[]{shapeColors[shape2.getColorID()].r, shapeColors[shape2.getColorID()].g, shapeColors[shape2.getColorID()].b});
         effect2.getEmitters().get(0).setSprite(new Sprite(new TextureRegion(shapeTextures[shape2.getShapeType()])));
         effect2.start();
@@ -242,10 +239,9 @@ public class GameScreen implements Screen{
 
     private void draw(SpriteBatch batch){
         batch.setColor(Color.WHITE);
-        batch.draw(this.topTexture, Game.camera.position.x - Game.viewport.getScreenWidth()/2,
-                Game.camera.position.y + Game.viewport.getScreenHeight()/2 - Game.viewport.getScreenHeight()*this.topArea,
-                Gdx.graphics.getWidth(), Game.viewport.getScreenHeight()*this.topArea);
-
+        batch.draw(this.topTexture, Game.camera.position.x - Game.viewport.getWorldWidth()/2,
+                Game.camera.position.y + Game.viewport.getWorldHeight()/2 - Game.viewport.getWorldHeight()*this.topArea,
+                Gdx.graphics.getWidth(), Game.viewport.getWorldHeight()*this.topArea);
 
 
         this.drawParticles(batch, Gdx.graphics.getDeltaTime());
@@ -277,7 +273,7 @@ public class GameScreen implements Screen{
             batch.setColor(this.shapeColors[shape.getColorID()]);
             if(shape.locked) region = shapesGlow[shape.getShapeType()];
             else region = shapeTextures[shape.getShapeType()];
-            batch.draw(region, -Game.viewport.getScreenWidth()/2f + shape.position.x - radius, -Game.viewport.getScreenHeight()/2f + shape.position.y - radius,
+            batch.draw(region, -Game.viewport.getWorldWidth()/2f + shape.position.x - radius, -Game.viewport.getWorldHeight()/2f + shape.position.y - radius,
                     radius, radius, sizeOfShapes, sizeOfShapes, this.currScale, this.currScale, this.currRotation);
         }
     }

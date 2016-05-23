@@ -12,6 +12,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
+import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.utils.viewport.StretchViewport;
@@ -36,6 +37,7 @@ public class Game extends com.badlogic.gdx.Game {
 
 	public static TextureRegion defaultButtonUp, defaultButtonDown;
 	public static TextureAtlas shapeAtlas;
+	public static ShaderProgram testShader;
 
 	public Game(ActionResolver actionResolver, AdInterface ads){
 		resolver = actionResolver;
@@ -60,20 +62,30 @@ public class Game extends com.badlogic.gdx.Game {
         this.loadParticles(Gdx.files.internal("particles/"));
         this.loadAssets();
 
+		testShader = new ShaderProgram("vertShader.txt", "fragShader.txt");
+
 		Game.shapeAtlas = easyAssetManager.get("shapes", TextureAtlas.class);
 
 		FreeTypeFontGenerator generator = new FreeTypeFontGenerator(Gdx.files.internal("copperplatessibold.ttf"));
 		FreeTypeFontGenerator.FreeTypeFontParameter parameter = new FreeTypeFontGenerator.FreeTypeFontParameter();
 		parameter.size = 18;
+		parameter.genMipMaps = true;
+		parameter.minFilter = Texture.TextureFilter.MipMapLinearLinear;
+		parameter.magFilter = Texture.TextureFilter.MipMapLinearLinear;
 		defaultFont = generator.generateFont(parameter); // font size 12 pixels
 
 		generator = new FreeTypeFontGenerator(Gdx.files.internal("copperplatessibold.ttf"));
 		parameter.size = 28;
+
 		defaultLargeFont = generator.generateFont(parameter); // font size 12 pixels
 
 		generator = new FreeTypeFontGenerator(Gdx.files.internal("copperplatessibold.ttf"));
 		parameter.size = 60;
+		parameter.genMipMaps = true;
+		parameter.minFilter = Texture.TextureFilter.Linear;
+		parameter.magFilter = Texture.TextureFilter.Linear;
 		defaultHugeFont = generator.generateFont(parameter); // font size 12 pixels
+		defaultHugeFont.setUseIntegerPositions(false);
 
 		generator.dispose(); // don't forget to dispose to avoid memory leaks!
 

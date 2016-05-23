@@ -429,18 +429,18 @@ public class GameScreenGUI {
      * Displays stuff at the end of a round.
      */
     public static void roundOverGUI(){
-    if(gameOverImage != null) return;
+        if(gameOverImage != null) return;
 
-    if(GameStats.failedLastRound)
-    gameOverImage = new Image(gameOverShapes[1]);
-    else
-    gameOverImage = new Image(gameOverShapes[0]);
+        if(GameStats.failedLastRound)
+        gameOverImage = new Image(gameOverShapes[1]);
+        else
+        gameOverImage = new Image(gameOverShapes[0]);
 
-    //Add the game over image.
-    gameOverImage.setSize(Gdx.graphics.getWidth(), Gdx.graphics.getWidth());
-    gameOverImage.setPosition(0f, Gdx.graphics.getHeight()/2f - gameOverImage.getHeight()/2f);
-    Game.stage.addActor(gameOverImage);
-}
+        //Add the game over image.
+        gameOverImage.setSize(Game.camera.viewportWidth, Game.camera.viewportWidth);
+        gameOverImage.setPosition(0f, Game.camera.viewportHeight/2f - gameOverImage.getHeight()/2f);
+        Game.stage.addActor(gameOverImage);
+    }
 
     public static void reset(){
         state = 0;
@@ -449,7 +449,10 @@ public class GameScreenGUI {
 
     private static void toMainMenu(GameScreen gameScreen, Game game){
         gameScreen.dispose();
-        Game.adInterface.showAdmobInterAd();
+        if(GameStats.numberTimesWentBackToMainMenu%GameStats.numberTimesMainMenuBetweenInterAd == 0)
+            Game.adInterface.showAdmobInterAd();
+
+        GameStats.numberTimesWentBackToMainMenu++;
         resetTables();
         Game.stage.clear();
         game.setScreen(new MainMenu(game));

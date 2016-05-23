@@ -75,7 +75,7 @@ public class MainMenuGUI {
         regularStyle.up = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("buttonDark_up", Texture.class)));
         regularStyle.down = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("buttonDark_down", Texture.class)));
         regularStyle.checked = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("buttonDark_up", Texture.class)));
-        regularStyle.font = Game.defaultFont;
+        regularStyle.font = Game.defaultHugeFont;
         regularStyle.disabled = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("buttonDark_up", Texture.class)));
         regularStyle.disabledFontColor = new Color(1, 1, 1, 0.5f);
 
@@ -83,31 +83,56 @@ public class MainMenuGUI {
         style.up = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("defaultButton_clear", Texture.class)));
         style.down = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("defaultButton_green", Texture.class)));
         style.checked = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("defaultButton_green", Texture.class)));
-        style.font = Game.defaultFont;
+        style.font = Game.defaultHugeFont;
 
 
         start = new TextButton("Start", regularStyle);
-        quit = new TextButton("Quit", regularStyle);
+        start.getLabel().setFontScale(0.3f);
 
         leaderboards = new TextButton("Leaderboards", regularStyle);
+        leaderboards.getLabel().setFontScale(0.3f);
+
         loginGPG = new TextButton("Login to \n Google Play", regularStyle);
+        loginGPG.getLabel().setFontScale(0.3f);
+
+        quit = new TextButton("Quit", regularStyle);
+        quit.getLabel().setFontScale(0.3f);
 
         threeShapes = new TextButton("3", style);
+        threeShapes.getLabel().setFontScale(0.3f);
+
         fourShapes = new TextButton("4", style);
+        fourShapes.getLabel().setFontScale(0.3f);
+
         fiveShapes = new TextButton("5", style);
+        fiveShapes.getLabel().setFontScale(0.3f);
+
         sixShapes = new TextButton("6", style);
+        sixShapes.getLabel().setFontScale(0.3f);
 
         colorSame = new TextButton("Same", style);
+        colorSame.getLabel().setFontScale(0.3f);
+
         colorRandom = new TextButton("Random", style);
+        colorRandom.getLabel().setFontScale(0.3f);
 
         matchShape = new TextButton("Shapes", style);
+        matchShape.getLabel().setFontScale(0.3f);
+
         matchColor = new TextButton("Colors", style);
+        matchColor.getLabel().setFontScale(0.3f);
 
         modePractice = new TextButton("Practice", style);
+        modePractice.getLabel().setFontScale(0.3f);
+
         modeBest = new TextButton("Best", style);
+        modeBest.getLabel().setFontScale(0.3f);
+
         modeTimed = new TextButton("Timed", style);
+        modeTimed.getLabel().setFontScale(0.3f);
 
         startGame = new TextButton("Start", regularStyle);
+        startGame.getLabel().setFontScale(0.3f);
         startGame.setDisabled(true);
         startGame.getColor().a = 0.5f;
 
@@ -527,20 +552,24 @@ public class MainMenuGUI {
             }
         });
 
-        Label.LabelStyle titleStyle = new Label.LabelStyle(Game.defaultFont, Color.WHITE);
+        Label.LabelStyle titleStyle = new Label.LabelStyle(Game.defaultHugeFont, Color.WHITE);
         titleStyle.background = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("darkStrip", Texture.class)));
 
         Label numShapesLabel = new Label("Number of Shapes", titleStyle);
         numShapesLabel.setAlignment(Align.center);
+        numShapesLabel.setFontScale(0.35f);
 
         Label colorLabel = new Label("Color per Shape Pair", titleStyle);
         colorLabel.setAlignment(Align.center);
+        colorLabel.setFontScale(0.35f);
 
         Label matchLabel = new Label("Matching", titleStyle);
         matchLabel.setAlignment(Align.center);
+        matchLabel.setFontScale(0.35f);
 
         Label modeLabel = new Label("Mode", titleStyle);
         modeLabel.setAlignment(Align.center);
+        modeLabel.setFontScale(0.35f);
 
         Table numShapesTable = new Table();
         numShapesTable.add(threeShapes).size(50 ,50);

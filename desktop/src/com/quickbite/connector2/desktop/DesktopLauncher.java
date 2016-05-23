@@ -13,8 +13,9 @@ public class DesktopLauncher implements ActionResolver, AdInterface {
 	public static void main (String[] arg) {
 		LwjglApplicationConfiguration config = new LwjglApplicationConfiguration();
 
-		config.width = 480;
-		config.height = 800;
+		config.width = 600;
+		config.height = 1000;
+		config.resizable = false;
 
 		DesktopLauncher instance = new DesktopLauncher();
 		new LwjglApplication(new Game(instance, instance), config);
