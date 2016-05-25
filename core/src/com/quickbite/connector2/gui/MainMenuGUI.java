@@ -613,9 +613,9 @@ public class MainMenuGUI {
         startTable.add(startGame).size(125, 50).padRight(50);
         startTable.add(backButton).size(125, 50);
 
-        choicesTable.add(numShapesLabel).expandX().fillX().center().padBottom(10).height(40);
-        choicesTable.row();
-        choicesTable.add(numShapesTable).expandX();
+        choicesTable.add(modeLabel).expandX().fillX().center().padBottom(10).height(40);
+        choicesTable.row().padTop(10);
+        choicesTable.add(modeTable).expandX();
         choicesTable.row().padTop(50);
 
         choicesTable.add(colorLabel).expandX().fillX().center().padBottom(10).height(40);
@@ -628,9 +628,9 @@ public class MainMenuGUI {
         choicesTable.add(matchTable).expandX();
         choicesTable.row().padTop(50);
 
-        choicesTable.add(modeLabel).expandX().fillX().center().padBottom(10).height(40);
-        choicesTable.row().padTop(10);
-        choicesTable.add(modeTable).expandX();
+        choicesTable.add(numShapesLabel).expandX().fillX().center().padBottom(10).height(40);
+        choicesTable.row();
+        choicesTable.add(numShapesTable).expandX();
         choicesTable.row().padTop(50);
 
         choicesTable.add(startTable);

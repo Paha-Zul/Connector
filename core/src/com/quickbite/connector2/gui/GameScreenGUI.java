@@ -48,7 +48,7 @@ public class GameScreenGUI {
     private static DecimalFormat formatter = new DecimalFormat("0.00");
 
     public static void update(float delta){
-        if(GameSettings.gameType == GameSettings.GameType.Timed)
+        if(GameSettings.gameType == GameSettings.GameType.Timed || GameSettings.gameType == GameSettings.GameType.Challenge)
             topCenterLabel.setText(formatter.format(GameStats.roundTimeLeft)+"");
         else if(GameSettings.gameType == GameSettings.GameType.Fastest)
             topCenterLabel.setText("Round: "+GameStats.currRound+"/"+GameStats.maxRounds);
@@ -340,30 +340,6 @@ public class GameScreenGUI {
         return false;
     }
 
-    public static void gameOverTimedGUI(GameScreen screen){
-        gameOverTableReset();
-
-        Label.LabelStyle style = new Label.LabelStyle(Game.defaultLargeFont, Color.WHITE);
-        roundsSurvivedLabel = new Label("Made it to round "+GameStats.currRound, style);
-        roundsSurvivedLabel.setAlignment(Align.center);
-
-        gameOverTable.add(lostReasonLabel).fillX().expandX();
-        gameOverTable.row().padTop(50);
-        gameOverTable.add(roundsSurvivedLabel).fillX().expandX();
-        gameOverTable.row().padTop(50);
-
-        gameOverTable.setFillParent(true);
-        Game.stage.addActor(gameOverTable);
-    }
-
-    public static void gameOverBestGUI(){
-
-    }
-
-    public static void gameOverPracticeGUI(){
-
-    }
-
     /**
      * Displays the GUI at the end of the game (whether it's win or lose)
      */
@@ -417,7 +393,6 @@ public class GameScreenGUI {
         gameOverTable.clear();
     }
 
-
     public static void roundEndedGUI(){
         if(gameOverImage != null) {
             gameOverImage.remove();
@@ -436,7 +411,7 @@ public class GameScreenGUI {
         else
         gameOverImage = new Image(gameOverShapes[0]);
 
-        //Add the game over image.
+        //Add the game over image. We use width for both so it stays square
         gameOverImage.setSize(Game.camera.viewportWidth, Game.camera.viewportWidth);
         gameOverImage.setPosition(0f, Game.camera.viewportHeight/2f - gameOverImage.getHeight()/2f);
         Game.stage.addActor(gameOverImage);

@@ -6,6 +6,9 @@ import com.badlogic.gdx.utils.Array;
 
 /**
  * Created by Paha on 1/9/2016.
+ * A Runnable created to check the intersection between a line segment and all other lines/shapes.
+ * This is the brute force method which may be a little slower so we use a Runnable to do it.
+ * We could have handled this better with a quadtree or grid, but the game is too simple to make it that complicated.
  */
 public class CheckCollision implements Runnable{
     private GameScreen game;

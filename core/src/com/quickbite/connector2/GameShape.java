@@ -13,6 +13,7 @@ import com.badlogic.gdx.utils.Array;
 public class GameShape {
     public static GameScreen gameScreen;
 
+    public Rectangle bounds;
     public Vector2 position;
     private boolean locked = false, starting = true, ending = false, dead = false;
 
@@ -20,7 +21,9 @@ public class GameShape {
     private Color color;
     private float currRotation, currScale;
     private float lifeTime = -1; //For the 'challenge' game mode.
-    public Rectangle bounds;
+    private ICallback onDeadCallback;
+
+    private final float rotationSpeed = 30f, scaleSpeed = 0.5f;
 
     public GameShape(Vector2 position, int shape, int size, Color color){
         final float bonus = 1.5f;
@@ -39,6 +42,11 @@ public class GameShape {
         this.lifeTime = lifeTime;
     }
 
+    public GameShape(Vector2 position, int shape, int size, Color color, float lifeTime, ICallback onDeadCallback){
+        this(position, shape, size, color, lifeTime);
+        this.onDeadCallback = onDeadCallback;
+    }
+
     public void render(SpriteBatch batch, float delta){
         TextureRegion region;
         batch.setColor( this.color);
@@ -48,26 +56,27 @@ public class GameShape {
                 size*0.5f, size*0.5f, this.size, this.size, this.currScale, this.currScale, this.currRotation);
 
         if(starting){
-            this.currScale = GH.lerpValue(this.currScale, 0, 1, 0.5f);
-            this.currRotation += 40;
+            this.currScale = GH.lerpValue(this.currScale, 0, 1, scaleSpeed);
+            this.currRotation += rotationSpeed;
             if(this.currScale >= 1f){
                 this.setStarted();
             }
         }else if(ending){
-            this.currScale = GH.lerpValue(this.currScale, 1, 0, 0.5f);
-            this.currRotation += 40;
+            this.currScale = GH.lerpValue(this.currScale, 1, 0, scaleSpeed);
+            this.currRotation += rotationSpeed;
             if(this.currScale <= 0f){
                 this.currRotation = 0;
                 this.currScale = 0f;
                 this.ending = false;
                 this.dead = true;
-                if(lineNumber >= 0) gameScreen.lineLists[lineNumber] = new Array<Vector2>(200);
+                if(this.onDeadCallback != null) this.onDeadCallback.run();
             }
         }else{
             if(lifeTime > 0){
                 lifeTime -= delta;
                 if(lifeTime <= 0){
                     this.ending = true;
+                    if(lineNumber >= 0) gameScreen.lineLists[lineNumber] = new Array<Vector2>(200);
                 }
             }
         }
@@ -133,8 +142,12 @@ public class GameShape {
 
     public boolean checkValidConnection(GameShape otherShape){
         boolean condition = false;
-        if(GameSettings.matchType == GameSettings.MatchType.Shapes) condition = this.getShapeType() == otherShape.getShapeType();
-        else if(GameSettings.matchType == GameSettings.MatchType.Color) condition = this.getColor() == otherShape.getColor();
+        if(!this.starting && !this.ending && !otherShape.starting && !otherShape.ending && !this.locked && !otherShape.locked) {
+            if (GameSettings.matchType == GameSettings.MatchType.Shapes)
+                condition = this.getShapeType() == otherShape.getShapeType();
+            else if (GameSettings.matchType == GameSettings.MatchType.Color)
+                condition = this.getColor() == otherShape.getColor();
+        }
 
         return condition;
     }

@@ -30,7 +30,7 @@ public class GameScreen implements Screen{
     private Game game;
 
     public Integer[] colorIDs;
-    public Vector2[] positions;
+    public Array<Vector2> positions;
     public TextureRegion[] shapeTextures;
     public TextureRegion[] shapesGlow;
     public Color[] shapeColors;
@@ -38,6 +38,8 @@ public class GameScreen implements Screen{
     public Array<Vector2>[] lineLists;
     public GameShape currShape = null;
     public int lineCounter = 0;
+
+    private Array<Vector2> takenPositions;
 
     private volatile boolean gameOver = false;
 
@@ -72,15 +74,18 @@ public class GameScreen implements Screen{
     public void show() {
         int xSpots = (int)(Game.camera.viewportWidth/sizeOfSpots);
         int ySpots = (int)((Game.camera.viewportHeight - sizeOfSpots - (Game.camera.viewportHeight*this.topArea))/sizeOfSpots)+1;
-        int num = xSpots*ySpots;
+        int numPositions = xSpots*ySpots;
 
         this.topTexture = new TextureRegion(Game.easyAssetManager.get("Top", Texture.class));
 
-        this.positions = new Vector2[num];
+        this.positions = new Array<Vector2>(numPositions);
+        if(GameSettings.gameType == GameSettings.GameType.Challenge) //Only initialize this list if we need it.
+            this.takenPositions = new Array<Vector2>(numPositions);
+
         //We should probably go from 0-480 and 0-800
-        for(int i=0;i<num;i++){
+        for(int i=0;i<numPositions;i++){
             Vector2 vec = new Vector2(sizeOfSpots/2 + ((i*sizeOfSpots)%(sizeOfSpots*(xSpots))), sizeOfSpots/2 + ((i/xSpots)*sizeOfSpots));
-            this.positions[i] = vec;
+            this.positions.add(vec);
         }
 
         this.colorIDs = new Integer[GameSettings.numShapes *2];
@@ -169,15 +174,15 @@ public class GameScreen implements Screen{
         GameStats.failedLastRound = false;
 
         //Shuffle some arrays
-        GH.shuffleArray(this.positions);
+        this.positions.shuffle();
         if(GameSettings.colorType == GameSettings.ColorType.Random) GH.shuffleArray(this.colorIDs);
 
         if(GameSettings.gameType != GameSettings.GameType.Challenge) {
             //Make a new list of shapeTextures.
             for (int i = 0; i < GameSettings.numShapes; i++) {
                 int index = i * 2;
-                this.gameShapeList.add(new GameShape(this.positions[index], i, (int) sizeOfShapes, this.shapeColors[this.colorIDs[index]]));
-                this.gameShapeList.add(new GameShape(this.positions[index + 1], i, (int) sizeOfShapes, this.shapeColors[this.colorIDs[index + 1]]));
+                this.gameShapeList.add(new GameShape(this.positions.get(index), i, (int) sizeOfShapes, this.shapeColors[this.colorIDs[index]]));
+                this.gameShapeList.add(new GameShape(this.positions.get(index+1), i, (int) sizeOfShapes, this.shapeColors[this.colorIDs[index + 1]]));
             }
         }
 
@@ -238,11 +243,14 @@ public class GameScreen implements Screen{
         particleEffects.add(effect2);
 
         this.lineCounter = (this.lineCounter+1)%this.lineLists.length;
+
+        if(GameSettings.gameType == GameSettings.GameType.Challenge)
+            GameStats.winCounter++;
     }
 
     private Vector2 getRandomPositionAndShuffle(){
-        Vector2 position = positions[0];
-        GH.shuffleArray(positions);
+        Vector2 position = this.positions.pop();
+        this.positions.shuffle();
         return position;
     }
 
@@ -326,8 +334,8 @@ public class GameScreen implements Screen{
         shapeRenderer.end();
         shapeRenderer.setColor(Color.WHITE);
         shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
-        for(int i=0;i<this.positions.length;i++){
-            Vector2 pos = this.positions[i];
+        for(int i=0;i<this.positions.size;i++){
+            Vector2 pos = this.positions.get(i);
             shapeRenderer.rect(pos.x - this.sizeOfSpots/2, pos.y - this.sizeOfSpots/2, this.sizeOfSpots, this.sizeOfSpots);
         }
         shapeRenderer.end();
@@ -434,8 +442,23 @@ public class GameScreen implements Screen{
         if(challengeCounter > 0.75f){
             int randShape = MathUtils.random(0, shapeTextures.length-1);
             Color randColor = shapeColors[MathUtils.random(0, shapeColors.length-1)];
-            this.gameShapeList.add(new GameShape(getRandomPositionAndShuffle(), randShape, (int)sizeOfShapes, randColor, 5f));
+            final Vector2 position = getRandomPositionAndShuffle();
+            takenPositions.add(position);
+            this.gameShapeList.add(new GameShape(position, randShape, (int) sizeOfShapes, randColor, 5f, new ICallback() {
+                @Override
+                public void run() {
+                    takenPositions.removeValue(position, true);
+                    positions.add(position);
+                }
+            }));
             this.challengeCounter = 0f;
+        }
+
+        GameStats.roundTimeLeft -= delta;
+
+        if(GameStats.roundTimeLeft <= 0){
+            GameStats.roundTimeLeft = 0;
+            this.setRoundOver(true, GameStats.RoundOver.OutOfTime);
         }
     }
 
@@ -511,7 +534,6 @@ public class GameScreen implements Screen{
         }
 
         this.startedRoundEnd = false;
-
     }
 
     /**
@@ -561,6 +583,9 @@ public class GameScreen implements Screen{
             case Practice:
                 gameOverPractice();
                 break;
+            case Challenge:
+                gameOverChallenge();
+                break;
         }
 
         GameScreenGUI.gameOverGUI();
@@ -570,26 +595,53 @@ public class GameScreen implements Screen{
      * Timed game over.
      */
     private void gameOverTimed(){
-        GameScreenGUI.gameOverTimedGUI(this);
-        if(GameStats.avgTime == 0) GameStats.currScore = 0;
-        else GameStats.currScore = (int)((2*(GameStats.currRound-1)) * (20f/(GameStats.avgTime/1000)) * (GameSettings.numShapes*3));
-        Game.resolver.submitScoreGPGS(Constants.LEADERBOARD_TIMED, GameStats.currScore);
+        this.calcScore();
     }
 
     /**
      * Best game over.
      */
     private void gameOverBest(){
-        GameScreenGUI.gameOverBestGUI();
-        if(GameStats.avgTime == 0) GameStats.currScore = 0;
-        else GameStats.currScore = (int)((3*GameStats.successfulRounds)*(20f/(GameStats.avgTime/1000))*(GameSettings.numShapes*3));
-        Game.resolver.submitScoreGPGS(Constants.LEADERBOARD_BEST, GameStats.currScore);
+        this.calcScore();
     }
 
     /**
      * Practice game over.
      */
     private void gameOverPractice(){
+
+    }
+
+    /**
+     * Practice game over.
+     */
+    private void gameOverChallenge(){
+        this.calcScore();
+    }
+
+    private void calcScore(){
+        String leaderboard = "";
+        //If the game type is best out of 10
+        if(GameSettings.gameType == GameSettings.GameType.Fastest) {
+            if (GameStats.avgTime == 0) GameStats.currScore = 0;
+            else
+                GameStats.currScore = (int) ((3 * GameStats.successfulRounds) * (20f / (GameStats.avgTime / 1000)) * (GameSettings.numShapes * 3));
+            leaderboard = Constants.LEADERBOARD_TIMED;
+
+        //If the game type is time attack
+        }else if(GameSettings.gameType == GameSettings.GameType.Timed){
+            if(GameStats.avgTime == 0) GameStats.currScore = 0;
+            else GameStats.currScore = (int)((2*(GameStats.currRound-1)) * (20f/(GameStats.avgTime/1000)) * (GameSettings.numShapes*3));
+            leaderboard = Constants.LEADERBOARD_TIMED;
+
+            //If the game type is challenge.
+        }else if(GameSettings.gameType == GameSettings.GameType.Challenge){
+//            if(GameStats.avgTime == 0) GameStats.currScore = 0;
+            GameStats.currScore = (int)(125*(GameStats.winCounter));
+            leaderboard = "";
+        }
+
+        Game.resolver.submitScoreGPGS(leaderboard, GameStats.currScore);
 
     }
 

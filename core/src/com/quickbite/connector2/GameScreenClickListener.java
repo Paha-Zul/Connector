@@ -60,7 +60,7 @@ public class GameScreenClickListener implements InputProcessor {
         for(GameShape shape : this.screen.gameShapeList){
             //If a shape is clicked.
             if(shape.isOver(worldPos.x, worldPos.y)){
-                if(shape == this.screen.currShape) break;
+                if(shape == this.screen.currShape || shape.isLocked() || shape.isStarting() || shape.isEnding()) break;
 
                 boolean condition = this.screen.currShape.checkValidConnection(shape);
 
