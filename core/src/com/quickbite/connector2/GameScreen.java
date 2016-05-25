@@ -40,7 +40,6 @@ public class GameScreen implements Screen{
     public int lineCounter = 0;
 
     private volatile boolean gameOver = false;
-    private float currScale = 0, currRotation = 0;
 
     private final float topArea = 0.1f;
     private float sizeOfSpots = 480/5, sizeOfShapes = 480/6;
@@ -50,8 +49,12 @@ public class GameScreen implements Screen{
 
     private GameScreenClickListener clickListener;
 
+    private float counter, challengeCounter = 1f;
+
     public GameScreen(Game game){
         this.game = game;
+
+        GameShape.gameScreen = this; //Static reference.
 
         //Handle input stuff.
         InputMultiplexer multi = new InputMultiplexer();
@@ -59,7 +62,7 @@ public class GameScreen implements Screen{
         multi.addProcessor(Game.stage);
         Gdx.input.setInputProcessor(multi);
 
-        lineLists = new Array[GameSettings.numShapes];
+        lineLists = new Array[GameSettings.numShapes*2];
 
         this.sizeOfSpots = Game.camera.viewportWidth/6;
         this.sizeOfShapes = Game.camera.viewportWidth/6;
@@ -153,24 +156,29 @@ public class GameScreen implements Screen{
             if(GameStats.currRound >= GameStats.maxRounds)
                 return;
 
-        if(GameStats.currRound <= 5)
-            GameStats.roundTimeLeft = GameStats.roundTimeStart - GameStats.roundTimeDecreaseAmount*GameStats.currRound;
-        else
-            GameStats.roundTimeLeft = GameStats.roundTimeStart - GameStats.getRoundTimeDecreaseAmountBelow5*GameStats.currRound;
+        if(GameSettings.gameType == GameSettings.GameType.Fastest) {
+            if (GameStats.currRound <= 5)
+                GameStats.roundTimeLeft = GameStats.roundTimeStart - GameStats.roundTimeDecreaseAmount * GameStats.currRound;
+            else
+                GameStats.roundTimeLeft = GameStats.roundTimeStart - GameStats.getRoundTimeDecreaseAmountBelow5 * GameStats.currRound;
+        }else if(GameSettings.gameType == GameSettings.GameType.Challenge){
+            GameStats.roundTimeLeft = 20f;
+        }
 
         GameStats.winCounter = 0;
         GameStats.failedLastRound = false;
-        this.currScale = 0;
 
         //Shuffle some arrays
-        shuffleArray(this.positions);
-        if(GameSettings.colorType == GameSettings.ColorType.Random) shuffleArray(this.colorIDs);
+        GH.shuffleArray(this.positions);
+        if(GameSettings.colorType == GameSettings.ColorType.Random) GH.shuffleArray(this.colorIDs);
 
-        //Make a new list of shapeTextures.
-        for(int i=0;i<GameSettings.numShapes;i++) {
-            int index = i * 2;
-            this.gameShapeList.add(new GameShape(this.positions[index], i, this.colorIDs[index]));
-            this.gameShapeList.add(new GameShape(this.positions[index + 1], i, this.colorIDs[index + 1]));
+        if(GameSettings.gameType != GameSettings.GameType.Challenge) {
+            //Make a new list of shapeTextures.
+            for (int i = 0; i < GameSettings.numShapes; i++) {
+                int index = i * 2;
+                this.gameShapeList.add(new GameShape(this.positions[index], i, (int) sizeOfShapes, this.shapeColors[this.colorIDs[index]]));
+                this.gameShapeList.add(new GameShape(this.positions[index + 1], i, (int) sizeOfShapes, this.shapeColors[this.colorIDs[index + 1]]));
+            }
         }
 
         //Reset some stuff.
@@ -202,12 +210,20 @@ public class GameScreen implements Screen{
      */
     public void shapesConnected(GameShape shape1, GameShape shape2){
         //Lock the shapeTextures.
-        shape1.locked = true;
-        shape2.locked = true;
+        shape1.setLocked(true);
+        shape2.setLocked(true);
+
+        if(shape1.getLifetime() <= shape2.getLifetime())
+            shape2.setLifeTime(shape1.getLifetime());
+        else
+            shape1.setLifeTime(shape2.getLifetime());
+
+        //We only need to set this for one of them. We don't want both shapes resetting the line.
+        shape1.setLineNumber(lineCounter);
 
         ParticleEffect effect = explosionEffectPool.obtain();
         effect.setPosition(shape1.position.x - Game.viewport.getWorldWidth()/2f, shape1.position.y - Game.viewport.getWorldHeight()/2f);
-        effect.getEmitters().get(0).getTint().setColors(new float[]{shapeColors[shape1.getColorID()].r, shapeColors[shape1.getColorID()].g, shapeColors[shape1.getColorID()].b});
+        effect.getEmitters().get(0).getTint().setColors(new float[]{shape1.getColor().r, shape1.getColor().g, shape1.getColor().b});
         effect.getEmitters().get(0).setSprite(new Sprite(new TextureRegion(shapeTextures[shape1.getShapeType()])));
         effect.start();
 
@@ -215,11 +231,19 @@ public class GameScreen implements Screen{
 
         ParticleEffect effect2 = explosionEffectPool.obtain();
         effect2.setPosition(shape2.position.x - Game.viewport.getWorldWidth()/2f, shape2.position.y - Game.viewport.getWorldHeight()/2f);
-        effect2.getEmitters().get(0).getTint().setColors(new float[]{shapeColors[shape2.getColorID()].r, shapeColors[shape2.getColorID()].g, shapeColors[shape2.getColorID()].b});
+        effect2.getEmitters().get(0).getTint().setColors(new float[]{shape2.getColor().r, shape2.getColor().g, shape2.getColor().b});
         effect2.getEmitters().get(0).setSprite(new Sprite(new TextureRegion(shapeTextures[shape2.getShapeType()])));
         effect2.start();
 
         particleEffects.add(effect2);
+
+        this.lineCounter = (this.lineCounter+1)%this.lineLists.length;
+    }
+
+    private Vector2 getRandomPositionAndShuffle(){
+        Vector2 position = positions[0];
+        GH.shuffleArray(positions);
+        return position;
     }
 
     @Override
@@ -266,15 +290,10 @@ public class GameScreen implements Screen{
      * @param batch The spritebatch to use.
      */
     private void drawShapes(SpriteBatch batch){
-        float radius = sizeOfShapes/2;
-        TextureRegion region;
-
-        for(GameShape shape : gameShapeList) {
-            batch.setColor(this.shapeColors[shape.getColorID()]);
-            if(shape.locked) region = shapesGlow[shape.getShapeType()];
-            else region = shapeTextures[shape.getShapeType()];
-            batch.draw(region, -Game.viewport.getWorldWidth()/2f + shape.position.x - radius, -Game.viewport.getWorldHeight()/2f + shape.position.y - radius,
-                    radius, radius, sizeOfShapes, sizeOfShapes, this.currScale, this.currScale, this.currRotation);
+        for(int i = gameShapeList.size-1; i >= 0; i--) {
+            GameShape shape = gameShapeList.get(i);
+            if(shape.isDead()) gameShapeList.removeIndex(i);
+            else shape.render(batch, Gdx.graphics.getDeltaTime());
         }
     }
 
@@ -343,12 +362,17 @@ public class GameScreen implements Screen{
             }
 
         }else if(currGameState == GameState.Running){
-            if(GameSettings.gameType == GameSettings.GameType.Timed)
-                this.updateTimedGame(delta);
+            //Challenge is special
+            if(GameSettings.gameType != GameSettings.GameType.Challenge) {
+                if(GameSettings.gameType == GameSettings.GameType.Timed)
+                    this.updateTimedGame(delta);
 
-            if(GameStats.winCounter >= GameSettings.numShapes){
-                GameStats.winCounter = 0;
-                this.setRoundOver(false, GameStats.RoundOver.Won);
+                if (GameStats.winCounter >= GameSettings.numShapes) {
+                    GameStats.winCounter = 0;
+                    this.setRoundOver(false, GameStats.RoundOver.Won);
+                }
+            }else{
+                this.updateChallenge(delta);
             }
 
             GameScreenGUI.update(delta);
@@ -356,36 +380,24 @@ public class GameScreen implements Screen{
         }else if(currGameState == GameState.Starting){
             if(!roundStartingFlag)
                 roundStarting();
-            this.currScale = lerpScale(0, 1, this.currScale, 1500);
-            this.currRotation += 20;
-            if(this.currScale >= 1) {
-                this.currScale = 1;
-                this.currRotation = 0;
+            counter+=delta;
+            if(counter >= 0.5) {
+                counter = 0;
                 this.roundStarted();
             }
         //If roundEnding, spin the shapeTextures out!
         }else if(currGameState == GameState.Ending){
             if(!startedRoundEnd)
                 this.startRoundEnd();
-            this.currScale = lerpScale(1, 0, this.currScale, 1500);
-            this.currRotation += 20;
-            if(this.currScale <= 0) {
-                this.currScale = 0;
-                this.currRotation = 0;
+            counter+=delta;
+            if(counter >= 0.5) {
+                counter = 0;
                 this.roundEnded();
             }
         }else if(this.currGameState == GameState.Over){
             this.gameOver();
             this.currGameState = GameState.Limbo;
         }
-    }
-
-    /**
-     * The updated method for a challenge game.
-     * @param delta The time between frames.
-     */
-    private void updateChallengeGame(float delta){
-
     }
 
     /**
@@ -417,6 +429,16 @@ public class GameScreen implements Screen{
 
     }
 
+    private void updateChallenge(float delta){
+        challengeCounter+=delta;
+        if(challengeCounter > 0.75f){
+            int randShape = MathUtils.random(0, shapeTextures.length-1);
+            Color randColor = shapeColors[MathUtils.random(0, shapeColors.length-1)];
+            this.gameShapeList.add(new GameShape(getRandomPositionAndShuffle(), randShape, (int)sizeOfShapes, randColor, 5f));
+            this.challengeCounter = 0f;
+        }
+    }
+
     /**
      * Called when a round begins to start.
      */
@@ -433,7 +455,7 @@ public class GameScreen implements Screen{
         GameStats.startTime = System.currentTimeMillis();
 
         for (GameShape gameShape : gameShapeList) {
-            gameShape.starting = false;
+            gameShape.setStarted();
         }
 
         roundStartingFlag = false;
@@ -448,6 +470,9 @@ public class GameScreen implements Screen{
             this.recordTime();
             GameStats.successfulRounds++;
         }
+
+        for(GameShape shape : gameShapeList)
+            shape.setEnding();
 
         this.startedRoundEnd = true;
 
@@ -480,6 +505,9 @@ public class GameScreen implements Screen{
         //If it was the time game type, game over if we failed once.
         }else if(GameSettings.gameType == GameSettings.GameType.Timed && GameStats.failedLastRound){
             this.roundEndedTimed();
+
+        }else if(GameSettings.gameType == GameSettings.GameType.Challenge){
+            roundEndedChallenge();
         }
 
         this.startedRoundEnd = false;
@@ -513,6 +541,10 @@ public class GameScreen implements Screen{
         if(GameStats.currRound >= GameStats.maxRounds){
             this.currGameState = GameState.Over;
         }
+    }
+
+    private void roundEndedChallenge(){
+        this.currGameState = GameState.Over;
     }
 
     /**
@@ -577,29 +609,8 @@ public class GameScreen implements Screen{
      * Creates new shape lineLists.
      */
     private void initLineLists(){
-        for(int i=0;i<GameSettings.numShapes;i++){
+        for(int i=0;i<lineLists.length;i++){
             this.lineLists[i] = new Array<Vector2>(100);
-        }
-    }
-
-    private float lerpScale(float startScale, float targetScale, float currScale, float time){
-        float incr = Math.abs(startScale - targetScale)/(time/60);
-        if(startScale > targetScale) currScale -= incr;
-        else currScale += incr;
-
-        return currScale;
-    }
-
-    static void shuffleArray(Object[] ar)
-    {
-        // If running on Java 6 or older, use `new Random()` on RHS here
-        for (int i = ar.length - 1; i > 0; i--)
-        {
-            int index = MathUtils.random(i);
-            // Simple swap
-            Object a = ar[index];
-            ar[index] = ar[i];
-            ar[i] = a;
         }
     }
 

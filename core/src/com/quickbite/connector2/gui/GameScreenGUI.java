@@ -222,7 +222,7 @@ public class GameScreenGUI {
             firstShape = new Image(new TextureRegionDrawable(Game.shapeAtlas.findRegion("Star")));
             secondShape = new Image(new TextureRegionDrawable(Game.shapeAtlas.findRegion("Square")));
             firstShape.setColor(Color.RED);
-            secondShape.setColor(Color.YELLOW);
+            secondShape.setColor(Color.RED);
         }else if(GameSettings.matchType == GameSettings.MatchType.Color){
             firstShape = new Image(new TextureRegionDrawable(Game.shapeAtlas.findRegion("Star")));
             secondShape = new Image(new TextureRegionDrawable(Game.shapeAtlas.findRegion("Square")));

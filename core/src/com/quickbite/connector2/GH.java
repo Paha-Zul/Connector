@@ -1,5 +1,7 @@
 package com.quickbite.connector2;
 
+import com.badlogic.gdx.math.MathUtils;
+
 /**
  * Created by Paha on 1/24/2016.
  */
@@ -36,6 +38,19 @@ public class GH {
             reason = "Out of Time";
 
         return reason;
+    }
+
+    static void shuffleArray(Object[] ar)
+    {
+        // If running on Java 6 or older, use `new Random()` on RHS here
+        for (int i = ar.length - 1; i > 0; i--)
+        {
+            int index = MathUtils.random(i);
+            // Simple swap
+            Object a = ar[index];
+            ar[index] = ar[i];
+            ar[i] = a;
+        }
     }
 
 }

@@ -40,7 +40,7 @@ public class GameScreenClickListener implements InputProcessor {
 
         //Check if we clicked/touched on a shape. If so, record it and start dragging.
         for(GameShape shape : this.screen.gameShapeList){
-            if(!shape.locked && shape.isOver(worldPos.x, worldPos.y)){
+            if(!shape.isLocked() && shape.isOver(worldPos.x, worldPos.y)){
                 this.screen.currShape = shape;
                 this.screen.lineLists[this.screen.lineCounter].add(new Vector2(shape.position.x, shape.position.y));
                 this.dragging = true;
@@ -62,19 +62,18 @@ public class GameScreenClickListener implements InputProcessor {
             if(shape.isOver(worldPos.x, worldPos.y)){
                 if(shape == this.screen.currShape) break;
 
-                boolean condition = false;
-                if(GameSettings.matchType == GameSettings.MatchType.Shapes) condition = shape.getShapeType() == this.screen.currShape.getShapeType();
-                else if(GameSettings.matchType == GameSettings.MatchType.Color) condition = shape.getColorID() == this.screen.currShape.getColorID();
+                boolean condition = this.screen.currShape.checkValidConnection(shape);
 
                 //Correct one? one more victory point
                 if(condition) {
                     GameStats.winCounter++;
 
-                    this.screen.shapesConnected(this.screen.currShape, shape);
 
                     onShape = true;
                     this.screen.lineLists[this.screen.lineCounter].add(new Vector2(shape.position.x, shape.position.y));
-                    this.screen.lineCounter = (this.screen.lineCounter+1)%GameSettings.numShapes;
+
+                    this.screen.shapesConnected(this.screen.currShape, shape);
+
                 }
                 break;
             }
@@ -88,6 +87,11 @@ public class GameScreenClickListener implements InputProcessor {
     @Override
     public boolean touchDragged(int screenX, int screenY, int pointer) {
         if(this.screen.currShape == null || !this.dragging) return false;
+
+        if(this.screen.currShape.isStarting() || this.screen.currShape.isEnding()){
+            this.screen.lineLists[this.screen.lineCounter] = new Array<Vector2>(200);
+            this.dragging = false;
+        }
 
         Array<Vector2> list = this.screen.lineLists[this.screen.lineCounter];
         if(list.size == 0) return false;

@@ -34,11 +34,11 @@ public class CheckCollision implements Runnable{
 
         for(int i=0;i<this.shapes.size;i++){
             GameShape shape = this.shapes.get(i);
+            if(shape.isStarting() || shape.isEnding()) continue; //If starting or ending at the time, pass.
+
             boolean intersect = Intersector.intersectSegmentCircle(this.prev, this.curr, shape.position, 1024);
 
-            boolean condition = false;
-            if(GameSettings.matchType == GameSettings.MatchType.Shapes) condition = shape.getShapeType() == this.currShape.getShapeType();
-            else if(GameSettings.matchType == GameSettings.MatchType.Color) condition = shape.getColorID() == this.currShape.getColorID();
+            boolean condition = this.currShape.checkValidConnection(shape);
 
             if(intersect && !condition){
                 this.game.setRoundOver(true, GameStats.RoundOver.HitShape);

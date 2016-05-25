@@ -30,7 +30,7 @@ public class MainMenuGUI {
     public static Table table, leaderSelectionTable, choicesTable, leaderDisplayTable, mainMenuTable;
 
     public static TextButton leaderboards, start, quit, loginGPG;
-    public static TextButton colorSame, colorRandom, matchShape, matchColor, modePractice, modeBest, modeTimed, startGame;
+    public static TextButton colorSame, colorRandom, matchShape, matchColor, modePractice, modeBest, modeTimed, modeChallenge, startGame;
     public static TextButton threeShapes, fourShapes, fiveShapes, sixShapes;
 
     public static TextButton bestLeaderButton, timedLeaderButton;
@@ -85,7 +85,6 @@ public class MainMenuGUI {
         style.checked = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("defaultButton_green", Texture.class)));
         style.font = Game.defaultHugeFont;
 
-
         start = new TextButton("Start", regularStyle);
         start.getLabel().setFontScale(0.3f);
 
@@ -130,6 +129,9 @@ public class MainMenuGUI {
 
         modeTimed = new TextButton("Timed", style);
         modeTimed.getLabel().setFontScale(0.3f);
+
+        modeChallenge = new TextButton("Challenge", style);
+        modeChallenge.getLabel().setFontScale(0.3f);
 
         startGame = new TextButton("Start", regularStyle);
         startGame.getLabel().setFontScale(0.3f);
@@ -271,6 +273,7 @@ public class MainMenuGUI {
                 modeTimed.setChecked(false);
                 modeBest.setChecked(false);
                 modePractice.setChecked(true);
+                modeChallenge.setChecked(false);
                 checkAllOptionsSelected();
             }
         });
@@ -283,6 +286,7 @@ public class MainMenuGUI {
                 modeTimed.setChecked(false);
                 modeBest.setChecked(true);
                 modePractice.setChecked(false);
+                modeChallenge.setChecked(false);
                 checkAllOptionsSelected();
             }
         });
@@ -295,6 +299,20 @@ public class MainMenuGUI {
                 modeTimed.setChecked(true);
                 modeBest.setChecked(false);
                 modePractice.setChecked(false);
+                modeChallenge.setChecked(false);
+                checkAllOptionsSelected();
+            }
+        });
+
+        modeChallenge.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                super.clicked(event, x, y);
+                GameSettings.gameType = GameSettings.GameType.Challenge;
+                modeTimed.setChecked(false);
+                modeBest.setChecked(false);
+                modePractice.setChecked(false);
+                modeChallenge.setChecked(true);
                 checkAllOptionsSelected();
             }
         });
@@ -321,7 +339,7 @@ public class MainMenuGUI {
         titleContainer.setActor(TitleLabel);
 
         makeLeaderboardSelectionOverlay();
-        showManinMenu();
+        showMainMenu();
 
         table.setFillParent(true);
         Game.stage.addActor(table);
@@ -344,7 +362,7 @@ public class MainMenuGUI {
      * Simply lays out already constructed components on the main menu
      *
      */
-    private static void showManinMenu(){
+    private static void showMainMenu(){
         table.clear();
         mainMenuTable.clear();
 
@@ -485,7 +503,7 @@ public class MainMenuGUI {
         backButton.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
-                showManinMenu();
+                showMainMenu();
             }
         });
 
@@ -548,7 +566,7 @@ public class MainMenuGUI {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
                 table.clear();
-                showManinMenu();
+                showMainMenu();
             }
         });
 
@@ -586,9 +604,10 @@ public class MainMenuGUI {
         matchTable.add(matchColor).size(125, 50);
 
         Table modeTable = new Table();
-        modeTable.add(modePractice).size(125, 50).padRight(1);
-        modeTable.add(modeBest).size(125, 50).padRight(1);
-        modeTable.add(modeTimed).size(125, 50).padRight(1);
+        modeTable.add(modePractice).size(125, 50);
+        modeTable.add(modeBest).size(125, 50);
+        modeTable.add(modeTimed).size(125, 50);
+        modeTable.add(modeChallenge).size(125, 50);
 
         Table startTable = new Table();
         startTable.add(startGame).size(125, 50).padRight(50);
