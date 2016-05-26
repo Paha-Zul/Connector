@@ -4,8 +4,10 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.math.Interpolation;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
+import com.badlogic.gdx.scenes.scene2d.actions.Actions;
 import com.badlogic.gdx.scenes.scene2d.ui.Container;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
@@ -15,7 +17,6 @@ import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.Array;
-import com.quickbite.connector2.Constants;
 import com.quickbite.connector2.Game;
 import com.quickbite.connector2.GameScreen;
 import com.quickbite.connector2.GameSettings;
@@ -27,7 +28,7 @@ import com.quickbite.connector2.MainMenu;
 public class MainMenuGUI {
     private static MainMenuGUI instance;
 
-    public static Table table, leaderSelectionTable, choicesTable, leaderDisplayTable, mainMenuTable;
+    public static Table mainTable, leaderSelectionTable, choicesTable, leaderDisplayTable, mainMenuTable;
 
     public static TextButton leaderboards, start, quit, loginGPG;
     public static TextButton colorSame, colorRandom, matchShape, matchColor, modePractice, modeBest, modeTimed, modeChallenge, startGame;
@@ -41,12 +42,14 @@ public class MainMenuGUI {
     private static TextButton.TextButtonStyle darkButtonStyle, clearGreenSelectionStyle;
     private static Label.LabelStyle bigLabelStyle;
 
-    /* Variables for the leaderboard selection table */
-    private static String leaderboardID;
-    private static int leaderboardType, leaderboardTimeSpan;
+    private static Game game;
+    private static MainMenu mainMenu;
 
     public static void makeGUI(final Game game, final MainMenu mainMenu){
-        table = new Table();
+        MainMenuGUI.game = game;
+        MainMenuGUI.mainMenu = mainMenu;
+
+        mainTable = new Table();
 
         titleContainer = new Container<Label>();
         leaderDisplayTable = new Table();
@@ -57,8 +60,6 @@ public class MainMenuGUI {
         darkButtonStyle.font = Game.defaultFont;
         darkButtonStyle.up = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("buttonDark_up", Texture.class)));
         darkButtonStyle.down = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("buttonDark_down", Texture.class)));
-        darkButtonStyle.checked = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("buttonDark_up", Texture.class)));
-        darkButtonStyle.disabled = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("buttonDark_up", Texture.class)));
         darkButtonStyle.disabledFontColor = new Color(1, 1, 1, 0.5f);
 
         clearGreenSelectionStyle = new TextButton.TextButtonStyle();
@@ -66,7 +67,6 @@ public class MainMenuGUI {
         clearGreenSelectionStyle.up = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("defaultButton_clear", Texture.class)));
         clearGreenSelectionStyle.down = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("defaultButton_clear", Texture.class)));
         clearGreenSelectionStyle.checked = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("defaultButton_green", Texture.class)));
-        clearGreenSelectionStyle.disabled = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("defaultButton_clear", Texture.class)));
         clearGreenSelectionStyle.disabledFontColor = new Color(1, 1, 1, 0.5f);
 
         bigLabelStyle = new Label.LabelStyle(Game.defaultLargeFont, Color.WHITE);
@@ -74,9 +74,7 @@ public class MainMenuGUI {
         TextButton.TextButtonStyle regularStyle = new TextButton.TextButtonStyle();
         regularStyle.up = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("buttonDark_up", Texture.class)));
         regularStyle.down = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("buttonDark_down", Texture.class)));
-        regularStyle.checked = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("buttonDark_up", Texture.class)));
         regularStyle.font = Game.defaultHugeFont;
-        regularStyle.disabled = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("buttonDark_up", Texture.class)));
         regularStyle.disabledFontColor = new Color(1, 1, 1, 0.5f);
 
         TextButton.TextButtonStyle style = new TextButton.TextButtonStyle();
@@ -84,6 +82,29 @@ public class MainMenuGUI {
         style.down = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("defaultButton_green", Texture.class)));
         style.checked = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("defaultButton_green", Texture.class)));
         style.font = Game.defaultHugeFont;
+
+        Label.LabelStyle titleStyle = new Label.LabelStyle(Game.defaultHugeFont, Color.WHITE);
+        TitleLabel = new Label("Connector", titleStyle);
+        TitleLabel.setAlignment(Align.top);
+        TitleLabel.setFontScale(1);
+
+        titleContainer.setActor(TitleLabel);
+
+        buildMainMenu();
+        buildChoicesMenu();
+
+        showMainMenu();
+
+        mainTable.setFillParent(true);
+        Game.stage.addActor(mainTable);
+    }
+
+    private static void buildMainMenu(){
+        TextButton.TextButtonStyle regularStyle = new TextButton.TextButtonStyle();
+        regularStyle.up = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("buttonDark_up", Texture.class)));
+        regularStyle.down = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("buttonDark_down", Texture.class)));
+        regularStyle.font = Game.defaultHugeFont;
+        regularStyle.disabledFontColor = new Color(1, 1, 1, 0.5f);
 
         start = new TextButton("Start", regularStyle);
         start.getLabel().setFontScale(0.3f);
@@ -94,8 +115,81 @@ public class MainMenuGUI {
         loginGPG = new TextButton("Login to \n Google Play", regularStyle);
         loginGPG.getLabel().setFontScale(0.3f);
 
+        if(Game.resolver.getSignedInGPGS())
+            loginGPG.setDisabled(true);
+        else
+            leaderboards.setDisabled(true);
+
         quit = new TextButton("Quit", regularStyle);
         quit.getLabel().setFontScale(0.3f);
+
+        Table buttonTable = new Table();
+
+        buttonTable.add(start).size(200, 75);
+        buttonTable.row().padTop(40);
+        buttonTable.add(loginGPG).size(200, 75);
+        buttonTable.row().padTop(40);
+        buttonTable.add(leaderboards).size(200, 75);
+        buttonTable.row().padTop(40);
+        buttonTable.add(quit).size(200, 75);
+
+        mainMenuTable.top();
+
+        mainMenuTable.row().padTop(50);
+        mainMenuTable.add(titleContainer);
+        mainMenuTable.row().padTop(75);
+        mainMenuTable.add(buttonTable);
+
+        mainTable.add(mainMenuTable);
+        mainTable.setFillParent(true);
+        mainTable.top();
+
+        mainMenuTable.setFillParent(true);
+        Game.stage.addActor(mainMenuTable);
+    }
+
+    /**
+     * Simply lays out already constructed components on the main menu
+     *
+     */
+    private static void showMainMenu(){
+        mainMenuTable.addAction(Actions.moveTo(0f, 0f, 0.3f, Interpolation.circle));
+        choicesTable.addAction(Actions.moveTo(Game.viewport.getWorldWidth(), 0f, 0.3f, Interpolation.circle));
+        GameSettings.reset();
+    }
+
+    private static void buildChoicesMenu(){
+        choicesTable = new Table();
+
+        TextButton.TextButtonStyle regularStyle = new TextButton.TextButtonStyle();
+        regularStyle.up = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("buttonDark_up", Texture.class)));
+        regularStyle.down = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("buttonDark_down", Texture.class)));
+        regularStyle.font = Game.defaultHugeFont;
+        regularStyle.disabledFontColor = new Color(1, 1, 1, 0.5f);
+        regularStyle.disabledFontColor = new Color(0.5f, 0.5f, 0.5f, 0.5f);
+
+        TextButton.TextButtonStyle style = new TextButton.TextButtonStyle();
+        style.up = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("defaultButton_clear", Texture.class)));
+        style.checked = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("defaultButton_green", Texture.class)));
+        style.font = Game.defaultHugeFont;
+        style.disabledFontColor = new Color(0.5f, 0.5f, 0.5f, 0.5f);
+        style.fontColor = Color.WHITE;
+
+        TextButton.TextButtonStyle buttonStyle = new  TextButton.TextButtonStyle();
+        buttonStyle.font = Game.defaultFont;
+        buttonStyle.up = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("buttonDark_up", Texture.class)));
+        buttonStyle.over = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("buttonDark_up", Texture.class)));
+        buttonStyle.down = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("buttonDark_down", Texture.class)));
+
+        TextButton backButton = new TextButton("Back", buttonStyle);
+
+        backButton.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                mainTable.clear();
+                showMainMenu();
+            }
+        });
 
         threeShapes = new TextButton("3", style);
         threeShapes.getLabel().setFontScale(0.3f);
@@ -141,7 +235,7 @@ public class MainMenuGUI {
         start.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
-                table.clear();
+                mainTable.clear();
                 showChoicesMenu();
             }
         });
@@ -156,9 +250,9 @@ public class MainMenuGUI {
         leaderboards.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
-//                table.clear();
+//                mainTable.clear();
                 Game.resolver.getLeaderboardGPGS("DoesntMatter");
-//                table.add(leaderSelectionTable);
+//                mainTable.add(leaderSelectionTable);
             }
         });
 
@@ -173,6 +267,8 @@ public class MainMenuGUI {
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 super.clicked(event, x, y);
+                if(threeShapes.isDisabled()) return;
+
                 GameSettings.numShapes = 3;
                 fourShapes.setChecked(false);
                 fiveShapes.setChecked(false);
@@ -186,6 +282,8 @@ public class MainMenuGUI {
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 super.clicked(event, x, y);
+                if(fourShapes.isDisabled()) return;
+
                 GameSettings.numShapes = 4;
                 threeShapes.setChecked(false);
                 fourShapes.setChecked(true);
@@ -199,6 +297,8 @@ public class MainMenuGUI {
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 super.clicked(event, x, y);
+                if(fiveShapes.isDisabled()) return;
+
                 GameSettings.numShapes = 5;
                 threeShapes.setChecked(false);
                 fourShapes.setChecked(false);
@@ -212,6 +312,8 @@ public class MainMenuGUI {
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 super.clicked(event, x, y);
+                if(sixShapes.isDisabled()) return;
+
                 GameSettings.numShapes = 6;
                 threeShapes.setChecked(false);
                 fourShapes.setChecked(false);
@@ -225,6 +327,8 @@ public class MainMenuGUI {
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 super.clicked(event, x, y);
+                if(colorSame.isDisabled()) return;
+
                 GameSettings.colorType = GameSettings.ColorType.Normal;
                 colorRandom.setChecked(false);
                 colorSame.setChecked(true);
@@ -236,6 +340,8 @@ public class MainMenuGUI {
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 super.clicked(event, x, y);
+                if(colorRandom.isDisabled()) return;
+
                 GameSettings.colorType = GameSettings.ColorType.Random;
                 colorSame.setChecked(false);
                 colorRandom.setChecked(true);
@@ -275,6 +381,7 @@ public class MainMenuGUI {
                 modePractice.setChecked(true);
                 modeChallenge.setChecked(false);
                 checkAllOptionsSelected();
+                changeChoices(GameSettings.GameType.Practice);
             }
         });
 
@@ -288,6 +395,7 @@ public class MainMenuGUI {
                 modePractice.setChecked(false);
                 modeChallenge.setChecked(false);
                 checkAllOptionsSelected();
+                changeChoices(GameSettings.GameType.Fastest);
             }
         });
 
@@ -301,6 +409,7 @@ public class MainMenuGUI {
                 modePractice.setChecked(false);
                 modeChallenge.setChecked(false);
                 checkAllOptionsSelected();
+                changeChoices(GameSettings.GameType.Timed);
             }
         });
 
@@ -314,6 +423,7 @@ public class MainMenuGUI {
                 modePractice.setChecked(false);
                 modeChallenge.setChecked(true);
                 checkAllOptionsSelected();
+                changeChoices(GameSettings.GameType.Challenge);
             }
         });
 
@@ -323,250 +433,6 @@ public class MainMenuGUI {
                 Game.stage.clear();
                 mainMenu.dispose();
                 game.setScreen(new GameScreen(game));
-            }
-        });
-
-        if(Game.resolver.getSignedInGPGS())
-            loginGPG.setDisabled(true);
-        else
-            leaderboards.setDisabled(true);
-
-        Label.LabelStyle titleStyle = new Label.LabelStyle(Game.defaultHugeFont, Color.WHITE);
-        TitleLabel = new Label("Connector", titleStyle);
-        TitleLabel.setAlignment(Align.top);
-        TitleLabel.setFontScale(1);
-
-        titleContainer.setActor(TitleLabel);
-
-        makeLeaderboardSelectionOverlay();
-        showMainMenu();
-
-        table.setFillParent(true);
-        Game.stage.addActor(table);
-    }
-
-    private static boolean checkAllOptionsSelected(){
-        boolean selected = GameSettings.checkAllSelected();
-        if(selected) {
-            startGame.setDisabled(false);
-            startGame.getColor().a = 1f;
-            startGame.getStyle().fontColor = Color.WHITE;
-        }else{
-            startGame.setDisabled(true);
-            startGame.getColor().a = 0.5f;
-        }
-        return selected;
-    }
-
-    /**
-     * Simply lays out already constructed components on the main menu
-     *
-     */
-    private static void showMainMenu(){
-        table.clear();
-        mainMenuTable.clear();
-
-        Table buttonTable = new Table();
-
-        buttonTable.add(start).size(200, 75);
-        buttonTable.row().padTop(40);
-        buttonTable.add(loginGPG).size(200, 75);
-        buttonTable.row().padTop(40);
-        buttonTable.add(leaderboards).size(200, 75);
-        buttonTable.row().padTop(40);
-        buttonTable.add(quit).size(200, 75);
-
-        mainMenuTable.top();
-
-        mainMenuTable.row().padTop(50);
-        mainMenuTable.add(titleContainer);
-        mainMenuTable.row().padTop(75);
-        mainMenuTable.add(buttonTable);
-
-        table.add(mainMenuTable);
-        table.setFillParent(true);
-        table.top();
-
-        GameSettings.reset();
-    }
-
-    /**
-     * Creates the leaderboard selection overlay, but does not add it to the game. All
-     * data is stored in leaderboardSelectionTable and can be added later to display it.
-     */
-    private static void makeLeaderboardSelectionOverlay(){
-        TextureRegionDrawable drawable = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("selectionBackground", Texture.class)));
-
-        Table leaderTable = new Table();
-        Table typeTable = new Table();
-        Table timeTable = new Table();
-        Table buttonTable = new Table();
-
-        Table innerTable = new Table();
-        innerTable.setBackground(drawable);
-
-        drawable = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("pixelDark", Texture.class)));
-        leaderSelectionTable.setBackground(drawable);
-
-        Label.LabelStyle labelStyle = new Label.LabelStyle(Game.defaultLargeFont, Color.WHITE);
-
-        Label leaderboardTitleLabel = new Label("Select \nLeaderboard", labelStyle);
-        leaderboardTitleLabel.setAlignment(Align.center);
-
-        final TextButton oldExample = new TextButton("Other Way", darkButtonStyle);
-
-        bestLeaderButton = new TextButton("Best", clearGreenSelectionStyle);
-        timedLeaderButton = new TextButton("Timed", clearGreenSelectionStyle);
-        final TextButton leaderpublic = new TextButton("public static", clearGreenSelectionStyle);
-        final TextButton leaderSocial = new TextButton("Social", clearGreenSelectionStyle);
-        final TextButton daily = new TextButton("Daily", clearGreenSelectionStyle);
-        final TextButton weekly = new TextButton("Weekly", clearGreenSelectionStyle);
-        final TextButton allTime = new TextButton("All Time", clearGreenSelectionStyle);
-
-        TextButton backButton = new TextButton("Back", darkButtonStyle);
-        TextButton getButton = new TextButton("Get", darkButtonStyle);
-
-        oldExample.addListener(new ClickListener(){
-            @Override
-            public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
-                super.touchUp(event, x, y, pointer, button);
-                Game.resolver.getLeaderboardGPGS("DoesntMatter");
-            }
-        });
-
-        bestLeaderButton.addListener(new ClickListener(){
-            @Override
-            public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
-                super.touchUp(event, x, y, pointer, button);
-                timedLeaderButton.setChecked(false);
-                leaderboardID = Constants.LEADERBOARD_BEST;
-            }
-        });
-
-        timedLeaderButton.addListener(new ClickListener() {
-            @Override
-            public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
-                super.touchUp(event, x, y, pointer, button);
-                bestLeaderButton.setChecked(false);
-                leaderboardID = Constants.LEADERBOARD_TIMED;
-            }
-        });
-
-        leaderpublic.addListener(new ClickListener(){
-            @Override
-            public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
-                super.touchUp(event, x, y, pointer, button);
-                leaderboardType = 0;
-                leaderSocial.setChecked(false);
-            }
-        });
-
-        leaderSocial.addListener(new ClickListener(){
-            @Override
-            public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
-                super.touchUp(event, x, y, pointer, button);
-                leaderboardType = 1;
-                leaderpublic.setChecked(false);
-            }
-        });
-
-        daily.addListener(new ClickListener(){
-            @Override
-            public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
-                super.touchUp(event, x, y, pointer, button);
-                leaderboardTimeSpan = 0;
-                weekly.setChecked(false);
-                allTime.setChecked(false);
-            }
-        });
-
-        weekly.addListener(new ClickListener(){
-            @Override
-            public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
-                super.touchUp(event, x, y, pointer, button);
-                leaderboardTimeSpan = 1;
-                daily.setChecked(false);
-                allTime.setChecked(false);
-            }
-        });
-
-        allTime.addListener(new ClickListener(){
-            @Override
-            public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
-                super.touchUp(event, x, y, pointer, button);
-                leaderboardTimeSpan = 2;
-                weekly.setChecked(false);
-                daily.setChecked(false);
-            }
-        });
-
-        backButton.addListener(new ChangeListener() {
-            @Override
-            public void changed(ChangeEvent event, Actor actor) {
-                showMainMenu();
-            }
-        });
-
-        getButton.addListener(new ChangeListener() {
-            @Override
-            public void changed(ChangeEvent event, Actor actor) {
-                table.clear();
-                Game.resolver.getCenteredLeaderboardScore(leaderboardID, leaderboardTimeSpan, leaderboardType, 5000);
-            }
-        });
-
-        leaderTable.add(bestLeaderButton).width(150).height(50); //Best
-        leaderTable.add(timedLeaderButton).width(150).height(50); //Timed
-
-        typeTable.add(leaderpublic).width(150).height(50);
-        typeTable.add(leaderSocial).width(150).height(50);
-
-        timeTable.add(daily).width(150).height(50);
-        timeTable.add(weekly).width(150).height(50);
-        timeTable.add(allTime).width(150).height(50);
-
-        buttonTable.add(getButton).width(100).height(50).padRight(50);
-        buttonTable.add(backButton).width(100).height(50);
-
-        innerTable.row().pad(25,25,0,25);
-        innerTable.add(leaderboardTitleLabel).width(300).height(100);
-        innerTable.row().pad(10,25,0,25);
-        innerTable.add(oldExample).width(150).height(50); //Best
-        innerTable.row().pad(10,25,0,25);
-        innerTable.add(leaderTable); //Best
-        innerTable.row().pad(50,25,0,25);
-        innerTable.add(typeTable);
-        innerTable.row().pad(50,25,0,25);
-        innerTable.add(timeTable);
-        innerTable.row().pad(50,25,0,25);
-        innerTable.add(buttonTable).width(150).height(50);
-        innerTable.row().pad(50,25,0,25);
-        innerTable.add();
-
-        //innerTable.debugAll();
-
-        leaderSelectionTable.add(innerTable);
-    }
-
-    /**
-     * Makes the choices menu which is all contained in the choicesTable.
-     */
-    private static void showChoicesMenu(){
-        choicesTable = new Table();
-
-        TextButton.TextButtonStyle buttonStyle = new  TextButton.TextButtonStyle();
-        buttonStyle.font = Game.defaultFont;
-        buttonStyle.up = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("buttonDark_up", Texture.class)));
-        buttonStyle.over = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("buttonDark_up", Texture.class)));
-        buttonStyle.down = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("buttonDark_down", Texture.class)));
-
-        TextButton backButton = new TextButton("Back", buttonStyle);
-
-        backButton.addListener(new ChangeListener() {
-            @Override
-            public void changed(ChangeEvent event, Actor actor) {
-                table.clear();
-                showMainMenu();
             }
         });
 
@@ -590,70 +456,130 @@ public class MainMenuGUI {
         modeLabel.setFontScale(0.35f);
 
         Table numShapesTable = new Table();
+        numShapesTable.add(numShapesLabel).colspan(6).expandX().fillX().height(35f).spaceBottom(10f);
+        numShapesTable.row();
+        numShapesTable.add().expandX().fillX();
         numShapesTable.add(threeShapes).size(50 ,50);
         numShapesTable.add(fourShapes).size(50 ,50);
         numShapesTable.add(fiveShapes).size(50 ,50);
         numShapesTable.add(sixShapes).size(50 ,50);
+        numShapesTable.add().expandX().fillX();
 
         Table colorTable = new Table();
+        colorTable.add(colorLabel).colspan(4).expandX().fillX().height(35f).spaceBottom(10f);
+        colorTable.row();
+        colorTable.add().expandX().fillX();
         colorTable.add(colorSame).size(125, 50);
         colorTable.add(colorRandom).size(125, 50);
+        colorTable.add().expandX().fillX();
 
         Table matchTable = new Table();
+        matchTable.add(matchLabel).colspan(4).expandX().fillX().height(35f).spaceBottom(10f);
+        matchTable.row();
+        matchTable.add().expandX().fillX();
         matchTable.add(matchShape).size(125, 50);
         matchTable.add(matchColor).size(125, 50);
+        matchTable.add().expandX().fillX();
 
         Table modeTable = new Table();
-        modeTable.add(modePractice).size(125, 50);
-        modeTable.add(modeBest).size(125, 50);
-        modeTable.add(modeTimed).size(125, 50);
-        modeTable.add(modeChallenge).size(125, 50);
+        modeTable.add(modeLabel).colspan(6).expandX().fillX().height(35f).spaceBottom(10f);
+        modeTable.row();
+        modeTable.add().expandX().fillX();
+        modeTable.add(modePractice).size(120, 50);
+        modeTable.add(modeBest).size(120, 50);
+        modeTable.add(modeTimed).size(120, 50);
+        modeTable.add(modeChallenge).size(120, 50);
+        modeTable.add().expandX().fillX();
 
         Table startTable = new Table();
         startTable.add(startGame).size(125, 50).padRight(50);
         startTable.add(backButton).size(125, 50);
 
-        choicesTable.add(modeLabel).expandX().fillX().center().padBottom(10).height(40);
-        choicesTable.row().padTop(10);
-        choicesTable.add(modeTable).expandX();
-        choicesTable.row().padTop(50);
-
-        choicesTable.add(colorLabel).expandX().fillX().center().padBottom(10).height(40);
+        choicesTable.add(modeTable).expandX().fillX().spaceTop(50f);
         choicesTable.row();
-        choicesTable.add(colorTable).expandX();
-        choicesTable.row().padTop(50);
-
-        choicesTable.add(matchLabel).expandX().fillX().center().padBottom(10).height(40);
-        choicesTable.row().padTop(10);
-        choicesTable.add(matchTable).expandX();
-        choicesTable.row().padTop(50);
-
-        choicesTable.add(numShapesLabel).expandX().fillX().center().padBottom(10).height(40);
+        choicesTable.add(matchTable).expandX().fillX().spaceTop(50f);
         choicesTable.row();
-        choicesTable.add(numShapesTable).expandX();
-        choicesTable.row().padTop(50);
-
-        choicesTable.add(startTable);
+        choicesTable.add(colorTable).expandX().fillX().spaceTop(50f);
+        choicesTable.row();
+        choicesTable.add(numShapesTable).expandX().fillX().spaceTop(50f);
+        choicesTable.row();
+        choicesTable.add(startTable).fillX().spaceTop(50f);
 
         choicesTable.top();
+        choicesTable.setFillParent(true);
+        choicesTable.setPosition(Game.viewport.getWorldWidth(), 0f);
 
-        table.add(choicesTable).expand().fill();
+        Game.stage.addActor(choicesTable);
     }
 
     /**
-     * Takes in information and creates a table layout with the information.
+     * Makes the choices menu which is all contained in the choicesTable.
+     */
+    private static void showChoicesMenu(){
+        choicesTable.addAction(Actions.moveTo(0f, 0f, 0.3f, Interpolation.circle));
+        mainMenuTable.addAction(Actions.moveTo(-Game.viewport.getWorldWidth(), 0f, 0.3f, Interpolation.circle));
+    }
+
+    private static boolean checkAllOptionsSelected(){
+        boolean selected = GameSettings.checkAllSelected();
+        if(selected) {
+            startGame.setDisabled(false);
+            startGame.getColor().a = 1f;
+            startGame.getStyle().fontColor = Color.WHITE;
+        }else{
+            startGame.setDisabled(true);
+            startGame.getColor().a = 0.5f;
+        }
+        return selected;
+    }
+
+    private static void changeChoices(GameSettings.GameType gameType){
+        if(gameType == GameSettings.GameType.Challenge){
+            colorSame.setDisabled(true);
+            colorRandom.setDisabled(true);
+            threeShapes.setDisabled(true);
+            fourShapes.setDisabled(true);
+            fiveShapes.setDisabled(true);
+            sixShapes.setDisabled(true);
+
+            colorSame.setChecked(false);
+            colorRandom.setChecked(false);
+            threeShapes.setChecked(false);
+            fourShapes.setChecked(false);
+            fiveShapes.setChecked(false);
+            sixShapes.setChecked(false);
+
+            GameSettings.numShapes = 3;
+            GameSettings.colorType = GameSettings.ColorType.Random;
+        }else{
+            colorSame.setDisabled(false);
+            colorRandom.setDisabled(false);
+            threeShapes.setDisabled(false);
+            fourShapes.setDisabled(false);
+            fiveShapes.setDisabled(false);
+            sixShapes.setDisabled(false);
+
+            GameSettings.numShapes = 0;
+            GameSettings.colorType = GameSettings.ColorType.Nothing;
+        }
+
+        checkAllOptionsSelected();
+    }
+
+    /**
+     * Takes in information and creates a mainTable layout with the information.
      * @param ranks The ranks.
      * @param names The names.
      * @param scores The scores.
      */
     public static void loadLeaderboardScores(Array<String> ranks, Array<String> names, Array<String> scores){
         if(ranks == null || names == null || scores == null){
-            table.clear();
-            table.add(leaderSelectionTable);
+            mainTable.clear();
+            mainTable.add(leaderSelectionTable);
             return;
         }
 
-        table.clear();
+        mainTable.clear();
         leaderDisplayTable.clear();
 
         Table innerTable = new Table();
@@ -683,8 +609,8 @@ public class MainMenuGUI {
         backButton.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
-                table.clear();
-                table.add(leaderSelectionTable); // Go back to the selection table.
+                mainTable.clear();
+                mainTable.add(leaderSelectionTable); // Go back to the selection mainTable.
             }
         });
 
@@ -692,7 +618,7 @@ public class MainMenuGUI {
         leaderDisplayTable.row().padTop(50);
         leaderDisplayTable.add(backButton);
 
-        table.add(leaderDisplayTable);
+        mainTable.add(leaderDisplayTable);
         //leaderSelectionTable.debugAll();
     }
 }

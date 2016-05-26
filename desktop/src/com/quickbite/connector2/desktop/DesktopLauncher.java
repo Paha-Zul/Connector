@@ -33,7 +33,7 @@ public class DesktopLauncher implements ActionResolver, AdInterface {
 
 	@Override
 	public void submitScoreGPGS(String tableID, long score) {
-		System.out.println("Submitting score to table "+tableID+" with score "+score);
+		System.out.println("Submitting score to table ' "+tableID+"' with score "+score);
 	}
 
 	@Override
