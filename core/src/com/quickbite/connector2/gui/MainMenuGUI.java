@@ -5,6 +5,7 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Interpolation;
+import com.badlogic.gdx.scenes.scene2d.Action;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.actions.Actions;
@@ -146,16 +147,6 @@ public class MainMenuGUI {
 
         mainMenuTable.setFillParent(true);
         Game.stage.addActor(mainMenuTable);
-    }
-
-    /**
-     * Simply lays out already constructed components on the main menu
-     *
-     */
-    private static void showMainMenu(){
-        mainMenuTable.addAction(Actions.moveTo(0f, 0f, 0.3f, Interpolation.circle));
-        choicesTable.addAction(Actions.moveTo(Game.viewport.getWorldWidth(), 0f, 0.3f, Interpolation.circle));
-        GameSettings.reset();
     }
 
     private static void buildChoicesMenu(){
@@ -430,9 +421,7 @@ public class MainMenuGUI {
         startGame.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
-                Game.stage.clear();
-                mainMenu.dispose();
-                game.setScreen(new GameScreen(game));
+                startGame();
             }
         });
 
@@ -512,14 +501,43 @@ public class MainMenuGUI {
         Game.stage.addActor(choicesTable);
     }
 
+    private static void startGame(){
+        choicesTable.addAction(Actions.sequence(Actions.moveTo(-Game.viewport.getWorldWidth(), 0f, 0.3f, Interpolation.circle), new Action() {
+            @Override
+            public boolean act(float delta) {
+                Game.stage.clear();
+                mainMenu.dispose();
+                game.setScreen(new GameScreen(game));
+                return true;
+            }
+        }));
+    }
+
+
+    /**
+     * Simply lays out already constructed components on the main menu
+     *
+     */
+    private static void showMainMenu(){
+        mainMenuTable.addAction(Actions.moveTo(0f, 0f, 0.3f, Interpolation.circle));
+        choicesTable.addAction(Actions.moveTo(Game.viewport.getWorldWidth(), 0f, 0.3f, Interpolation.circle));
+        GameSettings.reset();
+        clearSelectedChoices();
+    }
+
     /**
      * Makes the choices menu which is all contained in the choicesTable.
      */
     private static void showChoicesMenu(){
         choicesTable.addAction(Actions.moveTo(0f, 0f, 0.3f, Interpolation.circle));
         mainMenuTable.addAction(Actions.moveTo(-Game.viewport.getWorldWidth(), 0f, 0.3f, Interpolation.circle));
+        checkAllOptionsSelected();
     }
 
+    /**
+     * Checks if all items are selected. If not, disables the start button. If so, enables the start button.
+     * @return True if all options needed are selected, false otherwise.
+     */
     private static boolean checkAllOptionsSelected(){
         boolean selected = GameSettings.checkAllSelected();
         if(selected) {
@@ -531,6 +549,21 @@ public class MainMenuGUI {
             startGame.getColor().a = 0.5f;
         }
         return selected;
+    }
+
+    public static void clearSelectedChoices(){
+        colorRandom.setChecked(false);
+        colorSame.setChecked(false);
+        matchColor.setChecked(false);
+        matchShape.setChecked(false);
+        modeChallenge.setChecked(false);
+        modeTimed.setChecked(false);
+        modePractice.setChecked(false);
+        modeBest.setChecked(false);
+        threeShapes.setChecked(false);
+        fourShapes.setChecked(false);
+        fiveShapes.setChecked(false);
+        sixShapes.setChecked(false);
     }
 
     private static void changeChoices(GameSettings.GameType gameType){
