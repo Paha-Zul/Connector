@@ -150,6 +150,7 @@ public class GameScreen implements Screen{
      * Restarts the current game mode.
      */
     public void restartGame(){
+        GameScreenGUI.createStartingGUI(this.game, this);
         this.reset();
     }
 
@@ -161,7 +162,7 @@ public class GameScreen implements Screen{
             if(GameStats.currRound >= GameStats.maxRounds)
                 return;
 
-        if(GameSettings.gameType == GameSettings.GameType.Fastest) {
+        if(GameSettings.gameType == GameSettings.GameType.Timed) {
             if (GameStats.currRound <= 5)
                 GameStats.roundTimeLeft = GameStats.roundTimeStart - GameStats.roundTimeDecreaseAmount * GameStats.currRound;
             else
@@ -364,10 +365,6 @@ public class GameScreen implements Screen{
      */
     private void update(float delta){
         if(currGameState == GameState.Beginning) {
-            if(GameScreenGUI.showStartingScreen(delta)) {
-                currGameState = GameState.Starting;
-                GameScreenGUI.showGameGUI();
-            }
 
         }else if(currGameState == GameState.Running){
             //Challenge is special
@@ -447,10 +444,18 @@ public class GameScreen implements Screen{
             this.gameShapeList.add(new GameShape(position, randShape, (int) sizeOfShapes, randColor, 5f, new ICallback() {
                 @Override
                 public void run() {
+//                    Sound sound = Game.easyAssetManager.get("whoosh_out", Sound.class);
+//                    sound.play(0.7f, 2f, 0f);
+                }
+            }, new ICallback() {
+                @Override
+                public void run() {
                     takenPositions.removeValue(position, true);
                     positions.add(position);
                 }
             }));
+//            Sound sound = Game.easyAssetManager.get("whoosh_in", Sound.class);
+//            sound.play(0.7f, 2f, 0f);
             this.challengeCounter = 0f;
         }
 
@@ -460,6 +465,16 @@ public class GameScreen implements Screen{
             GameStats.roundTimeLeft = 0;
             this.setRoundOver(true, GameStats.RoundOver.OutOfTime);
         }
+    }
+
+    public void beginGame(){
+        currGameState = GameState.Starting;
+
+        //TODO Temp fix for now to bypass starting delay. Maybe a better way to handle this?
+        if(GameSettings.gameType == GameSettings.GameType.Challenge)
+            counter = 99999999;
+
+        GameScreenGUI.showGameGUI();
     }
 
     /**

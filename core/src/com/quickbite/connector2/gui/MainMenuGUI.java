@@ -178,7 +178,7 @@ public class MainMenuGUI {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
                 mainTable.clear();
-                showMainMenu();
+                toMainMenu();
             }
         });
 
@@ -227,7 +227,7 @@ public class MainMenuGUI {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
                 mainTable.clear();
-                showChoicesMenu();
+                toChoicesMenu();
             }
         });
 
@@ -366,13 +366,13 @@ public class MainMenuGUI {
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 super.clicked(event, x, y);
-                GameSettings.gameType = GameSettings.GameType.Practice;
                 modeTimed.setChecked(false);
                 modeBest.setChecked(false);
                 modePractice.setChecked(true);
                 modeChallenge.setChecked(false);
                 checkAllOptionsSelected();
                 changeChoices(GameSettings.GameType.Practice);
+                GameSettings.gameType = GameSettings.GameType.Practice;
             }
         });
 
@@ -380,13 +380,13 @@ public class MainMenuGUI {
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 super.clicked(event, x, y);
-                GameSettings.gameType = GameSettings.GameType.Fastest;
                 modeTimed.setChecked(false);
                 modeBest.setChecked(true);
                 modePractice.setChecked(false);
                 modeChallenge.setChecked(false);
                 checkAllOptionsSelected();
                 changeChoices(GameSettings.GameType.Fastest);
+                GameSettings.gameType = GameSettings.GameType.Fastest;
             }
         });
 
@@ -394,13 +394,13 @@ public class MainMenuGUI {
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 super.clicked(event, x, y);
-                GameSettings.gameType = GameSettings.GameType.Timed;
                 modeTimed.setChecked(true);
                 modeBest.setChecked(false);
                 modePractice.setChecked(false);
                 modeChallenge.setChecked(false);
                 checkAllOptionsSelected();
                 changeChoices(GameSettings.GameType.Timed);
+                GameSettings.gameType = GameSettings.GameType.Timed;
             }
         });
 
@@ -408,13 +408,13 @@ public class MainMenuGUI {
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 super.clicked(event, x, y);
-                GameSettings.gameType = GameSettings.GameType.Challenge;
                 modeTimed.setChecked(false);
                 modeBest.setChecked(false);
                 modePractice.setChecked(false);
                 modeChallenge.setChecked(true);
                 checkAllOptionsSelected();
                 changeChoices(GameSettings.GameType.Challenge);
+                GameSettings.gameType = GameSettings.GameType.Challenge;
             }
         });
 
@@ -513,12 +513,24 @@ public class MainMenuGUI {
         }));
     }
 
-
     /**
      * Simply lays out already constructed components on the main menu
      *
      */
     private static void showMainMenu(){
+        mainMenuTable.getColor().a = 0f;
+        mainMenuTable.addAction(Actions.fadeIn(0.4f));
+
+        GameSettings.reset();
+        clearSelectedChoices();
+    }
+
+
+    /**
+     * Simply lays out already constructed components on the main menu
+     *
+     */
+    private static void toMainMenu(){
         mainMenuTable.addAction(Actions.moveTo(0f, 0f, 0.3f, Interpolation.circle));
         choicesTable.addAction(Actions.moveTo(Game.viewport.getWorldWidth(), 0f, 0.3f, Interpolation.circle));
         GameSettings.reset();
@@ -528,7 +540,7 @@ public class MainMenuGUI {
     /**
      * Makes the choices menu which is all contained in the choicesTable.
      */
-    private static void showChoicesMenu(){
+    private static void toChoicesMenu(){
         choicesTable.addAction(Actions.moveTo(0f, 0f, 0.3f, Interpolation.circle));
         mainMenuTable.addAction(Actions.moveTo(-Game.viewport.getWorldWidth(), 0f, 0.3f, Interpolation.circle));
         checkAllOptionsSelected();
@@ -592,8 +604,11 @@ public class MainMenuGUI {
             fiveShapes.setDisabled(false);
             sixShapes.setDisabled(false);
 
-            GameSettings.numShapes = 0;
-            GameSettings.colorType = GameSettings.ColorType.Nothing;
+            //If it was challenge before, reset it.
+            if(GameSettings.gameType == GameSettings.GameType.Challenge) {
+                GameSettings.numShapes = 0;
+                GameSettings.colorType = GameSettings.ColorType.Nothing;
+            }
         }
 
         checkAllOptionsSelected();

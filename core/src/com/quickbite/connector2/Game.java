@@ -2,6 +2,8 @@ package com.quickbite.connector2;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.assets.loaders.TextureLoader;
+import com.badlogic.gdx.audio.Music;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
@@ -35,9 +37,7 @@ public class Game extends com.badlogic.gdx.Game {
 	public static ActionResolver resolver;
 	public static AdInterface adInterface;
 
-	public static TextureRegion defaultButtonUp, defaultButtonDown;
 	public static TextureAtlas shapeAtlas;
-	public static ShaderProgram testShader;
 
 	public Game(ActionResolver actionResolver, AdInterface ads){
 		resolver = actionResolver;
@@ -60,11 +60,8 @@ public class Game extends com.badlogic.gdx.Game {
         this.loadAllPng(Gdx.files.internal("art/load/"));
         this.loadSheets(Gdx.files.internal("art/sheets/"));
         this.loadParticles(Gdx.files.internal("particles/"));
-        this.loadAssets();
-
-		testShader = new ShaderProgram("vertShader.txt", "fragShader.txt");
-
-		Game.shapeAtlas = easyAssetManager.get("shapes", TextureAtlas.class);
+        this.loadSounds(Gdx.files.internal("sounds/"));
+        this.loadMusic(Gdx.files.internal("music/"));
 
 		FreeTypeFontGenerator generator = new FreeTypeFontGenerator(Gdx.files.internal("copperplatessibold.ttf"));
 		FreeTypeFontGenerator.FreeTypeFontParameter parameter = new FreeTypeFontGenerator.FreeTypeFontParameter();
@@ -88,9 +85,6 @@ public class Game extends com.badlogic.gdx.Game {
 		defaultHugeFont.setUseIntegerPositions(false);
 
 		generator.dispose(); // don't forget to dispose to avoid memory leaks!
-
-		defaultButtonUp = new TextureRegion(easyAssetManager.get("defaultButton_normal", Texture.class));
-		defaultButtonDown = new TextureRegion(easyAssetManager.get("defaultButton_down", Texture.class));
 
 		Runtime.getRuntime().addShutdownHook(new Thread(){
 			@Override
@@ -140,10 +134,17 @@ public class Game extends com.badlogic.gdx.Game {
         }
 	}
 
-	public void loadAssets(){
-        boolean done = false;
-		while(!done){
-            done = easyAssetManager.update();
+	public void loadSounds(FileHandle handle){
+		for(FileHandle h : handle.list()){
+			if(h.name().endsWith(".ogg"))
+				easyAssetManager.load(h.path(), Sound.class);
+		}
+	}
+
+	public void loadMusic(FileHandle handle){
+		for(FileHandle h : handle.list()){
+			if(h.name().endsWith(".ogg"))
+				easyAssetManager.load(h.path(), Music.class);
 		}
 	}
 

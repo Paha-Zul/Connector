@@ -41,7 +41,7 @@ public class CheckCollision implements Runnable{
 
             boolean intersect = Intersector.intersectSegmentCircle(this.prev, this.curr, shape.position, 1024);
 
-            boolean condition = this.currShape.checkValidConnection(shape);
+            boolean condition = this.currShape.checkInvalidIntersection(shape);
 
             if(intersect && !condition){
                 this.game.setRoundOver(true, GameStats.RoundOver.HitShape);

@@ -4,6 +4,8 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.math.Interpolation;
+import com.badlogic.gdx.scenes.scene2d.Action;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.actions.Actions;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
@@ -59,7 +61,6 @@ public class GameScreenGUI {
     public static void initGameScreenGUI(final Game game, final GameScreen gameScreen) {
         centerTable = new Table();
         centerTable.setFillParent(true);
-        Game.stage.addActor(centerTable);
 
         gameOverShapes = new TextureRegion[2];
 
@@ -162,18 +163,17 @@ public class GameScreenGUI {
 
         centerTable.top();
 
-        Game.stage.addActor(centerTable);
-        Game.stage.addActor(leftTable);
-
         createStartingGUI(game, gameScreen);
     }
 
     /**
      * Creates and lays out the starting GUI.
      * @param game The Game instance.
-     * @param scren The GameScreen instance.
+     * @param screen The GameScreen instance.
      */
-    public static void createStartingGUI(final Game game, final GameScreen scren){
+    public static void createStartingGUI(final Game game, final GameScreen screen){
+        Game.stage.clear();
+
         String numShapes, colorType="Colors: Normal", matchType="Matching: Shapes", gameType="Practice!";
 
         if(GameSettings.colorType == GameSettings.ColorType.Random)
@@ -246,9 +246,77 @@ public class GameScreenGUI {
         startingTable.add(shapeTable);
         startingTable.row().padTop(40);
         startingTable.add(startingGameType).expandX().fillX();
+
+//        fadeInStartScreen(screen);
+        slideInStartScreen(screen);
+
+
+//        Game.stage.addActor(startingTable);
+
+        Game.stage.addActor(startingColorType);
+        Game.stage.addActor(startingMatchType);
+        Game.stage.addActor(firstShape);
+        Game.stage.addActor(secondShape);
+        Game.stage.addActor(startingGameType);
+    }
+
+    private static void fadeInStartScreen(final GameScreen screen){
+        startingColorType.getColor().a = 0f;
+        startingMatchType.getColor().a = 0f;
+        firstShape.getColor().a = 0f;
+        secondShape.getColor().a = 0f;
+        startingGameType.getColor().a = 0f;
+
+        startingColorType.addAction(Actions.sequence(Actions.fadeIn(0.5f)));
+        startingMatchType.addAction(Actions.sequence(Actions.delay(0.4f), Actions.fadeIn(0.5f)));
+        firstShape.addAction(Actions.sequence(Actions.delay(0.8f), Actions.fadeIn(0.5f)));
+        secondShape.addAction(Actions.sequence(Actions.delay(0.8f), Actions.fadeIn(0.5f)));
+        startingGameType.addAction(Actions.sequence(Actions.delay(1.2f), Actions.fadeIn(0.5f)));
+        startingTable.addAction(Actions.sequence(Actions.delay(3.5f), Actions.fadeOut(0.5f), Actions.delay(0.5f), new Action() {
+            @Override
+            public boolean act(float delta) {
+                Game.stage.clear();
+                screen.beginGame();
+                return true;
+            }
+        }));
+    }
+
+    private static void slideInStartScreen(final GameScreen screen){
+        startingColorType.getColor().a = 1f;
+        startingMatchType.getColor().a = 1f;
+        firstShape.getColor().a = 1f;
+        secondShape.getColor().a = 1f;
+        startingGameType.getColor().a = 1f;
+
+        startingColorType.setPosition(Game.viewport.getWorldWidth(), 550);
+        startingMatchType.setPosition(-Game.viewport.getWorldWidth(), 500);
+        firstShape.setPosition(-Game.viewport.getWorldWidth(), 400);
+        secondShape.setPosition(Game.viewport.getWorldWidth(), 400);
+        startingGameType.setPosition(Game.viewport.getWorldWidth(), 350);
+
+        startingColorType.addAction(Actions.sequence(Actions.moveTo(Game.viewport.getWorldWidth()/2f - startingColorType.getWidth()/2f, startingColorType.getY(), 0.5f, Interpolation.circleOut)));
+        startingMatchType.addAction(Actions.sequence(Actions.delay(0.1f), Actions.moveTo(Game.viewport.getWorldWidth()/2f - startingMatchType.getWidth()/2f, startingMatchType.getY(), 0.5f, Interpolation.circleOut)));
+        firstShape.addAction(Actions.sequence(Actions.delay(0.2f), Actions.moveTo(Game.viewport.getWorldWidth()/2f - firstShape.getWidth()/2f - 50, firstShape.getY(), 0.5f, Interpolation.circleOut)));
+        secondShape.addAction(Actions.sequence(Actions.delay(0.2f), Actions.moveTo(Game.viewport.getWorldWidth()/2f - secondShape.getWidth()/2f + 50, secondShape.getY(), 0.5f, Interpolation.circleOut)));
+        startingGameType.addAction(Actions.sequence(Actions.delay(0.3f), Actions.moveTo(Game.viewport.getWorldWidth()/2f - startingGameType.getWidth()/2f, startingGameType.getY(), 0.5f, Interpolation.circleOut)));
+
+        startingColorType.addAction(Actions.sequence(Actions.delay(2f), Actions.fadeOut(0.5f)));
+        startingMatchType.addAction(Actions.sequence(Actions.delay(2f), Actions.fadeOut(0.5f)));
+        firstShape.addAction(Actions.sequence(Actions.delay(2f), Actions.fadeOut(0.5f)));
+        secondShape.addAction(Actions.sequence(Actions.delay(2f), Actions.fadeOut(0.5f)));
+        startingGameType.addAction(Actions.sequence(Actions.sequence(Actions.delay(2f), Actions.fadeOut(0.5f)), new Action() {
+            @Override
+            public boolean act(float delta) {
+                Game.stage.clear();
+                screen.beginGame();
+                return true;
+            }
+        }));
     }
 
     public static void showGameGUI(){
+        Game.stage.clear();
         Game.stage.addActor(centerTable);
         Game.stage.addActor(leftTable);
         Game.stage.addActor(rightTable);
@@ -261,83 +329,6 @@ public class GameScreenGUI {
         rightTable.remove();
 
         Game.stage.addActor(gameOverTable);
-    }
-
-    public static boolean showStartingScreen(float delta){
-        if(state == -1) {
-            startingColorType.getColor().a = 0;
-            startingMatchType.getColor().a = 0;
-            startingGameType.getColor().a = 0;
-            firstShape.getColor().a = 0;
-            secondShape.getColor().a = 0;
-            startingTable.getColor().a = 1f;
-            state++;
-
-        //show color type (random, same)
-        }else if(state == 0){
-            Game.stage.addActor(overlay);
-            Game.stage.addActor(startingTable);
-            state++;
-        }else if(state == 1){
-            //Show colors
-            startingColorType.getColor().a = GH.lerpValue(startingColorType.getColor().a, 0, 1, 0.5f);
-            if(startingColorType.getColor().a >= 1) state++;
-
-        }else if(state == 2){
-            //Show matching
-            startingMatchType.getColor().a = GH.lerpValue(startingMatchType.getColor().a, 0, 1, 0.5f);
-            if(startingMatchType.getColor().a >= 1) state++;
-
-        }else if(state == 3){
-            Color color;
-            //Show example
-            if(innerState == 0) {
-                color = firstShape.getColor();
-                firstShape.getColor().a = GH.lerpValue(color.a, 0, 1, 0.5f);
-
-                color = secondShape.getColor();
-                secondShape.getColor().a = GH.lerpValue(color.a, 0, 1, 0.5f);
-                if (secondShape.getColor().a >= 1) state++;
-            }else{
-                innerState = 0;
-                state++;
-            }
-        }else if(state == 4){
-            //Show game type
-            startingGameType.getColor().a = GH.lerpValue(startingGameType.getColor().a, 0, 1, 0.5f);
-            if(startingGameType.getColor().a >= 1) state++;
-
-        }else if(state == 5){
-            waitTime = GH.lerpValue(waitTime, 0, 1f, 1f);
-            if(waitTime >= 1) {
-                waitTime = 0;
-                state++;
-            }
-            //Remove example and such?
-        }else if(state == 6){
-            startingTable.getColor().a = GH.lerpValue(startingTable.getColor().a, 1, 0, 0.5f);
-            if(startingTable.getColor().a <= 0) {
-                state++;
-            }
-        }else if(state == 7){
-            waitTime = GH.lerpValue(waitTime, 0, 1f, 0.5f);
-            if(waitTime >= 1) {
-                waitTime = 0;
-                startingTable.remove();
-                overlay.remove();
-                state = -1;
-                return true;
-            }
-        }
-
-        //Second, show what we are matching (shapeTextures/colors)
-
-        //Third, show two shapeTextures, if matching random color shapeTextures, 2 diff shapeTextures with different colors.
-        //Otherwise, 2 same shapeTextures with same/random colors, either is fine...
-
-        //Lastly, display game type (Practice, Best out of 10, TimeAttack)
-
-        return false;
     }
 
     /**

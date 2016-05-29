@@ -21,7 +21,7 @@ public class GameShape {
     private Color color;
     private float currRotation, currScale;
     private float lifeTime = -1; //For the 'challenge' game mode.
-    private ICallback onDeadCallback;
+    private ICallback onDeadCallback, onEndingCallback;
 
     private final float rotationSpeed = 30f, scaleSpeed = 0.5f;
 
@@ -42,9 +42,10 @@ public class GameShape {
         this.lifeTime = lifeTime;
     }
 
-    public GameShape(Vector2 position, int shape, int size, Color color, float lifeTime, ICallback onDeadCallback){
+    public GameShape(Vector2 position, int shape, int size, Color color, float lifeTime, ICallback onEndingCallback, ICallback onDeadCallback){
         this(position, shape, size, color, lifeTime);
         this.onDeadCallback = onDeadCallback;
+        this.onEndingCallback = onEndingCallback;
     }
 
     public void render(SpriteBatch batch, float delta){
@@ -76,6 +77,7 @@ public class GameShape {
                 lifeTime -= delta;
                 if(lifeTime <= 0){
                     this.ending = true;
+                    if(this.onDeadCallback != null) this.onEndingCallback.run();
                     if(lineNumber >= 0) gameScreen.lineLists[lineNumber] = new Array<Vector2>(200);
                 }
             }
@@ -143,6 +145,18 @@ public class GameShape {
     public boolean checkValidConnection(GameShape otherShape){
         boolean condition = false;
         if(!this.starting && !this.ending && !otherShape.starting && !otherShape.ending && !this.locked && !otherShape.locked) {
+            if (GameSettings.matchType == GameSettings.MatchType.Shapes)
+                condition = this.getShapeType() == otherShape.getShapeType();
+            else if (GameSettings.matchType == GameSettings.MatchType.Color)
+                condition = this.getColor() == otherShape.getColor();
+        }
+
+        return condition;
+    }
+
+    public boolean checkInvalidIntersection(GameShape otherShape){
+        boolean condition = false;
+        if(!this.starting && !this.ending && !otherShape.starting && !otherShape.ending) {
             if (GameSettings.matchType == GameSettings.MatchType.Shapes)
                 condition = this.getShapeType() == otherShape.getShapeType();
             else if (GameSettings.matchType == GameSettings.MatchType.Color)
