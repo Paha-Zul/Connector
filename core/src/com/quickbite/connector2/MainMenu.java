@@ -35,13 +35,7 @@ public class MainMenu implements Screen {
         //Check if we need to enable/disable some buttons
         if(time >= this.nextTick){
             this.nextTick =  time + interval;
-            if(Game.resolver.getSignedInGPGS()){
-                MainMenuGUI.loginGPG.setDisabled(true);
-                MainMenuGUI.leaderboards.setDisabled(false);
-            } else if (Game.resolver.getSignedInGPGS()) {
-                MainMenuGUI.loginGPG.setDisabled(false);
-                MainMenuGUI.leaderboards.setDisabled(true);
-            }
+            MainMenuGUI.changeLoginButton(Game.resolver.getSignedInGPGS());
         }
     }
 

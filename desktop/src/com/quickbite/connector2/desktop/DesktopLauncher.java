@@ -32,6 +32,11 @@ public class DesktopLauncher implements ActionResolver, AdInterface {
 	}
 
 	@Override
+	public void logoutGPGS() {
+		System.out.println("Logging out of GPG");
+	}
+
+	@Override
 	public void submitScoreGPGS(String tableID, long score) {
 		System.out.println("Submitting score to table ' "+tableID+"' with score "+score);
 	}

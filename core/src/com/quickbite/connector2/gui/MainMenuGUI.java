@@ -9,8 +9,10 @@ import com.badlogic.gdx.scenes.scene2d.Action;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.actions.Actions;
-import com.badlogic.gdx.scenes.scene2d.ui.Container;
+import com.badlogic.gdx.scenes.scene2d.ui.Image;
+import com.badlogic.gdx.scenes.scene2d.ui.ImageTextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import com.badlogic.gdx.scenes.scene2d.ui.Stack;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
@@ -31,14 +33,14 @@ public class MainMenuGUI {
 
     public static Table mainTable, leaderSelectionTable, choicesTable, leaderDisplayTable, mainMenuTable;
 
-    public static TextButton leaderboards, start, quit, loginGPG;
+    public static TextButton quit;
+    public static ImageTextButton leaderboards, loginGPG, start;
     public static TextButton colorSame, colorRandom, matchShape, matchColor, modePractice, modeBest, modeTimed, modeChallenge, startGame;
     public static TextButton threeShapes, fourShapes, fiveShapes, sixShapes;
 
     public static TextButton bestLeaderButton, timedLeaderButton;
-    public static Container<Label> titleContainer;
 
-    public static Label TitleLabel;
+    public static Image titleImage;
 
     private static TextButton.TextButtonStyle darkButtonStyle, clearGreenSelectionStyle;
     private static Label.LabelStyle bigLabelStyle;
@@ -52,7 +54,6 @@ public class MainMenuGUI {
 
         mainTable = new Table();
 
-        titleContainer = new Container<Label>();
         leaderDisplayTable = new Table();
         leaderSelectionTable = new Table();
         mainMenuTable = new Table();
@@ -84,12 +85,7 @@ public class MainMenuGUI {
         style.checked = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("defaultButton_green", Texture.class)));
         style.font = Game.defaultHugeFont;
 
-        Label.LabelStyle titleStyle = new Label.LabelStyle(Game.defaultHugeFont, Color.WHITE);
-        TitleLabel = new Label("Connector", titleStyle);
-        TitleLabel.setAlignment(Align.top);
-        TitleLabel.setFontScale(1);
-
-        titleContainer.setActor(TitleLabel);
+        titleImage = new Image(Game.easyAssetManager.get("title", Texture.class));
 
         buildMainMenu();
         buildChoicesMenu();
@@ -107,19 +103,42 @@ public class MainMenuGUI {
         regularStyle.font = Game.defaultHugeFont;
         regularStyle.disabledFontColor = new Color(1, 1, 1, 0.5f);
 
-        start = new TextButton("Start", regularStyle);
-        start.getLabel().setFontScale(0.3f);
+        ImageTextButton.ImageTextButtonStyle startStyle = new ImageTextButton.ImageTextButtonStyle();
+        startStyle.up = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("buttonDark_up", Texture.class)));
+        startStyle.down = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("buttonDark_down", Texture.class)));
+        startStyle.disabled = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("buttonDark_up", Texture.class)));
+        startStyle.font = Game.defaultHugeFont;
+        startStyle.disabledFontColor = new Color(1, 1, 1, 0.5f);
+        startStyle.imageUp = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("startIcon", Texture.class)));
 
-        leaderboards = new TextButton("Leaderboards", regularStyle);
-        leaderboards.getLabel().setFontScale(0.3f);
+        ImageTextButton.ImageTextButtonStyle leaderboardButtonStyle = new ImageTextButton.ImageTextButtonStyle(startStyle);
+        leaderboardButtonStyle.imageUp = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("leaderboardIcon", Texture.class)));
 
-        loginGPG = new TextButton("Login to \n Google Play", regularStyle);
-        loginGPG.getLabel().setFontScale(0.3f);
+        ImageTextButton.ImageTextButtonStyle loginStyle = new ImageTextButton.ImageTextButtonStyle(startStyle);
+        loginStyle.imageUp = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("googlePlayGamesIcon", Texture.class)));
 
-        if(Game.resolver.getSignedInGPGS())
-            loginGPG.setDisabled(true);
-        else
-            leaderboards.setDisabled(true);
+        start = new ImageTextButton("Start", startStyle);
+        start.getLabel().setFontScale(0.4f);
+        start.getLabelCell().fillX().expandX();
+        start.getImageCell().size(64f, 64f);
+        start.getImageCell().left();
+        start.getImage().setColor(Color.GOLD);
+
+        leaderboards = new ImageTextButton("Boards", leaderboardButtonStyle);
+        leaderboards.getLabel().setFontScale(0.4f);
+        leaderboards.getLabelCell().fillX().expandX();
+        leaderboards.getImageCell().size(64f, 64f);
+        leaderboards.getImageCell().left();
+        leaderboards.getImage().setColor(Color.RED);
+
+        loginGPG = new ImageTextButton("Log-in", loginStyle);
+        loginGPG.getLabel().setFontScale(0.4f);
+        loginGPG.getLabelCell().fillX().expandX();
+        loginGPG.getImageCell().size(64f, 64f);
+        loginGPG.getImageCell().left();
+        loginGPG.getImage().setColor(Color.GREEN);
+
+        changeLoginButton(Game.resolver.getSignedInGPGS());
 
         quit = new TextButton("Quit", regularStyle);
         quit.getLabel().setFontScale(0.3f);
@@ -131,14 +150,15 @@ public class MainMenuGUI {
         buttonTable.add(loginGPG).size(200, 75);
         buttonTable.row().padTop(40);
         buttonTable.add(leaderboards).size(200, 75);
-        buttonTable.row().padTop(40);
-        buttonTable.add(quit).size(200, 75);
+//        buttonTable.row().padTop(40);
+//        buttonTable.add(quit).size(150, 40).colspan(2);
+//        buttonTable.debugAll();
 
         mainMenuTable.top();
 
         mainMenuTable.row().padTop(50);
-        mainMenuTable.add(titleContainer);
-        mainMenuTable.row().padTop(75);
+        mainMenuTable.add(titleImage);
+        mainMenuTable.row().padTop(150);
         mainMenuTable.add(buttonTable);
 
         mainTable.add(mainMenuTable);
@@ -147,6 +167,18 @@ public class MainMenuGUI {
 
         mainMenuTable.setFillParent(true);
         Game.stage.addActor(mainMenuTable);
+    }
+
+    public static void changeLoginButton(boolean loggedIn){
+        if(loggedIn){
+            MainMenuGUI.leaderboards.setDisabled(false);
+            MainMenuGUI.loginGPG.setText("Log-out");
+            MainMenuGUI.loginGPG.setUserObject(false); //Set the value to false for 'not logging in' or 'log out'.
+        } else{
+            MainMenuGUI.leaderboards.setDisabled(true);
+            MainMenuGUI.loginGPG.setText("Log-in");
+            MainMenuGUI.loginGPG.setUserObject(true); //Set the value to true for 'logging in'
+        }
     }
 
     private static void buildChoicesMenu(){
@@ -159,12 +191,22 @@ public class MainMenuGUI {
         regularStyle.disabledFontColor = new Color(1, 1, 1, 0.5f);
         regularStyle.disabledFontColor = new Color(0.5f, 0.5f, 0.5f, 0.5f);
 
-        TextButton.TextButtonStyle style = new TextButton.TextButtonStyle();
-        style.up = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("defaultButton_clear", Texture.class)));
-        style.checked = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("defaultButton_green", Texture.class)));
-        style.font = Game.defaultHugeFont;
-        style.disabledFontColor = new Color(0.5f, 0.5f, 0.5f, 0.5f);
-        style.fontColor = Color.WHITE;
+        TextButton.TextButtonStyle numShapesButtonStyle = new TextButton.TextButtonStyle();
+        numShapesButtonStyle.up = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("defaultButton_clear", Texture.class)));
+        numShapesButtonStyle.checked = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("pixelGreen", Texture.class)));
+        numShapesButtonStyle.font = Game.defaultHugeFont;
+        numShapesButtonStyle.disabledFontColor = new Color(0.5f, 0.5f, 0.5f, 0.5f);
+        numShapesButtonStyle.fontColor = Color.WHITE;
+
+        TextButton.TextButtonStyle colorButtonStyle = new TextButton.TextButtonStyle(numShapesButtonStyle);
+        colorButtonStyle.checked = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("pixelGold", Texture.class)));
+
+        TextButton.TextButtonStyle matchButtonStyle = new TextButton.TextButtonStyle(numShapesButtonStyle);
+        matchButtonStyle.checked = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("pixelRed", Texture.class)));
+
+        TextButton.TextButtonStyle modeButtonStyle = new TextButton.TextButtonStyle(numShapesButtonStyle);
+        modeButtonStyle.checked = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("pixelBlue", Texture.class)));
+
 
         TextButton.TextButtonStyle buttonStyle = new  TextButton.TextButtonStyle();
         buttonStyle.font = Game.defaultFont;
@@ -182,40 +224,40 @@ public class MainMenuGUI {
             }
         });
 
-        threeShapes = new TextButton("3", style);
+        threeShapes = new TextButton("3", numShapesButtonStyle);
         threeShapes.getLabel().setFontScale(0.3f);
 
-        fourShapes = new TextButton("4", style);
+        fourShapes = new TextButton("4", numShapesButtonStyle);
         fourShapes.getLabel().setFontScale(0.3f);
 
-        fiveShapes = new TextButton("5", style);
+        fiveShapes = new TextButton("5", numShapesButtonStyle);
         fiveShapes.getLabel().setFontScale(0.3f);
 
-        sixShapes = new TextButton("6", style);
+        sixShapes = new TextButton("6", numShapesButtonStyle);
         sixShapes.getLabel().setFontScale(0.3f);
 
-        colorSame = new TextButton("Same", style);
+        colorSame = new TextButton("Same", colorButtonStyle);
         colorSame.getLabel().setFontScale(0.3f);
 
-        colorRandom = new TextButton("Random", style);
+        colorRandom = new TextButton("Random", colorButtonStyle);
         colorRandom.getLabel().setFontScale(0.3f);
 
-        matchShape = new TextButton("Shapes", style);
+        matchShape = new TextButton("Shapes", matchButtonStyle);
         matchShape.getLabel().setFontScale(0.3f);
 
-        matchColor = new TextButton("Colors", style);
+        matchColor = new TextButton("Colors", matchButtonStyle);
         matchColor.getLabel().setFontScale(0.3f);
 
-        modePractice = new TextButton("Practice", style);
+        modePractice = new TextButton("Practice", modeButtonStyle);
         modePractice.getLabel().setFontScale(0.3f);
 
-        modeBest = new TextButton("Best", style);
+        modeBest = new TextButton("Best", modeButtonStyle);
         modeBest.getLabel().setFontScale(0.3f);
 
-        modeTimed = new TextButton("Timed", style);
+        modeTimed = new TextButton("Timed", modeButtonStyle);
         modeTimed.getLabel().setFontScale(0.3f);
 
-        modeChallenge = new TextButton("Challenge", style);
+        modeChallenge = new TextButton("Challenge", modeButtonStyle);
         modeChallenge.getLabel().setFontScale(0.3f);
 
         startGame = new TextButton("Start", regularStyle);
@@ -250,7 +292,10 @@ public class MainMenuGUI {
         loginGPG.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
-                Game.resolver.loginGPGS();
+                if(((Boolean)loginGPG.getUserObject()))
+                    Game.resolver.loginGPGS();
+                else
+                    Game.resolver.logoutGPGS();
             }
         });
 
@@ -425,27 +470,46 @@ public class MainMenuGUI {
             }
         });
 
-        Label.LabelStyle titleStyle = new Label.LabelStyle(Game.defaultHugeFont, Color.WHITE);
-        titleStyle.background = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("darkStrip", Texture.class)));
+        Label.LabelStyle labelStyle = new Label.LabelStyle(Game.defaultHugeFont, Color.WHITE);
 
-        Label numShapesLabel = new Label("Number of Shapes", titleStyle);
+        Label numShapesLabel = new Label("Number of Shapes", labelStyle);
         numShapesLabel.setAlignment(Align.center);
         numShapesLabel.setFontScale(0.35f);
 
-        Label colorLabel = new Label("Color per Shape Pair", titleStyle);
+        Label colorLabel = new Label("Color per Shape Pair", labelStyle);
         colorLabel.setAlignment(Align.center);
         colorLabel.setFontScale(0.35f);
 
-        Label matchLabel = new Label("Matching", titleStyle);
+        Label matchLabel = new Label("Matching", labelStyle);
         matchLabel.setAlignment(Align.center);
         matchLabel.setFontScale(0.35f);
 
-        Label modeLabel = new Label("Mode", titleStyle);
+        Label modeLabel = new Label("Mode", labelStyle);
         modeLabel.setAlignment(Align.center);
         modeLabel.setFontScale(0.35f);
 
+        Image greenBackground = new Image(Game.easyAssetManager.get("pixelWhite", Texture.class));
+        greenBackground.setColor(Color.GREEN);
+        greenBackground.getColor().a = 0.75f;
+
+        Image redBackground = new Image(Game.easyAssetManager.get("pixelWhite", Texture.class));
+        redBackground.setColor(Color.RED);
+        redBackground.getColor().a = 0.75f;
+
+        Image goldBackground = new Image(Game.easyAssetManager.get("pixelWhite", Texture.class));
+        goldBackground.setColor(Color.GOLD);
+        goldBackground.getColor().a = 0.75f;
+
+        Image blueBackground = new Image(Game.easyAssetManager.get("pixelWhite", Texture.class));
+        blueBackground.setColor(56f/255f, 122f/255f, 244f/255f, 0.75f);
+
+        Stack numShapesStack = new Stack(greenBackground, numShapesLabel);
+        Stack colorStack = new Stack(goldBackground, colorLabel);
+        Stack matchStack = new Stack(redBackground, matchLabel);
+        Stack modeStack = new Stack(blueBackground, modeLabel);
+
         Table numShapesTable = new Table();
-        numShapesTable.add(numShapesLabel).colspan(6).expandX().fillX().height(35f).spaceBottom(10f);
+        numShapesTable.add(numShapesStack).colspan(6).expandX().fillX().height(35f).spaceBottom(10f);
         numShapesTable.row();
         numShapesTable.add().expandX().fillX();
         numShapesTable.add(threeShapes).size(50 ,50);
@@ -455,7 +519,7 @@ public class MainMenuGUI {
         numShapesTable.add().expandX().fillX();
 
         Table colorTable = new Table();
-        colorTable.add(colorLabel).colspan(4).expandX().fillX().height(35f).spaceBottom(10f);
+        colorTable.add(colorStack).colspan(4).expandX().fillX().height(35f).spaceBottom(10f);
         colorTable.row();
         colorTable.add().expandX().fillX();
         colorTable.add(colorSame).size(125, 50);
@@ -463,7 +527,7 @@ public class MainMenuGUI {
         colorTable.add().expandX().fillX();
 
         Table matchTable = new Table();
-        matchTable.add(matchLabel).colspan(4).expandX().fillX().height(35f).spaceBottom(10f);
+        matchTable.add(matchStack).colspan(4).expandX().fillX().height(35f).spaceBottom(10f);
         matchTable.row();
         matchTable.add().expandX().fillX();
         matchTable.add(matchShape).size(125, 50);
@@ -471,7 +535,7 @@ public class MainMenuGUI {
         matchTable.add().expandX().fillX();
 
         Table modeTable = new Table();
-        modeTable.add(modeLabel).colspan(6).expandX().fillX().height(35f).spaceBottom(10f);
+        modeTable.add(modeStack).colspan(6).expandX().fillX().height(35f).spaceBottom(10f);
         modeTable.row();
         modeTable.add().expandX().fillX();
         modeTable.add(modePractice).size(120, 50);
@@ -481,10 +545,10 @@ public class MainMenuGUI {
         modeTable.add().expandX().fillX();
 
         Table startTable = new Table();
-        startTable.add(startGame).size(125, 50).padRight(50);
-        startTable.add(backButton).size(125, 50);
+        startTable.add(backButton).size(125, 50).padRight(50);
+        startTable.add(startGame).size(125, 50);
 
-        choicesTable.add(modeTable).expandX().fillX().spaceTop(50f);
+        choicesTable.add(modeTable).expandX().fillX().padTop(50f);
         choicesTable.row();
         choicesTable.add(matchTable).expandX().fillX().spaceTop(50f);
         choicesTable.row();

@@ -33,7 +33,6 @@ public class GameScreen implements Screen{
     public Array<Vector2> positions;
     public TextureRegion[] shapeTextures;
     public TextureRegion[] shapesGlow;
-    public Color[] shapeColors;
     public Array<GameShape> gameShapeList;
     public Array<Vector2>[] lineLists;
     public GameShape currShape = null;
@@ -108,15 +107,6 @@ public class GameScreen implements Screen{
         shapesGlow[4] = Game.shapeAtlas.findRegion("Triangle_glow");
         shapesGlow[5] = Game.shapeAtlas.findRegion("Hexagon_glow");
 
-        shapeColors = new Color[6];
-        shapeColors[0] = Color.YELLOW;
-        shapeColors[1] = Color.RED;
-        shapeColors[2] = Color.GREEN;
-        shapeColors[3] = Color.CYAN;
-        shapeColors[4] = Color.ORANGE;
-        shapeColors[5] = Color.BLUE;
-
-
         this.reset();
 
         this.gameShapeList = new Array<GameShape>();
@@ -178,12 +168,14 @@ public class GameScreen implements Screen{
         this.positions.shuffle();
         if(GameSettings.colorType == GameSettings.ColorType.Random) GH.shuffleArray(this.colorIDs);
 
+        Color[] colors = GameData.colorMap.values().toArray(new Color[GameData.colorMap.size()]);
+
         if(GameSettings.gameType != GameSettings.GameType.Challenge) {
             //Make a new list of shapeTextures.
             for (int i = 0; i < GameSettings.numShapes; i++) {
                 int index = i * 2;
-                this.gameShapeList.add(new GameShape(this.positions.get(index), i, (int) sizeOfShapes, this.shapeColors[this.colorIDs[index]]));
-                this.gameShapeList.add(new GameShape(this.positions.get(index+1), i, (int) sizeOfShapes, this.shapeColors[this.colorIDs[index + 1]]));
+                this.gameShapeList.add(new GameShape(this.positions.get(index), i, (int) sizeOfShapes, colors[this.colorIDs[index]]));
+                this.gameShapeList.add(new GameShape(this.positions.get(index+1), i, (int) sizeOfShapes, colors[this.colorIDs[index + 1]]));
             }
         }
 
@@ -438,7 +430,7 @@ public class GameScreen implements Screen{
         challengeCounter+=delta;
         if(challengeCounter > 0.75f){
             int randShape = MathUtils.random(0, shapeTextures.length-1);
-            Color randColor = shapeColors[MathUtils.random(0, shapeColors.length-1)];
+            Color randColor = (Color)GameData.colorMap.values().toArray()[MathUtils.random(0, GameData.colorMap.size()-1)];
             final Vector2 position = getRandomPositionAndShuffle();
             takenPositions.add(position);
             this.gameShapeList.add(new GameShape(position, randShape, (int) sizeOfShapes, randColor, 5f, new ICallback() {
@@ -703,7 +695,6 @@ public class GameScreen implements Screen{
 
     @Override
     public void dispose() {
-        this.shapeColors = null;
         this.gameShapeList = null;
         this.shapeTextures = null;
         this.colorIDs = null;

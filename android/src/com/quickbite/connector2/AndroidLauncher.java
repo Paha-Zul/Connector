@@ -230,6 +230,19 @@ public class AndroidLauncher extends AndroidApplication implements GameHelper.Ga
 	}
 
 	@Override
+	public void logoutGPGS() {
+		try {
+			runOnUiThread(new Runnable(){
+				public void run() {
+					gameHelper.signOut();
+				}
+			});
+		} catch (final Exception ex) {
+
+		}
+	}
+
+	@Override
 	public void submitScoreGPGS(String tableID, long score) {
         if (getSignedInGPGS()) {
             Games.Leaderboards.submitScore(gameHelper.getApiClient(), tableID, score);
