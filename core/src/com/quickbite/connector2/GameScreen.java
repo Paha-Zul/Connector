@@ -43,7 +43,6 @@ public class GameScreen implements Screen{
     private volatile boolean gameOver = false;
 
     private final float topArea = 0.1f;
-    private float sizeOfSpots = 480/5, sizeOfShapes = 480/6;
 
     private Array<ParticleEffect> particleEffects = new Array<ParticleEffect>();
     private ParticleEffectPool explosionEffectPool;
@@ -51,6 +50,8 @@ public class GameScreen implements Screen{
     private GameScreenClickListener clickListener;
 
     private float counter, challengeCounter = 1f;
+
+    private GameData gameData;
 
     public GameScreen(Game game){
         this.game = game;
@@ -65,26 +66,27 @@ public class GameScreen implements Screen{
 
         lineLists = new Array[GameSettings.numShapes*2];
 
-        this.sizeOfSpots = Game.camera.viewportWidth/6;
-        this.sizeOfShapes = Game.camera.viewportWidth/6;
+        gameData = new GameData();
     }
 
     @Override
     public void show() {
-        int xSpots = (int)(Game.camera.viewportWidth/sizeOfSpots);
-        int ySpots = (int)((Game.camera.viewportHeight - sizeOfSpots - (Game.camera.viewportHeight*this.topArea))/sizeOfSpots)+1;
+        int xSpots = (int)((Game.camera.viewportWidth - gameData.padding.getLeft() - gameData.padding.getRight())/(gameData.sizeOfSpots));
+        int ySpots = (int)((Game.camera.viewportHeight - (Game.camera.viewportHeight*this.topArea) - gameData.padding.getBottom())/gameData.sizeOfSpots);
         int numPositions = xSpots*ySpots;
 
         this.topTexture = new TextureRegion(Game.easyAssetManager.get("Top", Texture.class));
 
         this.positions = new Array<Vector2>(numPositions);
-        if(GameSettings.gameType == GameSettings.GameType.Challenge) //Only initialize this list if we need it.
+        if(GameSettings.gameType == GameSettings.GameType.Frenzy) //Only initialize this list if we need it.
             this.takenPositions = new Array<Vector2>(numPositions);
 
-        //We should probably go from 0-480 and 0-800
-        for(int i=0;i<numPositions;i++){
-            Vector2 vec = new Vector2(sizeOfSpots/2 + ((i*sizeOfSpots)%(sizeOfSpots*(xSpots))), sizeOfSpots/2 + ((i/xSpots)*sizeOfSpots));
-            this.positions.add(vec);
+        for(int i=0;i<xSpots;i++){
+            for(int j=0;j<ySpots;j++){
+                Vector2 vec = new Vector2((float)gameData.padding.getLeft() + gameData.sizeOfSpots/2f + (i*gameData.sizeOfSpots),
+                        (float)gameData.padding.getBottom() + gameData.sizeOfSpots/2 + (j*gameData.sizeOfSpots));
+                this.positions.add(vec);
+            }
         }
 
         this.colorIDs = new Integer[GameSettings.numShapes *2];
@@ -157,7 +159,7 @@ public class GameScreen implements Screen{
                 GameStats.roundTimeLeft = GameStats.roundTimeStart - GameStats.roundTimeDecreaseAmount * GameStats.currRound;
             else
                 GameStats.roundTimeLeft = GameStats.roundTimeStart - GameStats.getRoundTimeDecreaseAmountBelow5 * GameStats.currRound;
-        }else if(GameSettings.gameType == GameSettings.GameType.Challenge){
+        }else if(GameSettings.gameType == GameSettings.GameType.Frenzy){
             GameStats.roundTimeLeft = 20f;
         }
 
@@ -168,14 +170,14 @@ public class GameScreen implements Screen{
         this.positions.shuffle();
         if(GameSettings.colorType == GameSettings.ColorType.Random) GH.shuffleArray(this.colorIDs);
 
-        Color[] colors = GameData.colorMap.values().toArray(new Color[GameData.colorMap.size()]);
+        Color[] colors = gameData.colorMap.values().toArray(new Color[gameData.colorMap.size()]);
 
-        if(GameSettings.gameType != GameSettings.GameType.Challenge) {
+        if(GameSettings.gameType != GameSettings.GameType.Frenzy) {
             //Make a new list of shapeTextures.
             for (int i = 0; i < GameSettings.numShapes; i++) {
                 int index = i * 2;
-                this.gameShapeList.add(new GameShape(this.positions.get(index), i, (int) sizeOfShapes, colors[this.colorIDs[index]]));
-                this.gameShapeList.add(new GameShape(this.positions.get(index+1), i, (int) sizeOfShapes, colors[this.colorIDs[index + 1]]));
+                this.gameShapeList.add(new GameShape(this.positions.get(index), i, (int) gameData.sizeOfShapes, colors[this.colorIDs[index]]));
+                this.gameShapeList.add(new GameShape(this.positions.get(index+1), i, (int) gameData.sizeOfShapes, colors[this.colorIDs[index + 1]]));
             }
         }
 
@@ -237,8 +239,10 @@ public class GameScreen implements Screen{
 
         this.lineCounter = (this.lineCounter+1)%this.lineLists.length;
 
-        if(GameSettings.gameType == GameSettings.GameType.Challenge)
+        if(GameSettings.gameType == GameSettings.GameType.Frenzy)
             GameStats.winCounter++;
+
+        SoundManager.playSound("waterdrop");
     }
 
     private Vector2 getRandomPositionAndShuffle(){
@@ -329,7 +333,7 @@ public class GameScreen implements Screen{
         shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
         for(int i=0;i<this.positions.size;i++){
             Vector2 pos = this.positions.get(i);
-            shapeRenderer.rect(pos.x - this.sizeOfSpots/2, pos.y - this.sizeOfSpots/2, this.sizeOfSpots, this.sizeOfSpots);
+            shapeRenderer.rect(pos.x - gameData.sizeOfSpots/2, pos.y - gameData.sizeOfSpots/2, gameData.sizeOfSpots, gameData.sizeOfSpots);
         }
         shapeRenderer.end();
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
@@ -345,7 +349,7 @@ public class GameScreen implements Screen{
         shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
         for(int i = 0; i<this.gameShapeList.size; i++){
             GameShape shape = this.gameShapeList.get(i);
-            shapeRenderer.rect(shape.position.x - this.sizeOfSpots/2, shape.position.y - this.sizeOfSpots/2, this.sizeOfSpots, this.sizeOfSpots);
+            shapeRenderer.rect(shape.position.x - gameData.sizeOfSpots/2, shape.position.y - gameData.sizeOfSpots/2, gameData.sizeOfSpots, gameData.sizeOfSpots);
         }
         shapeRenderer.end();
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
@@ -359,8 +363,8 @@ public class GameScreen implements Screen{
         if(currGameState == GameState.Beginning) {
 
         }else if(currGameState == GameState.Running){
-            //Challenge is special
-            if(GameSettings.gameType != GameSettings.GameType.Challenge) {
+            //Frenzy is special
+            if(GameSettings.gameType != GameSettings.GameType.Frenzy) {
                 if(GameSettings.gameType == GameSettings.GameType.Timed)
                     this.updateTimedGame(delta);
 
@@ -430,10 +434,10 @@ public class GameScreen implements Screen{
         challengeCounter+=delta;
         if(challengeCounter > 0.75f){
             int randShape = MathUtils.random(0, shapeTextures.length-1);
-            Color randColor = (Color)GameData.colorMap.values().toArray()[MathUtils.random(0, GameData.colorMap.size()-1)];
+            Color randColor = (Color)gameData.colorMap.values().toArray()[MathUtils.random(0, gameData.colorMap.size()-1)];
             final Vector2 position = getRandomPositionAndShuffle();
             takenPositions.add(position);
-            this.gameShapeList.add(new GameShape(position, randShape, (int) sizeOfShapes, randColor, 5f, new ICallback() {
+            this.gameShapeList.add(new GameShape(position, randShape, (int) gameData.sizeOfShapes, randColor, 5f, new ICallback() {
                 @Override
                 public void run() {
 //                    Sound sound = Game.easyAssetManager.get("whoosh_out", Sound.class);
@@ -463,7 +467,7 @@ public class GameScreen implements Screen{
         currGameState = GameState.Starting;
 
         //TODO Temp fix for now to bypass starting delay. Maybe a better way to handle this?
-        if(GameSettings.gameType == GameSettings.GameType.Challenge)
+        if(GameSettings.gameType == GameSettings.GameType.Frenzy)
             counter = 99999999;
 
         GameScreenGUI.showGameGUI();
@@ -499,6 +503,9 @@ public class GameScreen implements Screen{
         if(!GameStats.failedLastRound) {
             this.recordTime();
             GameStats.successfulRounds++;
+            SoundManager.playSound("success");
+        }else{
+            SoundManager.playSound("error");
         }
 
         for(GameShape shape : gameShapeList)
@@ -536,7 +543,7 @@ public class GameScreen implements Screen{
         }else if(GameSettings.gameType == GameSettings.GameType.Timed && GameStats.failedLastRound){
             this.roundEndedTimed();
 
-        }else if(GameSettings.gameType == GameSettings.GameType.Challenge){
+        }else if(GameSettings.gameType == GameSettings.GameType.Frenzy){
             roundEndedChallenge();
         }
 
@@ -590,7 +597,7 @@ public class GameScreen implements Screen{
             case Practice:
                 gameOverPractice();
                 break;
-            case Challenge:
+            case Frenzy:
                 gameOverChallenge();
                 break;
         }
@@ -642,7 +649,7 @@ public class GameScreen implements Screen{
             leaderboard = Constants.LEADERBOARD_TIMED;
 
             //If the game type is challenge.
-        }else if(GameSettings.gameType == GameSettings.GameType.Challenge){
+        }else if(GameSettings.gameType == GameSettings.GameType.Frenzy){
 //            if(GameStats.avgTime == 0) GameStats.currScore = 0;
             GameStats.currScore = (int)(125*(GameStats.winCounter));
             leaderboard = "";

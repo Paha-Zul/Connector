@@ -50,7 +50,7 @@ public class GameScreenGUI {
     private static DecimalFormat formatter = new DecimalFormat("0.00");
 
     public static void update(float delta){
-        if(GameSettings.gameType == GameSettings.GameType.Timed || GameSettings.gameType == GameSettings.GameType.Challenge)
+        if(GameSettings.gameType == GameSettings.GameType.Timed || GameSettings.gameType == GameSettings.GameType.Frenzy)
             topCenterLabel.setText(formatter.format(GameStats.roundTimeLeft)+"");
         else if(GameSettings.gameType == GameSettings.GameType.Fastest)
             topCenterLabel.setText("Round: "+GameStats.currRound+"/"+GameStats.maxRounds);
@@ -95,12 +95,15 @@ public class GameScreenGUI {
         TextButton.TextButtonStyle style = new TextButton.TextButtonStyle();
         style.up = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("buttonDark_up", Texture.class)));
         style.down = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("buttonDark_down", Texture.class)));
-        style.font = Game.defaultFont;
+        style.font = Game.defaultHugeFont;
 
     /* The restartGame and main menu button for when the game ends */
 
         restartButton = new TextButton("Restart", style);
+        restartButton.getLabel().setFontScale(0.4f);
+
         mainMenuButton = new TextButton("Main Menu", style);
+        mainMenuButton.getLabel().setFontScale(0.4f);
 
         restartButton.addListener(new ChangeListener() {
             @Override
@@ -131,29 +134,33 @@ public class GameScreenGUI {
         else if (GameSettings.gameType == GameSettings.GameType.Timed)
             gameType = "Mode; TimeAttack";
 
-        Label.LabelStyle labelStyle = new Label.LabelStyle(Game.defaultFont, Color.WHITE);
-        Label.LabelStyle titleLabelStyle = new Label.LabelStyle(Game.defaultLargeFont, Color.WHITE);
+        Label.LabelStyle titleLabelStyle = new Label.LabelStyle(Game.defaultHugeFont, Color.WHITE);
 
         scoreLabel = new Label("", titleLabelStyle);
         scoreLabel.setAlignment(Align.center);
+        scoreLabel.setFontScale(0.4f);
 
         roundsLabel = new Label("", titleLabelStyle);
         roundsLabel.setAlignment(Align.center);
+        roundsLabel.setFontScale(0.4f);
 
         bestTimeLabel = new Label("", titleLabelStyle);
         bestTimeLabel.setAlignment(Align.center);
+        bestTimeLabel.setFontScale(0.4f);
 
         lostReasonLabel = new Label("", titleLabelStyle);
         lostReasonLabel.setAlignment(Align.center);
+        lostReasonLabel.setFontScale(0.4f);
 
         avgTimeLabel = new Label("", titleLabelStyle);
         avgTimeLabel.setAlignment(Align.center);
+        avgTimeLabel.setFontScale(0.4f);
 
         topCenterLabel = new Label("LOL", titleLabelStyle);
         topCenterLabel.setAlignment(Align.center);
         topCenterLabel.setSize(100, 50);
         topCenterLabel.setPosition(Game.viewport.getWorldWidth() / 2f - 50, Game.viewport.getScreenHeight() - 75);
-        topCenterLabel.setFontScale(0.8f);
+        topCenterLabel.setFontScale(0.4f);
 
         centerTable.add(backButton);
 
@@ -187,19 +194,22 @@ public class GameScreenGUI {
         else if(GameSettings.gameType == GameSettings.GameType.Timed)
             gameType = "Time Attack!";
 
-        Label.LabelStyle style = new Label.LabelStyle(Game.defaultLargeFont, Color.WHITE);
+        Label.LabelStyle style = new Label.LabelStyle(Game.defaultHugeFont, Color.WHITE);
 
         startingColorType = new Label(colorType, style);
         startingColorType.setAlignment(Align.center);
         startingColorType.setColor(1, 1, 1, 0);
+        startingColorType.setFontScale(0.5f);
 
         startingMatchType = new Label(matchType, style);
         startingMatchType.setAlignment(Align.center);
         startingMatchType.setColor(1, 1, 1, 0);
+        startingMatchType.setFontScale(0.5f);
 
         startingGameType = new Label(gameType, style);
         startingGameType.setAlignment(Align.center);
         startingGameType.setColor(1, 1, 1, 0);
+        startingGameType.setFontScale(0.5f);
 
         overlay = new Image(new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("whitePixel", Texture.class))));
         overlay.setColor(0.1f, 0.1f, 0.1f, 1f);
@@ -291,8 +301,8 @@ public class GameScreenGUI {
 
         startingColorType.setPosition(Game.viewport.getWorldWidth(), 550);
         startingMatchType.setPosition(-Game.viewport.getWorldWidth(), 500);
-        firstShape.setPosition(-Game.viewport.getWorldWidth(), 400);
-        secondShape.setPosition(Game.viewport.getWorldWidth(), 400);
+        firstShape.setPosition(-Game.viewport.getWorldWidth(), 425);
+        secondShape.setPosition(Game.viewport.getWorldWidth(), 425);
         startingGameType.setPosition(Game.viewport.getWorldWidth(), 350);
 
         startingColorType.addAction(Actions.sequence(Actions.moveTo(Game.viewport.getWorldWidth()/2f - startingColorType.getWidth()/2f, startingColorType.getY(), 0.5f, Interpolation.circleOut)));

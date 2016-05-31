@@ -12,7 +12,6 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.ParticleEffect;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
-import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.utils.viewport.StretchViewport;
@@ -29,7 +28,7 @@ public class Game extends com.badlogic.gdx.Game {
 	public static OrthographicCamera UICamera;
 	public static Viewport viewport;
 	public static Stage stage;
-	public static BitmapFont defaultFont, defaultLargeFont, defaultHugeFont;
+	public static BitmapFont defaultHugeFont;
 	public static ExecutorService executor;
 	public static EasyAssetManager easyAssetManager;
 	public static ActionResolver resolver;
@@ -61,29 +60,7 @@ public class Game extends com.badlogic.gdx.Game {
         this.loadParticles(Gdx.files.internal("particles/"));
         this.loadSounds(Gdx.files.internal("sounds/"));
         this.loadMusic(Gdx.files.internal("music/"));
-
-		FreeTypeFontGenerator generator = new FreeTypeFontGenerator(Gdx.files.internal("copperplatessibold.ttf"));
-		FreeTypeFontGenerator.FreeTypeFontParameter parameter = new FreeTypeFontGenerator.FreeTypeFontParameter();
-		parameter.size = 18;
-		parameter.genMipMaps = true;
-		parameter.minFilter = Texture.TextureFilter.MipMapLinearLinear;
-		parameter.magFilter = Texture.TextureFilter.MipMapLinearLinear;
-		defaultFont = generator.generateFont(parameter); // font size 12 pixels
-
-		generator = new FreeTypeFontGenerator(Gdx.files.internal("copperplatessibold.ttf"));
-		parameter.size = 28;
-
-		defaultLargeFont = generator.generateFont(parameter); // font size 12 pixels
-
-		generator = new FreeTypeFontGenerator(Gdx.files.internal("copperplatessibold.ttf"));
-		parameter.size = 60;
-		parameter.genMipMaps = true;
-		parameter.minFilter = Texture.TextureFilter.Linear;
-		parameter.magFilter = Texture.TextureFilter.Linear;
-		defaultHugeFont = generator.generateFont(parameter); // font size 12 pixels
-		defaultHugeFont.setUseIntegerPositions(false);
-
-		generator.dispose(); // don't forget to dispose to avoid memory leaks!
+        this.loadFonts(Gdx.files.internal("fonts/"));
 
 		Runtime.getRuntime().addShutdownHook(new Thread(){
 			@Override
@@ -144,6 +121,13 @@ public class Game extends com.badlogic.gdx.Game {
 		for(FileHandle h : handle.list()){
 			if(h.name().endsWith(".ogg"))
 				easyAssetManager.load(h.path(), Music.class);
+		}
+	}
+
+	public void loadFonts(FileHandle handle){
+		for(FileHandle h : handle.list()){
+			if(h.name().endsWith(".fnt"))
+				easyAssetManager.load(h.path(), BitmapFont.class);
 		}
 	}
 

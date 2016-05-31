@@ -6,7 +6,7 @@ package com.quickbite.connector2;
 public class GameSettings {
     public enum ColorType {Normal, Random, Nothing}
     public enum MatchType {Shapes, Color, Nothing}
-    public enum GameType {Practice, Fastest, Timed, Challenge, Nothing}
+    public enum GameType {Practice, Fastest, Timed, Frenzy, Nothing}
 
     public static int numShapes = 0;
     public static ColorType colorType = ColorType.Random;

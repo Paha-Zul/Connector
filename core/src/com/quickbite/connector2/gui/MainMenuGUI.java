@@ -9,6 +9,7 @@ import com.badlogic.gdx.scenes.scene2d.Action;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.actions.Actions;
+import com.badlogic.gdx.scenes.scene2d.ui.ButtonGroup;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.ImageTextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
@@ -24,6 +25,7 @@ import com.quickbite.connector2.Game;
 import com.quickbite.connector2.GameScreen;
 import com.quickbite.connector2.GameSettings;
 import com.quickbite.connector2.MainMenu;
+import com.quickbite.connector2.SoundManager;
 
 /**
  * Created by Paha on 5/2/2016.
@@ -35,7 +37,7 @@ public class MainMenuGUI {
 
     public static TextButton quit;
     public static ImageTextButton leaderboards, loginGPG, start;
-    public static TextButton colorSame, colorRandom, matchShape, matchColor, modePractice, modeBest, modeTimed, modeChallenge, startGame;
+    public static TextButton colorSame, colorRandom, matchShape, matchColor, modePractice, modeBest, modeTimed, modeFrenzy, startGame;
     public static TextButton threeShapes, fourShapes, fiveShapes, sixShapes;
 
     public static TextButton bestLeaderButton, timedLeaderButton;
@@ -57,21 +59,6 @@ public class MainMenuGUI {
         leaderDisplayTable = new Table();
         leaderSelectionTable = new Table();
         mainMenuTable = new Table();
-
-        darkButtonStyle = new TextButton.TextButtonStyle();
-        darkButtonStyle.font = Game.defaultFont;
-        darkButtonStyle.up = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("buttonDark_up", Texture.class)));
-        darkButtonStyle.down = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("buttonDark_down", Texture.class)));
-        darkButtonStyle.disabledFontColor = new Color(1, 1, 1, 0.5f);
-
-        clearGreenSelectionStyle = new TextButton.TextButtonStyle();
-        clearGreenSelectionStyle.font = Game.defaultFont;
-        clearGreenSelectionStyle.up = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("defaultButton_clear", Texture.class)));
-        clearGreenSelectionStyle.down = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("defaultButton_clear", Texture.class)));
-        clearGreenSelectionStyle.checked = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("defaultButton_green", Texture.class)));
-        clearGreenSelectionStyle.disabledFontColor = new Color(1, 1, 1, 0.5f);
-
-        bigLabelStyle = new Label.LabelStyle(Game.defaultLargeFont, Color.WHITE);
 
         TextButton.TextButtonStyle regularStyle = new TextButton.TextButtonStyle();
         regularStyle.up = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("buttonDark_up", Texture.class)));
@@ -101,6 +88,7 @@ public class MainMenuGUI {
         regularStyle.up = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("buttonDark_up", Texture.class)));
         regularStyle.down = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("buttonDark_down", Texture.class)));
         regularStyle.font = Game.defaultHugeFont;
+        regularStyle.fontColor = Color.WHITE;
         regularStyle.disabledFontColor = new Color(1, 1, 1, 0.5f);
 
         ImageTextButton.ImageTextButtonStyle startStyle = new ImageTextButton.ImageTextButtonStyle();
@@ -108,6 +96,7 @@ public class MainMenuGUI {
         startStyle.down = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("buttonDark_down", Texture.class)));
         startStyle.disabled = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("buttonDark_up", Texture.class)));
         startStyle.font = Game.defaultHugeFont;
+        startStyle.fontColor = Color.WHITE;
         startStyle.disabledFontColor = new Color(1, 1, 1, 0.5f);
         startStyle.imageUp = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("startIcon", Texture.class)));
 
@@ -209,20 +198,13 @@ public class MainMenuGUI {
 
 
         TextButton.TextButtonStyle buttonStyle = new  TextButton.TextButtonStyle();
-        buttonStyle.font = Game.defaultFont;
+        buttonStyle.font = Game.defaultHugeFont;
         buttonStyle.up = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("buttonDark_up", Texture.class)));
         buttonStyle.over = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("buttonDark_up", Texture.class)));
         buttonStyle.down = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("buttonDark_down", Texture.class)));
 
         TextButton backButton = new TextButton("Back", buttonStyle);
-
-        backButton.addListener(new ChangeListener() {
-            @Override
-            public void changed(ChangeEvent event, Actor actor) {
-                mainTable.clear();
-                toMainMenu();
-            }
-        });
+        backButton.getLabel().setFontScale(0.4f);
 
         threeShapes = new TextButton("3", numShapesButtonStyle);
         threeShapes.getLabel().setFontScale(0.3f);
@@ -257,11 +239,11 @@ public class MainMenuGUI {
         modeTimed = new TextButton("Timed", modeButtonStyle);
         modeTimed.getLabel().setFontScale(0.3f);
 
-        modeChallenge = new TextButton("Challenge", modeButtonStyle);
-        modeChallenge.getLabel().setFontScale(0.3f);
+        modeFrenzy = new TextButton("Frenzy", modeButtonStyle);
+        modeFrenzy.getLabel().setFontScale(0.3f);
 
         startGame = new TextButton("Start", regularStyle);
-        startGame.getLabel().setFontScale(0.3f);
+        startGame.getLabel().setFontScale(0.4f);
         startGame.setDisabled(true);
         startGame.getColor().a = 0.5f;
 
@@ -270,12 +252,23 @@ public class MainMenuGUI {
             public void changed(ChangeEvent event, Actor actor) {
                 mainTable.clear();
                 toChoicesMenu();
+                SoundManager.playSound("click");
+            }
+        });
+
+        backButton.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                mainTable.clear();
+                toMainMenu();
+                SoundManager.playSound("click");
             }
         });
 
         quit.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
+                SoundManager.playSound("click");
                 Gdx.app.exit();
             }
         });
@@ -285,6 +278,7 @@ public class MainMenuGUI {
             public void changed(ChangeEvent event, Actor actor) {
 //                mainTable.clear();
                 Game.resolver.getLeaderboardGPGS("DoesntMatter");
+                SoundManager.playSound("click");
 //                mainTable.add(leaderSelectionTable);
             }
         });
@@ -296,6 +290,8 @@ public class MainMenuGUI {
                     Game.resolver.loginGPGS();
                 else
                     Game.resolver.logoutGPGS();
+
+                SoundManager.playSound("click");
             }
         });
 
@@ -306,11 +302,8 @@ public class MainMenuGUI {
                 if(threeShapes.isDisabled()) return;
 
                 GameSettings.numShapes = 3;
-                fourShapes.setChecked(false);
-                fiveShapes.setChecked(false);
-                sixShapes.setChecked(false);
-                threeShapes.setChecked(true);
                 checkAllOptionsSelected();
+                SoundManager.playSound("click");
             }
         });
 
@@ -321,11 +314,8 @@ public class MainMenuGUI {
                 if(fourShapes.isDisabled()) return;
 
                 GameSettings.numShapes = 4;
-                threeShapes.setChecked(false);
-                fourShapes.setChecked(true);
-                fiveShapes.setChecked(false);
-                sixShapes.setChecked(false);
                 checkAllOptionsSelected();
+                SoundManager.playSound("click");
             }
         });
 
@@ -336,11 +326,8 @@ public class MainMenuGUI {
                 if(fiveShapes.isDisabled()) return;
 
                 GameSettings.numShapes = 5;
-                threeShapes.setChecked(false);
-                fourShapes.setChecked(false);
-                fiveShapes.setChecked(true);
-                sixShapes.setChecked(false);
                 checkAllOptionsSelected();
+                SoundManager.playSound("click");
             }
         });
 
@@ -351,11 +338,8 @@ public class MainMenuGUI {
                 if(sixShapes.isDisabled()) return;
 
                 GameSettings.numShapes = 6;
-                threeShapes.setChecked(false);
-                fourShapes.setChecked(false);
-                fiveShapes.setChecked(false);
-                sixShapes.setChecked(true);
                 checkAllOptionsSelected();
+                SoundManager.playSound("click");
             }
         });
 
@@ -366,9 +350,8 @@ public class MainMenuGUI {
                 if(colorSame.isDisabled()) return;
 
                 GameSettings.colorType = GameSettings.ColorType.Normal;
-                colorRandom.setChecked(false);
-                colorSame.setChecked(true);
                 checkAllOptionsSelected();
+                SoundManager.playSound("click");
             }
         });
 
@@ -379,9 +362,8 @@ public class MainMenuGUI {
                 if(colorRandom.isDisabled()) return;
 
                 GameSettings.colorType = GameSettings.ColorType.Random;
-                colorSame.setChecked(false);
-                colorRandom.setChecked(true);
                 checkAllOptionsSelected();
+                SoundManager.playSound("click");
             }
         });
 
@@ -390,9 +372,8 @@ public class MainMenuGUI {
             public void clicked(InputEvent event, float x, float y) {
                 super.clicked(event, x, y);
                 GameSettings.matchType = GameSettings.MatchType.Shapes;
-                matchColor.setChecked(false);
-                matchShape.setChecked(true);
                 checkAllOptionsSelected();
+                SoundManager.playSound("click");
             }
         });
 
@@ -401,9 +382,8 @@ public class MainMenuGUI {
             public void clicked(InputEvent event, float x, float y) {
                 super.clicked(event, x, y);
                 GameSettings.matchType = GameSettings.MatchType.Color;
-                matchShape.setChecked(false);
-                matchColor.setChecked(true);
                 checkAllOptionsSelected();
+                SoundManager.playSound("click");
             }
         });
 
@@ -411,13 +391,10 @@ public class MainMenuGUI {
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 super.clicked(event, x, y);
-                modeTimed.setChecked(false);
-                modeBest.setChecked(false);
-                modePractice.setChecked(true);
-                modeChallenge.setChecked(false);
                 checkAllOptionsSelected();
                 changeChoices(GameSettings.GameType.Practice);
                 GameSettings.gameType = GameSettings.GameType.Practice;
+                SoundManager.playSound("click");
             }
         });
 
@@ -425,13 +402,10 @@ public class MainMenuGUI {
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 super.clicked(event, x, y);
-                modeTimed.setChecked(false);
-                modeBest.setChecked(true);
-                modePractice.setChecked(false);
-                modeChallenge.setChecked(false);
                 checkAllOptionsSelected();
                 changeChoices(GameSettings.GameType.Fastest);
                 GameSettings.gameType = GameSettings.GameType.Fastest;
+                SoundManager.playSound("click");
             }
         });
 
@@ -439,27 +413,21 @@ public class MainMenuGUI {
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 super.clicked(event, x, y);
-                modeTimed.setChecked(true);
-                modeBest.setChecked(false);
-                modePractice.setChecked(false);
-                modeChallenge.setChecked(false);
                 checkAllOptionsSelected();
                 changeChoices(GameSettings.GameType.Timed);
                 GameSettings.gameType = GameSettings.GameType.Timed;
+                SoundManager.playSound("click");
             }
         });
 
-        modeChallenge.addListener(new ClickListener() {
+        modeFrenzy.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 super.clicked(event, x, y);
-                modeTimed.setChecked(false);
-                modeBest.setChecked(false);
-                modePractice.setChecked(false);
-                modeChallenge.setChecked(true);
                 checkAllOptionsSelected();
-                changeChoices(GameSettings.GameType.Challenge);
-                GameSettings.gameType = GameSettings.GameType.Challenge;
+                changeChoices(GameSettings.GameType.Frenzy);
+                GameSettings.gameType = GameSettings.GameType.Frenzy;
+                SoundManager.playSound("click");
             }
         });
 
@@ -467,8 +435,25 @@ public class MainMenuGUI {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
                 startGame();
+                SoundManager.playSound("click");
             }
         });
+
+        ButtonGroup<TextButton> modeGroup = new ButtonGroup<TextButton>(modePractice, modeBest, modeTimed, modeFrenzy);
+        modeGroup.setMaxCheckCount(1);
+        modeGroup.setMinCheckCount(0);
+
+        ButtonGroup<TextButton> matchGroup = new ButtonGroup<TextButton>(matchShape, matchColor);
+        matchGroup.setMaxCheckCount(1);
+        matchGroup.setMinCheckCount(0);
+
+        ButtonGroup<TextButton> colorGroup = new ButtonGroup<TextButton>(colorSame, colorRandom);
+        colorGroup.setMaxCheckCount(1);
+        colorGroup.setMinCheckCount(0);
+
+        ButtonGroup<TextButton> numShapesGroup = new ButtonGroup<TextButton>(threeShapes, fourShapes, fiveShapes, sixShapes);
+        numShapesGroup.setMaxCheckCount(1);
+        numShapesGroup.setMinCheckCount(0);
 
         Label.LabelStyle labelStyle = new Label.LabelStyle(Game.defaultHugeFont, Color.WHITE);
 
@@ -541,7 +526,7 @@ public class MainMenuGUI {
         modeTable.add(modePractice).size(120, 50);
         modeTable.add(modeBest).size(120, 50);
         modeTable.add(modeTimed).size(120, 50);
-        modeTable.add(modeChallenge).size(120, 50);
+        modeTable.add(modeFrenzy).size(120, 50);
         modeTable.add().expandX().fillX();
 
         Table startTable = new Table();
@@ -632,7 +617,7 @@ public class MainMenuGUI {
         colorSame.setChecked(false);
         matchColor.setChecked(false);
         matchShape.setChecked(false);
-        modeChallenge.setChecked(false);
+        modeFrenzy.setChecked(false);
         modeTimed.setChecked(false);
         modePractice.setChecked(false);
         modeBest.setChecked(false);
@@ -643,7 +628,7 @@ public class MainMenuGUI {
     }
 
     private static void changeChoices(GameSettings.GameType gameType){
-        if(gameType == GameSettings.GameType.Challenge){
+        if(gameType == GameSettings.GameType.Frenzy){
             colorSame.setDisabled(true);
             colorRandom.setDisabled(true);
             threeShapes.setDisabled(true);
@@ -669,7 +654,7 @@ public class MainMenuGUI {
             sixShapes.setDisabled(false);
 
             //If it was challenge before, reset it.
-            if(GameSettings.gameType == GameSettings.GameType.Challenge) {
+            if(GameSettings.gameType == GameSettings.GameType.Frenzy) {
                 GameSettings.numShapes = 0;
                 GameSettings.colorType = GameSettings.ColorType.Nothing;
             }
@@ -695,7 +680,7 @@ public class MainMenuGUI {
         leaderDisplayTable.clear();
 
         Table innerTable = new Table();
-        Label.LabelStyle style = new Label.LabelStyle(Game.defaultFont, Color.WHITE);
+        Label.LabelStyle style = new Label.LabelStyle(Game.defaultHugeFont, Color.WHITE);
 
         innerTable.add(new Label("Rank", style));
         innerTable.add().padRight(10);

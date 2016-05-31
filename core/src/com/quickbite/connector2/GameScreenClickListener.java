@@ -44,6 +44,7 @@ public class GameScreenClickListener implements InputProcessor {
                 this.screen.currShape = shape;
                 this.screen.lineLists[this.screen.lineCounter].add(new Vector2(shape.position.x, shape.position.y));
                 this.dragging = true;
+                SoundManager.playSound("pop", 0.5f);
             }
         }
         return false;
@@ -73,7 +74,7 @@ public class GameScreenClickListener implements InputProcessor {
                     this.screen.lineLists[this.screen.lineCounter].add(new Vector2(shape.position.x, shape.position.y));
 
                     this.screen.shapesConnected(this.screen.currShape, shape);
-
+                    SoundManager.playSound("pop", 0.5f);
                 }
                 break;
             }

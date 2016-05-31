@@ -1,8 +1,8 @@
 package com.quickbite.connector2;
 
 import com.badlogic.gdx.Screen;
-import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.scenes.scene2d.Action;
@@ -16,7 +16,6 @@ import com.badlogic.gdx.utils.Align;
 public class LogoScreen implements Screen{
     private Game game;
 
-    private int logoSize = 256;
     private boolean logoDone = false;
 
     public LogoScreen(Game game){
@@ -52,8 +51,10 @@ public class LogoScreen implements Screen{
     public void render(float delta) {
         boolean assetsLoaded = Game.easyAssetManager.update();
         if(assetsLoaded && logoDone){
-            Game.easyAssetManager.get("Hypp_fractal_fireworks", Music.class).play();
+            SoundManager.playMusic("gameMusicTrack");
             Game.shapeAtlas = Game.easyAssetManager.get("shapes", TextureAtlas.class);
+            Game.defaultHugeFont = Game.easyAssetManager.get("default", BitmapFont.class);
+            Game.defaultHugeFont.getRegion().getTexture().setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
             game.setScreen(new MainMenu(game));
         }
     }
