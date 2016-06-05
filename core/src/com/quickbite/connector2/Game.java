@@ -88,7 +88,7 @@ public class Game extends com.badlogic.gdx.Game {
 		param.minFilter = Texture.TextureFilter.Linear;
 
 		for(FileHandle h : handle.list()){
-			if(h.name().endsWith(".png")){
+			if(h.name().endsWith(".png") || h.name().endsWith(".9.png")){
 				easyAssetManager.load(h.path(), Texture.class, param);
 			}else if(h.isDirectory()){
 				this.loadAllPng(Gdx.files.internal(h.path()+"/"));

@@ -22,6 +22,7 @@ import com.quickbite.connector2.GameScreen;
 import com.quickbite.connector2.GameSettings;
 import com.quickbite.connector2.GameStats;
 import com.quickbite.connector2.MainMenu;
+import com.quickbite.connector2.SoundManager;
 
 import java.text.DecimalFormat;
 
@@ -42,7 +43,9 @@ public class GameScreenGUI {
 
     /* Starting screen stuff */
     private static int state = 0, innerState = 0;
-    private static Label startingColorType, startingMatchType, startingGameType, topCenterLabel;
+
+    public static Label centerLabel; //This label is special. We will draw this one manually to the screen.
+    private static Label startingColorType, startingMatchType, startingGameType;
     private static Table startingTable;
     private static Image firstShape, secondShape, overlay;
     private static float waitTime = 0;
@@ -50,12 +53,14 @@ public class GameScreenGUI {
     private static DecimalFormat formatter = new DecimalFormat("0.00");
 
     public static void update(float delta){
-        if(GameSettings.gameType == GameSettings.GameType.Timed || GameSettings.gameType == GameSettings.GameType.Frenzy)
-            topCenterLabel.setText(formatter.format(GameStats.roundTimeLeft)+"");
+        if(GameSettings.gameType == GameSettings.GameType.Timed)
+            centerLabel.setText(formatter.format(GameStats.roundTimeLeft)+"");
         else if(GameSettings.gameType == GameSettings.GameType.Fastest)
-            topCenterLabel.setText("Round: "+GameStats.currRound+"/"+GameStats.maxRounds);
+            centerLabel.setText("Round\n"+GameStats.currRound+"/"+GameStats.maxRounds);
         else if(GameSettings.gameType == GameSettings.GameType.Practice)
-            topCenterLabel.setText("Practice");
+            centerLabel.setText("Practice");
+        else if(GameSettings.gameType == GameSettings.GameType.Frenzy)
+            centerLabel.setText(formatter.format(GameStats.roundTimeLeft)+"\n"+GameStats.successfulRounds);
     }
 
     public static void initGameScreenGUI(final Game game, final GameScreen gameScreen) {
@@ -72,7 +77,7 @@ public class GameScreenGUI {
         texture.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
         gameOverShapes[1] = new TextureRegion(texture);
 
-        TextureRegion arrow = new TextureRegion(Game.easyAssetManager.get("leftArrow", Texture.class));
+        TextureRegion arrow = new TextureRegion(Game.easyAssetManager.get("leftArrow2", Texture.class));
 
         ImageButton.ImageButtonStyle imageButtonStyle = new ImageButton.ImageButtonStyle();
         imageButtonStyle.up = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("buttonDark_up", Texture.class)));
@@ -86,11 +91,11 @@ public class GameScreenGUI {
             public void changed(ChangeEvent event, Actor actor) {
                 Game.stage.clear();
                 toMainMenu(gameScreen, game);
+                SoundManager.playSound("click");
             }
         });
 
-        backButton.setSize(64, 32);
-        backButton.setPosition(Gdx.graphics.getWidth() / 2 - 32, Gdx.graphics.getHeight() - 32);
+        backButton.getImageCell().pad(5f, 5f, 5f, 5f);
 
         TextButton.TextButtonStyle style = new TextButton.TextButtonStyle();
         style.up = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("buttonDark_up", Texture.class)));
@@ -119,21 +124,6 @@ public class GameScreenGUI {
             }
         });
 
-    /* The labels for information about the game*/
-
-        String colorType = "Colors: Normal", matchType = "Matching: Shapes", gameType = "Practice";
-
-        if (GameSettings.colorType == GameSettings.ColorType.Random)
-            colorType = "Colors: Random";
-
-        if (GameSettings.matchType == GameSettings.MatchType.Color)
-            matchType = "Matching: Colors";
-
-        if (GameSettings.gameType == GameSettings.GameType.Fastest)
-            gameType = "Mode: Fastest";
-        else if (GameSettings.gameType == GameSettings.GameType.Timed)
-            gameType = "Mode; TimeAttack";
-
         Label.LabelStyle titleLabelStyle = new Label.LabelStyle(Game.defaultHugeFont, Color.WHITE);
 
         scoreLabel = new Label("", titleLabelStyle);
@@ -156,15 +146,13 @@ public class GameScreenGUI {
         avgTimeLabel.setAlignment(Align.center);
         avgTimeLabel.setFontScale(0.4f);
 
-        topCenterLabel = new Label("LOL", titleLabelStyle);
-        topCenterLabel.setAlignment(Align.center);
-        topCenterLabel.setSize(100, 50);
-        topCenterLabel.setPosition(Game.viewport.getWorldWidth() / 2f - 50, Game.viewport.getScreenHeight() - 75);
-        topCenterLabel.setFontScale(0.4f);
+        centerLabel = new Label("", titleLabelStyle);
+        centerLabel.setAlignment(Align.center);
+        centerLabel.setPosition(0, 0);
+        centerLabel.setFontScale(1.5f);
+        centerLabel.getColor().a = 0.5f;
 
-        centerTable.add(backButton);
-
-        leftTable.add(topCenterLabel);
+        leftTable.add(backButton).size(45f).pad(10f, 10f, 0f, 0f);
         leftTable.left().top();
         leftTable.setFillParent(true);
 
@@ -338,6 +326,8 @@ public class GameScreenGUI {
         leftTable.remove();
         rightTable.remove();
 
+        centerLabel.setText("");
+
         Game.stage.addActor(gameOverTable);
     }
 
@@ -349,7 +339,10 @@ public class GameScreenGUI {
 
         lostReasonLabel.setText(GH.getLostReason());
         scoreLabel.setText("Score: "+GameStats.currScore);
-        roundsLabel.setText(GameStats.successfulRounds+" Rounds Completed!");
+        if(GameSettings.gameType == GameSettings.GameType.Frenzy)
+            roundsLabel.setText(GameStats.successfulRounds+" Connections Made!");
+        else
+            roundsLabel.setText(GameStats.successfulRounds+" Rounds Completed!");
         avgTimeLabel.setText("Average Time: "+formatter.format(GameStats.avgTime/1000)+"s.");
         bestTimeLabel.setText("Best Time: "+formatter.format(GameStats.bestTime/1000)+"s.");
 

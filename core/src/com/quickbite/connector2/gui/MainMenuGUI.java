@@ -3,6 +3,7 @@ package com.quickbite.connector2.gui;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.NinePatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Interpolation;
 import com.badlogic.gdx.scenes.scene2d.Action;
@@ -18,6 +19,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
+import com.badlogic.gdx.scenes.scene2d.utils.NinePatchDrawable;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.Array;
@@ -34,6 +36,7 @@ public class MainMenuGUI {
     private static MainMenuGUI instance;
 
     public static Table mainTable, leaderSelectionTable, choicesTable, leaderDisplayTable, mainMenuTable;
+    public static Table infoTable;
 
     public static TextButton quit;
     public static ImageTextButton leaderboards, loginGPG, start;
@@ -81,12 +84,17 @@ public class MainMenuGUI {
 
         mainTable.setFillParent(true);
         Game.stage.addActor(mainTable);
+
+        makeInfoPage();
     }
 
     private static void buildMainMenu(){
+        NinePatch patch1 = new NinePatch(Game.easyAssetManager.get("buttonDark_up9", Texture.class));
+        NinePatch patch2 = new NinePatch(Game.easyAssetManager.get("buttonDark_down9", Texture.class));
+
         TextButton.TextButtonStyle regularStyle = new TextButton.TextButtonStyle();
-        regularStyle.up = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("buttonDark_up", Texture.class)));
-        regularStyle.down = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("buttonDark_down", Texture.class)));
+        regularStyle.up = new NinePatchDrawable(patch1);
+        regularStyle.down = new NinePatchDrawable(patch2);
         regularStyle.font = Game.defaultHugeFont;
         regularStyle.fontColor = Color.WHITE;
         regularStyle.disabledFontColor = new Color(1, 1, 1, 0.5f);
@@ -105,6 +113,11 @@ public class MainMenuGUI {
 
         ImageTextButton.ImageTextButtonStyle loginStyle = new ImageTextButton.ImageTextButtonStyle(startStyle);
         loginStyle.imageUp = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("googlePlayGamesIcon", Texture.class)));
+
+        TextButton infoButton = new TextButton("?", regularStyle);
+        infoButton.setPosition(0f, Game.viewport.getWorldHeight() - 32);
+        infoButton.getLabel().setFontScale(0.5f);
+        infoButton.setSize(32f, 32f);
 
         start = new ImageTextButton("Start", startStyle);
         start.getLabel().setFontScale(0.4f);
@@ -156,6 +169,14 @@ public class MainMenuGUI {
 
         mainMenuTable.setFillParent(true);
         Game.stage.addActor(mainMenuTable);
+        Game.stage.addActor(infoButton);
+
+        infoButton.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                infoTable.addAction(Actions.moveTo(0f, 0f, 0.4f, Interpolation.circleOut));
+            }
+        });
     }
 
     public static void changeLoginButton(boolean loggedIn){
@@ -717,5 +738,123 @@ public class MainMenuGUI {
 
         mainTable.add(leaderDisplayTable);
         //leaderSelectionTable.debugAll();
+    }
+
+    public static void makeInfoPage(){
+        infoTable = new Table();
+        infoTable.setFillParent(true);
+
+        /*
+        Made by
+        Company name
+        My name
+
+        Music by
+        Artist name
+        Website link
+
+        Sound 1 by
+        Artist name
+        Link I got it from..
+
+        ...
+         */
+
+        float fontScale = 0.2f;
+
+        Table innerTable = new Table();
+        com.badlogic.gdx.scenes.scene2d.ui.ScrollPane scrollPane = new com.badlogic.gdx.scenes.scene2d.ui.ScrollPane(innerTable);
+
+        TextButton.TextButtonStyle buttonStyle = new TextButton.TextButtonStyle();
+        buttonStyle.font = Game.defaultHugeFont;
+        buttonStyle.up = new NinePatchDrawable(new NinePatch(Game.easyAssetManager.get("buttonDark_up9", Texture.class)));
+
+        TextButton backButton = new TextButton("Back", buttonStyle);
+        backButton.getLabel().setFontScale(0.2f);
+
+        Label.LabelStyle style = new Label.LabelStyle(Game.defaultHugeFont, Color.WHITE);
+
+        Label madeByTitle = new Label("Made By:", style);
+        madeByTitle.setFontScale(0.4f);
+        madeByTitle.setAlignment(Align.center);
+
+        Label madeByCompany = new Label("Quickbite Games", style);
+        madeByCompany.setFontScale(0.4f);
+        madeByCompany.setAlignment(Align.center);
+
+        Label musicBy = new Label("Music by:", style);
+        musicBy.setFontScale(fontScale);
+        musicBy.setWrap(true);
+        musicBy.setAlignment(Align.center);
+
+        Label musicByName = new Label("'D SMILEZ - Let You're Body Move' \n (on http://freemusicarchive.org) / CC BY 4.0 \n This is a 15 second looped snippet of the song.", style);
+        musicByName.setFontScale(fontScale);
+        musicByName.setWrap(true);
+        musicByName.setAlignment(Align.center);
+
+        Label musicByLink = new Label("", style);
+        musicByLink.setFontScale(fontScale);
+        musicByLink.setWrap(true);
+        musicByLink.setAlignment(Align.center);
+
+        Label clickSoundBy = new Label("'Interface1' by Eternitys\n (on freesound.org) / CC BY 1.0", style);
+        clickSoundBy.setFontScale(fontScale);
+        clickSoundBy.setWrap(true);
+        clickSoundBy.setAlignment(Align.center);
+
+        Label popSoundBy = new Label("'3 Popping Pops' by Eternitys\n (on freesound.org) / CC BY 1.0", style);
+        popSoundBy.setFontScale(fontScale);
+        popSoundBy.setWrap(true);
+        popSoundBy.setAlignment(Align.center);
+
+        Label dropletSoundBy = new Label("'Droplet' by Porphyr\n (on freesound.org) / CC BY 3.0", style);
+        dropletSoundBy.setFontScale(fontScale);
+        dropletSoundBy.setWrap(true);
+        dropletSoundBy.setAlignment(Align.center);
+
+        Label successSoundBy = new Label("'success 1' by fins\n (on freesound.org) / CC BY 1.0", style);
+        successSoundBy.setFontScale(fontScale);
+        successSoundBy.setWrap(true);
+        successSoundBy.setAlignment(Align.center);
+
+        Label erroSoundBy = new Label("'Error' by Autistic Lucario\n (on freesound.org) / CC BY 1.0", style);
+        erroSoundBy.setFontScale(fontScale);
+        erroSoundBy.setWrap(true);
+        erroSoundBy.setAlignment(Align.center);
+
+        innerTable.add(madeByTitle).expandX().fillX();
+        innerTable.row();
+        innerTable.add(madeByCompany).expandX().fillX().padBottom(20f);
+        innerTable.row();
+        innerTable.add(musicBy).expandX().fillX();
+        innerTable.row();
+        innerTable.add(musicByName).expandX().fillX();
+        innerTable.row();
+        innerTable.add(musicByLink).expandX().fillX().padBottom(20f);
+        innerTable.row();
+        innerTable.add(clickSoundBy).expandX().fillX().padBottom(20f);
+        innerTable.row();
+        innerTable.add(popSoundBy).expandX().fillX().padBottom(20f);
+        innerTable.row();
+        innerTable.add(dropletSoundBy).expandX().fillX().padBottom(20f);
+        innerTable.row();
+        innerTable.add(successSoundBy).expandX().fillX().padBottom(20f);
+        innerTable.row();
+        innerTable.add(erroSoundBy).expandX().fillX().padBottom(20f);
+        innerTable.row();
+        innerTable.add(backButton).size(125f, 50f);
+
+        infoTable.setBackground(new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("pixelDark", Texture.class))));
+        infoTable.add(scrollPane).expand().fill();
+        infoTable.setPosition(Game.viewport.getWorldWidth(), 0f);
+
+        Game.stage.addActor(infoTable);
+
+        backButton.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                infoTable.addAction(Actions.moveTo(Game.viewport.getWorldWidth(), 0f, 0.4f, Interpolation.circleIn));
+            }
+        });
     }
 }

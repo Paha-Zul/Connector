@@ -21,7 +21,7 @@ public class GameShape {
     private Color color;
     private float currRotation, currScale;
     private float lifeTime = -1; //For the 'challenge' game mode.
-    private ICallback onDeadCallback, onEndingCallback;
+    public ICallback onDeadCallback, onEndingCallback;
 
     private final float rotationSpeed = 30f, scaleSpeed = 0.5f;
 
