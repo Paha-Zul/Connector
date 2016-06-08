@@ -14,6 +14,8 @@ public class SoundManager {
         SoundManager.playSound(name, gameSoundVolume);
     }
 
+    private static Music currMusic;
+
     public static void playSound(String name, float volume){
         Sound sound = Game.easyAssetManager.get(name, Sound.class);
         sound.play(volume);
@@ -28,10 +30,15 @@ public class SoundManager {
         music.setVolume(gameMusicVolume);
         music.setLooping(true);
         music.play();
+        currMusic = music;
     }
 
     public static void stopMusic(String name){
 
+    }
+
+    public static Music getCurrentMusic(){
+        return currMusic;
     }
 
 }

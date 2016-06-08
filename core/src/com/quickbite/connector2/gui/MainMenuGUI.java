@@ -23,7 +23,9 @@ import com.badlogic.gdx.scenes.scene2d.utils.NinePatchDrawable;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.utils.Timer;
 import com.quickbite.connector2.Game;
+import com.quickbite.connector2.GameData;
 import com.quickbite.connector2.GameScreen;
 import com.quickbite.connector2.GameSettings;
 import com.quickbite.connector2.MainMenu;
@@ -115,9 +117,9 @@ public class MainMenuGUI {
         loginStyle.imageUp = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("googlePlayGamesIcon", Texture.class)));
 
         TextButton infoButton = new TextButton("?", regularStyle);
-        infoButton.setPosition(0f, Game.viewport.getWorldHeight() - 32);
+        infoButton.setPosition(0f, Game.viewport.getWorldHeight() - 40);
         infoButton.getLabel().setFontScale(0.5f);
-        infoButton.setSize(32f, 32f);
+        infoButton.setSize(40f, 40f);
 
         start = new ImageTextButton("Start", startStyle);
         start.getLabel().setFontScale(0.4f);
@@ -175,6 +177,7 @@ public class MainMenuGUI {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
                 infoTable.addAction(Actions.moveTo(0f, 0f, 0.4f, Interpolation.circleOut));
+                SoundManager.playSound("click");
             }
         });
     }
@@ -578,6 +581,8 @@ public class MainMenuGUI {
                 Game.stage.clear();
                 mainMenu.dispose();
                 game.setScreen(new GameScreen(game));
+                Timer.instance().clear();
+                GameData.reset(); //Reset the data from the main menu fanciness
                 return true;
             }
         }));
@@ -767,14 +772,14 @@ public class MainMenuGUI {
 
         TextButton.TextButtonStyle buttonStyle = new TextButton.TextButtonStyle();
         buttonStyle.font = Game.defaultHugeFont;
-        buttonStyle.up = new NinePatchDrawable(new NinePatch(Game.easyAssetManager.get("buttonDark_up9", Texture.class)));
+        buttonStyle.up = new NinePatchDrawable(new NinePatch(Game.easyAssetManager.get("buttonDark_up9", Texture.class), 8, 8, 11, 7));
 
         TextButton backButton = new TextButton("Back", buttonStyle);
-        backButton.getLabel().setFontScale(0.2f);
+        backButton.getLabel().setFontScale(0.3f);
 
         Label.LabelStyle style = new Label.LabelStyle(Game.defaultHugeFont, Color.WHITE);
 
-        Label madeByTitle = new Label("Made By:", style);
+        Label madeByTitle = new Label("Created By", style);
         madeByTitle.setFontScale(0.4f);
         madeByTitle.setAlignment(Align.center);
 
@@ -783,7 +788,7 @@ public class MainMenuGUI {
         madeByCompany.setAlignment(Align.center);
 
         Label musicBy = new Label("Music by:", style);
-        musicBy.setFontScale(fontScale);
+        musicBy.setFontScale(0.4f);
         musicBy.setWrap(true);
         musicBy.setAlignment(Align.center);
 
@@ -796,6 +801,11 @@ public class MainMenuGUI {
         musicByLink.setFontScale(fontScale);
         musicByLink.setWrap(true);
         musicByLink.setAlignment(Align.center);
+
+        Label soundsBy = new Label("Sounds by:", style);
+        soundsBy.setFontScale(0.4f);
+        soundsBy.setWrap(true);
+        soundsBy.setAlignment(Align.center);
 
         Label clickSoundBy = new Label("'Interface1' by Eternitys\n (on freesound.org) / CC BY 1.0", style);
         clickSoundBy.setFontScale(fontScale);
@@ -828,9 +838,11 @@ public class MainMenuGUI {
         innerTable.row();
         innerTable.add(musicBy).expandX().fillX();
         innerTable.row();
-        innerTable.add(musicByName).expandX().fillX();
+        innerTable.add(musicByName).expandX().fillX().padBottom(20f);
         innerTable.row();
-        innerTable.add(musicByLink).expandX().fillX().padBottom(20f);
+        innerTable.add(musicByLink).expandX().fillX();
+        innerTable.row();
+        innerTable.add(soundsBy).expandX().fillX().padBottom(20f);
         innerTable.row();
         innerTable.add(clickSoundBy).expandX().fillX().padBottom(20f);
         innerTable.row();
@@ -842,7 +854,7 @@ public class MainMenuGUI {
         innerTable.row();
         innerTable.add(erroSoundBy).expandX().fillX().padBottom(20f);
         innerTable.row();
-        innerTable.add(backButton).size(125f, 50f);
+        innerTable.add(backButton).size(150f, 50f);
 
         infoTable.setBackground(new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("pixelDark", Texture.class))));
         infoTable.add(scrollPane).expand().fill();
@@ -854,6 +866,7 @@ public class MainMenuGUI {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
                 infoTable.addAction(Actions.moveTo(Game.viewport.getWorldWidth(), 0f, 0.4f, Interpolation.circleIn));
+                SoundManager.playSound("click");
             }
         });
     }

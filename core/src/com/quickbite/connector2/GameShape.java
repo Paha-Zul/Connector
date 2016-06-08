@@ -23,7 +23,9 @@ public class GameShape {
     private float lifeTime = -1; //For the 'challenge' game mode.
     public ICallback onDeadCallback, onEndingCallback;
 
-    private final float rotationSpeed = 30f, scaleSpeed = 0.5f;
+    private float opacity = 1f;
+    private float scaleSpeed = 0.5f;
+    private float rotationSpeed = 30f;
 
     public GameShape(Vector2 position, int shape, int size, Color color){
         final float bonus = 1.5f;
@@ -50,9 +52,9 @@ public class GameShape {
 
     public void render(SpriteBatch batch, float delta){
         TextureRegion region;
-        batch.setColor( this.color);
-        if(this.locked) region = gameScreen.shapesGlow[this.getShapeType()];
-        else region = gameScreen.shapeTextures[this.getShapeType()];
+        batch.setColor(this.color);
+        if(this.locked) region = GameData.shapesGlow[this.getShapeType()];
+        else region = GameData.shapeTextures[this.getShapeType()];
         batch.draw(region, -Game.viewport.getWorldWidth()/2f + this.position.x - size*0.5f, -Game.viewport.getWorldHeight()/2f + this.position.y - size*0.5f,
                 size*0.5f, size*0.5f, this.size, this.size, this.currScale, this.currScale, this.currRotation);
 
@@ -77,7 +79,7 @@ public class GameShape {
                 lifeTime -= delta;
                 if(lifeTime <= 0){
                     this.ending = true;
-                    if(this.onDeadCallback != null) this.onEndingCallback.run();
+                    if(this.onEndingCallback != null) this.onEndingCallback.run();
                     if(lineNumber >= 0) gameScreen.lineLists[lineNumber] = new Array<Vector2>(200);
                 }
             }
@@ -104,6 +106,15 @@ public class GameShape {
 
     public void setLineNumber(int lineNumber){
         this.lineNumber = lineNumber;
+    }
+
+    public void setScaleSpeed(float speed){
+        this.scaleSpeed = speed;
+        this.rotationSpeed = (3.14f*4f)/scaleSpeed;
+    }
+
+    public void setOpacity(float opacity){
+        this.color.a = this.opacity;
     }
 
     public boolean isOver(float mouseX, float mouseY){

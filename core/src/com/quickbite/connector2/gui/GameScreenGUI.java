@@ -64,6 +64,7 @@ public class GameScreenGUI {
     }
 
     public static void initGameScreenGUI(final Game game, final GameScreen gameScreen) {
+        Game.stage.clear();
         centerTable = new Table();
         centerTable.setFillParent(true);
 
@@ -355,10 +356,12 @@ public class GameScreenGUI {
         gameOverTable.row().padTop(50f);
         gameOverTable.add(roundsLabel).expandX().fillX();
         gameOverTable.row().padTop(50f);
-        gameOverTable.add(avgTimeLabel).expandX().fillX();
-        gameOverTable.row().padTop(50f);
-        gameOverTable.add(bestTimeLabel).expandX().fillX();
-        gameOverTable.row().padTop(50f);
+        if(GameSettings.gameType != GameSettings.GameType.Frenzy) {
+            gameOverTable.add(avgTimeLabel).expandX().fillX();
+            gameOverTable.row().padTop(50f);
+            gameOverTable.add(bestTimeLabel).expandX().fillX();
+            gameOverTable.row().padTop(50f);
+        }
         gameOverTable.add(restartButton).size(200f, 75f);
         gameOverTable.row().padTop(50f);
         gameOverTable.add(mainMenuButton).size(200f, 75f);

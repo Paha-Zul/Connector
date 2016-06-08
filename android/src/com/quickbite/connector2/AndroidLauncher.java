@@ -89,6 +89,8 @@ public class AndroidLauncher extends AndroidApplication implements GameHelper.Ga
 //				Toast.makeText(getApplicationContext(), "Closed Interstitial", Toast.LENGTH_SHORT).show();
                 AdRequest interstitialRequest = new AdRequest.Builder().build();
                 interstitialAd.loadAd(interstitialRequest);
+				if(!SoundManager.getCurrentMusic().isPlaying())
+					SoundManager.getCurrentMusic().play();
 			}
 		});
 

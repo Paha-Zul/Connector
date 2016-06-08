@@ -6,7 +6,6 @@ import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.ParticleEffect;
-import com.badlogic.gdx.graphics.g2d.ParticleEffectPool;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
@@ -31,9 +30,6 @@ public class GameScreen implements Screen{
 
     public Integer[] colorIDs;
     public Array<Vector2> positions;
-    public TextureRegion[] shapeTextures;
-    public TextureRegion[] shapesGlow;
-    public Array<GameShape> gameShapeList;
     public Array<Vector2>[] lineLists;
     public GameShape currShape = null;
     public int lineCounter = 0;
@@ -43,8 +39,6 @@ public class GameScreen implements Screen{
     private volatile boolean gameOver = false;
 
     private final float topArea = 0.1f;
-
-
 
     private GameScreenClickListener clickListener;
 
@@ -61,11 +55,13 @@ public class GameScreen implements Screen{
         multi.addProcessor(Game.stage);
         Gdx.input.setInputProcessor(multi);
 
+        GameData.gameInit();
         lineLists = new Array[GameSettings.numShapes*2];
     }
 
     @Override
     public void show() {
+
         int xSpots = (int)((Game.camera.viewportWidth - GameData.playAreaPadding.getLeft() - GameData.playAreaPadding.getRight())/(GameData.sizeOfSpots));
         int ySpots = (int)((Game.camera.viewportHeight - (Game.camera.viewportHeight*this.topArea) - GameData.playAreaPadding.getBottom())/GameData.sizeOfSpots);
         int numPositions = xSpots*ySpots;
@@ -88,38 +84,15 @@ public class GameScreen implements Screen{
         for(int i=0;i<this.colorIDs.length;i++)
             this.colorIDs[i] = i/2;
 
-        shapeTextures = new TextureRegion[6];
-        shapeTextures[0] = Game.shapeAtlas.findRegion("Star");
-        shapeTextures[1] = Game.shapeAtlas.findRegion("Square");
-        shapeTextures[2] = Game.shapeAtlas.findRegion("Circle");
-        shapeTextures[3] = Game.shapeAtlas.findRegion("Diamond");
-        shapeTextures[4] = Game.shapeAtlas.findRegion("Triangle");
-        shapeTextures[5] = Game.shapeAtlas.findRegion("Hexagon");
-
-        shapesGlow = new TextureRegion[6];
-        shapesGlow[0] = Game.shapeAtlas.findRegion("Star_glow");
-        shapesGlow[1] = Game.shapeAtlas.findRegion("Square_glow");
-        shapesGlow[2] = Game.shapeAtlas.findRegion("Circle_glow");
-        shapesGlow[3] = Game.shapeAtlas.findRegion("Diamond_glow");
-        shapesGlow[4] = Game.shapeAtlas.findRegion("Triangle_glow");
-        shapesGlow[5] = Game.shapeAtlas.findRegion("Hexagon_glow");
 
         this.reset();
 
-        this.gameShapeList = new Array<GameShape>();
+        GameData.gameShapeList = new Array<GameShape>();
         this.initLineLists();
 
         this.currGameState = GameState.Beginning;
 
         GameScreenGUI.initGameScreenGUI(this.game, this);
-        initParticleEffects();
-    }
-
-    private void initParticleEffects(){
-        ParticleEffect effect = new ParticleEffect();
-        effect.load(Gdx.files.internal("particles/explosion.p"), Gdx.files.internal("particles/"));
-
-        GameData.explosionEffectPool = new ParticleEffectPool(effect, 4, 10);
     }
 
     public void reset(){
@@ -168,11 +141,11 @@ public class GameScreen implements Screen{
         Color[] colors = GameData.colorMap.values().toArray(new Color[GameData.colorMap.size()]);
 
         if(GameSettings.gameType != GameSettings.GameType.Frenzy) {
-            //Make a new list of shapeTextures.
+            //Make a new list of GameData.shapeTextures.
             for (int i = 0; i < GameSettings.numShapes; i++) {
                 int index = i * 2;
-                this.gameShapeList.add(new GameShape(this.positions.get(index), i, (int) GameData.sizeOfShapes, colors[this.colorIDs[index]]));
-                this.gameShapeList.add(new GameShape(this.positions.get(index+1), i, (int) GameData.sizeOfShapes, colors[this.colorIDs[index + 1]]));
+                GameData.gameShapeList.add(new GameShape(this.positions.get(index), i, (int) GameData.sizeOfShapes, colors[this.colorIDs[index]]));
+                GameData.gameShapeList.add(new GameShape(this.positions.get(index+1), i, (int) GameData.sizeOfShapes, colors[this.colorIDs[index + 1]]));
             }
         }
 
@@ -199,12 +172,12 @@ public class GameScreen implements Screen{
     }
 
     /**
-     * Call to connect two shapeTextures.
+     * Call to connect two GameData.shapeTextures.
      * @param shape1 The first shape.
      * @param shape2 The second shape.
      */
     public void shapesConnected(GameShape shape1, GameShape shape2){
-        //Lock the shapeTextures.
+        //Lock the GameData.shapeTextures.
         shape1.setLocked(true);
         shape2.setLocked(true);
 
@@ -219,7 +192,7 @@ public class GameScreen implements Screen{
         ParticleEffect effect = GameData.explosionEffectPool.obtain();
         effect.setPosition(shape1.position.x - Game.viewport.getWorldWidth()/2f, shape1.position.y - Game.viewport.getWorldHeight()/2f);
         effect.getEmitters().get(0).getTint().setColors(new float[]{shape1.getColor().r, shape1.getColor().g, shape1.getColor().b});
-        effect.getEmitters().get(0).setSprite(new Sprite(new TextureRegion(shapeTextures[shape1.getShapeType()])));
+        effect.getEmitters().get(0).setSprite(new Sprite(new TextureRegion(GameData.shapeTextures[shape1.getShapeType()])));
         effect.start();
 
         GameData.particleEffects.add(effect);
@@ -227,7 +200,7 @@ public class GameScreen implements Screen{
         ParticleEffect effect2 = GameData.explosionEffectPool.obtain();
         effect2.setPosition(shape2.position.x - Game.viewport.getWorldWidth()/2f, shape2.position.y - Game.viewport.getWorldHeight()/2f);
         effect2.getEmitters().get(0).getTint().setColors(new float[]{shape2.getColor().r, shape2.getColor().g, shape2.getColor().b});
-        effect2.getEmitters().get(0).setSprite(new Sprite(new TextureRegion(shapeTextures[shape2.getShapeType()])));
+        effect2.getEmitters().get(0).setSprite(new Sprite(new TextureRegion(GameData.shapeTextures[shape2.getShapeType()])));
         effect2.start();
 
         GameData.particleEffects.add(effect2);
@@ -290,13 +263,13 @@ public class GameScreen implements Screen{
     }
 
     /**
-     * Draws the game shapeTextures.
+     * Draws the game GameData.shapeTextures.
      * @param batch The spritebatch to use.
      */
     private void drawShapes(SpriteBatch batch){
-        for(int i = gameShapeList.size-1; i >= 0; i--) {
-            GameShape shape = gameShapeList.get(i);
-            if(shape.isDead()) gameShapeList.removeIndex(i);
+        for(int i = GameData.gameShapeList.size-1; i >= 0; i--) {
+            GameShape shape = GameData.gameShapeList.get(i);
+            if(shape.isDead()) GameData.gameShapeList.removeIndex(i);
             else shape.render(batch, Gdx.graphics.getDeltaTime());
         }
     }
@@ -318,7 +291,7 @@ public class GameScreen implements Screen{
 
         //this.debugDrawGrid(shapeRenderer);
 
-//        for(GameShape shape : this.gameShapeList)
+//        for(GameShape shape : GameData.gameShapeList)
 //            shapeRenderer.rect(shape.bounds.x, shape.bounds.y, shape.bounds.width, shape.bounds.height);
     }
 
@@ -339,15 +312,15 @@ public class GameScreen implements Screen{
     }
 
     /**
-     * Draws the shape click areas (not the actual shapeTextures themselves) for debugging.
+     * Draws the shape click areas (not the actual GameData.shapeTextures themselves) for debugging.
      * @param shapeRenderer The shape renderer to use.
      */
     private void debugDrawShapes(ShapeRenderer shapeRenderer){
         shapeRenderer.end();
         shapeRenderer.setColor(Color.RED);
         shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
-        for(int i = 0; i<this.gameShapeList.size; i++){
-            GameShape shape = this.gameShapeList.get(i);
+        for(int i = 0; i<GameData.gameShapeList.size; i++){
+            GameShape shape = GameData.gameShapeList.get(i);
             shapeRenderer.rect(shape.position.x - GameData.sizeOfSpots/2, shape.position.y - GameData.sizeOfSpots/2, GameData.sizeOfSpots, GameData.sizeOfSpots);
         }
         shapeRenderer.end();
@@ -376,7 +349,7 @@ public class GameScreen implements Screen{
             }
 
             GameScreenGUI.update(delta);
-        //If roundStarting, spin the shapeTextures in!
+        //If roundStarting, spin the GameData.shapeTextures in!
         }else if(currGameState == GameState.Starting){
             if(!roundStartingFlag)
                 roundStarting();
@@ -385,7 +358,7 @@ public class GameScreen implements Screen{
                 counter = 0;
                 this.roundStarted();
             }
-        //If roundEnding, spin the shapeTextures out!
+        //If roundEnding, spin the GameData.shapeTextures out!
         }else if(currGameState == GameState.Ending){
             if(!startedRoundEnd)
                 this.startRoundEnd();
@@ -432,11 +405,11 @@ public class GameScreen implements Screen{
     private void updateChallenge(float delta){
         challengeCounter+=delta;
         if(challengeCounter > 0.75f){
-            int randShape = MathUtils.random(0, shapeTextures.length-1);
+            int randShape = MathUtils.random(0, GameData.shapeTextures.length-1);
             Color randColor = (Color)GameData.colorMap.values().toArray()[MathUtils.random(0, GameData.colorMap.size()-1)];
             final Vector2 position = getRandomPositionAndShuffle();
             takenPositions.add(position);
-            this.gameShapeList.add(new GameShape(position, randShape, (int) GameData.sizeOfShapes, randColor, 5f, new ICallback() {
+            GameData.gameShapeList.add(new GameShape(position, randShape, (int) GameData.sizeOfShapes, randColor, 5f, new ICallback() {
                 @Override
                 public void run() {
 //                    Sound sound = Game.easyAssetManager.get("whoosh_out", Sound.class);
@@ -487,7 +460,7 @@ public class GameScreen implements Screen{
         this.currGameState = GameState.Running;
         GameStats.startTime = System.currentTimeMillis();
 
-        for (GameShape gameShape : gameShapeList) {
+        for (GameShape gameShape : GameData.gameShapeList) {
             gameShape.setStarted();
         }
 
@@ -507,7 +480,7 @@ public class GameScreen implements Screen{
             SoundManager.playSound("error");
         }
 
-        for(GameShape shape : gameShapeList)
+        for(GameShape shape : GameData.gameShapeList)
             shape.setEnding();
 
         this.startedRoundEnd = true;
@@ -530,7 +503,7 @@ public class GameScreen implements Screen{
     private void roundEnded(){
         GameStats.currRound++; //This needs to be called before init() round below.
 
-        this.gameShapeList = new Array<GameShape>();
+        GameData.gameShapeList = new Array<GameShape>();
         GameScreenGUI.roundEndedGUI();
         this.currGameState = GameState.Starting; //By default, set it to roundStarting the round again.
 
@@ -704,8 +677,7 @@ public class GameScreen implements Screen{
 
     @Override
     public void dispose() {
-        this.gameShapeList = null;
-        this.shapeTextures = null;
+        GameData.reset();
         this.colorIDs = null;
         GameScreenGUI.reset();
     }

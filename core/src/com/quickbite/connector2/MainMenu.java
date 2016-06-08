@@ -2,9 +2,13 @@ package com.quickbite.connector2;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.graphics.g2d.ParticleEffect;
+import com.badlogic.gdx.graphics.g2d.Sprite;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.TimeUtils;
+import com.badlogic.gdx.utils.Timer;
 import com.quickbite.connector2.gui.MainMenuGUI;
 
 /**
@@ -15,11 +19,6 @@ public class MainMenu implements Screen {
 
     private double nextTick, interval = 500; //in millis
 
-    private Array<GameShape> gameShapeList = new Array<GameShape>(2);
-    private final float timeBetweenConnections = 1f, timeToConnect = 0.5f, shapeLifeTime = 0.8f;
-    private float timeBetweenShapesCounter, timeToConnectCounter, timeBeforeStartCounter;
-    private boolean connecting = false;
-
     public MainMenu(Game game){
         this.game = game;
     }
@@ -27,12 +26,38 @@ public class MainMenu implements Screen {
     @Override
     public void show() {
         MainMenuGUI.makeGUI(game, this);
+        GameData.reset();
 
         //We put this here to reset the input processor from the GameScreen
         // when we come back to the main menu.
         Gdx.input.setInputProcessor(Game.stage);
 
         Game.adInterface.showAdmobBannerAd();
+
+        Timer.schedule(new Timer.Task() {
+            @Override
+            public void run() {
+                final GameShape shape1 = new GameShape(new Vector2(MathUtils.random(50f, 430f), MathUtils.random(50f, 750f)), MathUtils.random(5), 100, GameData.getRandomColor(), 1f);
+                shape1.setScaleSpeed(0.75f);
+                shape1.setOpacity(0.5f);
+
+                shape1.onEndingCallback = new ICallback() {
+                    @Override
+                    public void run() {
+                        ParticleEffect effect = GameData.explosionEffectPool.obtain();
+                        effect.setPosition(shape1.position.x - Game.viewport.getWorldWidth()/2f, shape1.position.y - Game.viewport.getWorldHeight()/2f);
+                        effect.getEmitters().get(0).getTint().setColors(new float[]{shape1.getColor().r, shape1.getColor().g, shape1.getColor().b});
+                        effect.getEmitters().get(0).getTransparency().setHigh(0f, 0.5f);
+                        effect.getEmitters().get(0).setSprite(new Sprite(new TextureRegion(GameData.shapeTextures[shape1.getShapeType()])));
+                        effect.start();
+
+                        GameData.particleEffects.add(effect);
+                    }
+                };
+
+                GameData.gameShapeList.add(shape1);
+            }
+        }, 0f, 1f);
     }
 
     @Override
@@ -45,65 +70,27 @@ public class MainMenu implements Screen {
             MainMenuGUI.changeLoginButton(Game.resolver.getSignedInGPGS());
         }
 
-//        showShapePlay(delta);
-    }
+        Game.batch.begin();
 
-    private void showShapePlay(float delta){
-        //If our shape list is empty, we need to begin the new shapes at some point
-        if(gameShapeList.size == 0){
-            //If our time between shapes counter is greater than the limit, spawn new shapes!
-            if(timeBetweenShapesCounter >= timeBetweenConnections){
-                timeBetweenShapesCounter = 0;
-
-                //Make the shapes.
-                final GameShape shape1 = new GameShape(new Vector2(100, 100), 0, 80, GameData.colorMap.get("Blue"), shapeLifeTime);
-                final GameShape shape2 = new GameShape(new Vector2(400, 600), 0, 80, GameData.colorMap.get("Red"), shapeLifeTime);
-
-                //Assign callbacks.
-                shape1.onDeadCallback = new ICallback() {
-                    @Override
-                    public void run() {
-                        gameShapeList.removeValue(shape1, true);
-                    }
-                };
-
-                shape2.onDeadCallback = new ICallback() {
-                    @Override
-                    public void run() {
-                        gameShapeList.removeValue(shape2, true);
-                    }
-                };
-
-                //Add
-                gameShapeList.add(shape1);
-                gameShapeList.add(shape2);
-
-            }else
-                timeBetweenShapesCounter+=delta;
-
-        //Otherwise we should deal with the current shapes.
-        }else{
-            if(timeBeforeStartCounter >= 1f && !connecting){
-                timeBeforeStartCounter = 0f;
-                connecting = true;
-            }else
-                timeBeforeStartCounter += delta;
-
-            if(connecting){
-                //If we are just starting.
-                if(timeToConnectCounter <= 0){
-
-                //If we are in the middle
-                }else if(timeToConnectCounter < timeToConnect){
-
-                //If we are ending
-                }else if(timeToConnectCounter >= timeToConnect){
-
-                }
-
-                timeToConnectCounter+=delta;
-            }
+        for(int i = GameData.particleEffects.size-1; i >= 0; i--){
+            ParticleEffect effect = GameData.particleEffects.get(i);
+            if(effect.isComplete())
+                GameData.particleEffects.removeIndex(i);
+            else
+                effect.draw(Game.batch, delta/4f);
         }
+
+        for(int i = GameData.gameShapeList.size-1; i >= 0; i--){
+            GameShape shape = GameData.gameShapeList.get(i);
+            if(shape.isDead())
+                GameData.gameShapeList.removeIndex(i);
+            else
+                shape.render(Game.batch, delta);
+        }
+
+        Game.batch.end();
+
+//        showShapePlay(delta);
     }
 
     @Override
