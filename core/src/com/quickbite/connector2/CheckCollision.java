@@ -3,6 +3,7 @@ package com.quickbite.connector2;
 import com.badlogic.gdx.math.Intersector;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
+import com.quickbite.connector2.screens.GameScreen;
 
 /**
  * Created by Paha on 1/9/2016.

@@ -6,6 +6,7 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
+import com.quickbite.connector2.screens.GameScreen;
 
 /**
  * Created by Paha on 1/8/2016.
@@ -33,7 +34,7 @@ public class GameShape {
         this.position = new Vector2(position.x, position.y);
         this.shapeType = shape;
         this.bounds = new Rectangle(this.position.x - 32*bonus, this.position.y - 32*bonus, 64*bonus, 64*bonus);
-        this.color = color;
+        this.color = new Color(color); //We make a copy of it to not change the original color object.
         this.size = size;
 
         this.starting = true;
@@ -114,7 +115,7 @@ public class GameShape {
     }
 
     public void setOpacity(float opacity){
-        this.color.a = this.opacity;
+        this.color.a = opacity;
     }
 
     public boolean isOver(float mouseX, float mouseY){

@@ -1,4 +1,4 @@
-package com.quickbite.connector2;
+package com.quickbite.connector2.screens;
 
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Texture;
@@ -9,6 +9,8 @@ import com.badlogic.gdx.scenes.scene2d.Action;
 import com.badlogic.gdx.scenes.scene2d.actions.Actions;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.utils.Align;
+import com.quickbite.connector2.Game;
+import com.quickbite.connector2.SoundManager;
 
 /**
  * Created by Paha on 1/20/2016.
@@ -51,7 +53,7 @@ public class LogoScreen implements Screen{
     public void render(float delta) {
         boolean assetsLoaded = Game.easyAssetManager.update();
         if(assetsLoaded && logoDone){
-            SoundManager.playMusic("gameMusicTrack");
+            SoundManager.playMusic();
             Game.shapeAtlas = Game.easyAssetManager.get("shapes", TextureAtlas.class);
             Game.defaultHugeFont = Game.easyAssetManager.get("default", BitmapFont.class);
             Game.defaultHugeFont.getRegion().getTexture().setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);

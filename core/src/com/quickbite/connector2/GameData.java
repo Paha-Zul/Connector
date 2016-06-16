@@ -1,12 +1,14 @@
 package com.quickbite.connector2;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Preferences;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.ParticleEffect;
 import com.badlogic.gdx.graphics.g2d.ParticleEffectPool;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.utils.ObjectIntMap;
 
 import java.util.HashMap;
 
@@ -23,6 +25,9 @@ public class GameData {
     public static Array<GameShape> gameShapeList = new Array<GameShape>();
     public static TextureRegion[] shapeTextures;
     public static TextureRegion[] shapesGlow;
+    public static Preferences prefs = Gdx.app.getPreferences("scores");
+
+    public static ObjectIntMap<GameSettings.GameType> scoreMap = new ObjectIntMap<GameSettings.GameType>(10);
 
     static{
         colorMap.put("Red", Color.RED);

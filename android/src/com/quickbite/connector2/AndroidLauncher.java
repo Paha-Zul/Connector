@@ -89,8 +89,7 @@ public class AndroidLauncher extends AndroidApplication implements GameHelper.Ga
 //				Toast.makeText(getApplicationContext(), "Closed Interstitial", Toast.LENGTH_SHORT).show();
                 AdRequest interstitialRequest = new AdRequest.Builder().build();
                 interstitialAd.loadAd(interstitialRequest);
-				if(!SoundManager.getCurrentMusic().isPlaying())
-					SoundManager.getCurrentMusic().play();
+				SoundManager.playMusic();
 			}
 		});
 
@@ -195,6 +194,7 @@ public class AndroidLauncher extends AndroidApplication implements GameHelper.Ga
 	@Override
 	public void onResume() {
 		super.onResume();
+		SoundManager.playMusic();
 	}
 
 	@Override
@@ -334,11 +334,13 @@ public class AndroidLauncher extends AndroidApplication implements GameHelper.Ga
 
 	@Override
 	public void onSignInFailed() {
-
+		SoundManager.playMusic();
 	}
 
 	@Override
 	public void onSignInSucceeded() {
-
+		SoundManager.playMusic();
 	}
+
+
 }

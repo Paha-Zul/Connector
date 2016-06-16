@@ -1,4 +1,4 @@
-package com.quickbite.connector2;
+package com.quickbite.connector2.screens;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputMultiplexer;
@@ -13,6 +13,16 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
+import com.quickbite.connector2.Constants;
+import com.quickbite.connector2.GH;
+import com.quickbite.connector2.Game;
+import com.quickbite.connector2.GameData;
+import com.quickbite.connector2.GameScreenClickListener;
+import com.quickbite.connector2.GameSettings;
+import com.quickbite.connector2.GameShape;
+import com.quickbite.connector2.GameStats;
+import com.quickbite.connector2.ICallback;
+import com.quickbite.connector2.SoundManager;
 import com.quickbite.connector2.gui.GameScreenGUI;
 
 /**
@@ -156,10 +166,14 @@ public class GameScreen implements Screen{
         this.currGameState = GameState.Starting;
     }
 
+    public void startRecordTime(){
+        GameStats.startTime = System.currentTimeMillis();
+    }
+
     /**
      * Records the average and best time of the round. Sets the label if available.
      */
-    public void recordTime(){
+    public void endRecordTime(){
         GameStats.endTime = System.currentTimeMillis();
 
         double time = GameStats.endTime - GameStats.startTime;
@@ -169,6 +183,15 @@ public class GameScreen implements Screen{
 
         if(GameStats.bestTime == 0 || GameStats.bestTime >= time)
             GameStats.bestTime = time;
+    }
+
+    public void shapeClicked(GameShape shape){
+        this.currShape = shape;
+        this.lineLists[this.lineCounter].add(new Vector2(shape.position.x, shape.position.y));
+        SoundManager.playSound("pop", 0.75f);
+
+        if(GameSettings.gameType == GameSettings.GameType.Frenzy)
+            startRecordTime();
     }
 
     /**
@@ -210,7 +233,11 @@ public class GameScreen implements Screen{
         if(GameSettings.gameType == GameSettings.GameType.Frenzy)
             GameStats.successfulRounds++;
 
+        SoundManager.playSound("pop", 0.75f);
         SoundManager.playSound("waterdrop");
+
+        if(GameSettings.gameType == GameSettings.GameType.Frenzy)
+            endRecordTime();
     }
 
     private Vector2 getRandomPositionAndShuffle(){
@@ -345,7 +372,7 @@ public class GameScreen implements Screen{
                     this.setRoundOver(false, GameStats.RoundOver.Won);
                 }
             }else{
-                this.updateChallenge(delta);
+                this.updateFrenzy(delta);
             }
 
             GameScreenGUI.update(delta);
@@ -402,7 +429,7 @@ public class GameScreen implements Screen{
 
     }
 
-    private void updateChallenge(float delta){
+    private void updateFrenzy(float delta){
         challengeCounter+=delta;
         if(challengeCounter > 0.75f){
             int randShape = MathUtils.random(0, GameData.shapeTextures.length-1);
@@ -458,7 +485,9 @@ public class GameScreen implements Screen{
      */
     private void roundStarted(){
         this.currGameState = GameState.Running;
-        GameStats.startTime = System.currentTimeMillis();
+
+        if(GameSettings.gameType != GameSettings.GameType.Frenzy)
+            this.startRecordTime();
 
         for (GameShape gameShape : GameData.gameShapeList) {
             gameShape.setStarted();
@@ -473,7 +502,9 @@ public class GameScreen implements Screen{
 
     private void startRoundEnd(){
         if(!GameStats.failedLastRound) {
-            this.recordTime();
+            if(GameSettings.gameType != GameSettings.GameType.Frenzy)
+                this.endRecordTime();
+
             GameStats.successfulRounds++;
             SoundManager.playSound("success");
         }else{
@@ -630,8 +661,24 @@ public class GameScreen implements Screen{
             leaderboard = Constants.LEADERBOARD_FRENZY;
         }
 
-        Game.resolver.submitScoreGPGS(leaderboard, GameStats.currScore);
+        saveScore(leaderboard, GameSettings.gameType, GameStats.currScore);
+    }
 
+    /**
+     * Saves the score.
+     * @param leaderboard The leaderboard ID to use and save to.
+     * @param type The type of game being played
+     * @param score The score
+     */
+    private void saveScore(String leaderboard, GameSettings.GameType type, int score){
+        //Save it to the prefs and local
+        GameData.prefs.putInteger(leaderboard, score);
+        GameData.prefs.flush();
+        if(GameData.scoreMap.get(type, 0) < score)
+            GameData.scoreMap.put(type, score);
+
+        //Save to the leaderboard if connected
+        Game.resolver.submitScoreGPGS(leaderboard, score);
     }
 
     private void roundOverFastest(boolean failed){

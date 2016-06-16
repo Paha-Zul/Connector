@@ -26,9 +26,9 @@ import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Timer;
 import com.quickbite.connector2.Game;
 import com.quickbite.connector2.GameData;
-import com.quickbite.connector2.GameScreen;
+import com.quickbite.connector2.screens.GameScreen;
 import com.quickbite.connector2.GameSettings;
-import com.quickbite.connector2.MainMenu;
+import com.quickbite.connector2.screens.MainMenu;
 import com.quickbite.connector2.SoundManager;
 
 /**

@@ -40,7 +40,7 @@ public class GH {
         return reason;
     }
 
-    static void shuffleArray(Object[] ar)
+    public static void shuffleArray(Object[] ar)
     {
         // If running on Java 6 or older, use `new Random()` on RHS here
         for (int i = ar.length - 1; i > 0; i--)

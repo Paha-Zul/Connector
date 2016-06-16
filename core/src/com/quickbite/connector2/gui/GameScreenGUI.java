@@ -18,10 +18,11 @@ import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Align;
 import com.quickbite.connector2.GH;
 import com.quickbite.connector2.Game;
-import com.quickbite.connector2.GameScreen;
+import com.quickbite.connector2.GameData;
+import com.quickbite.connector2.screens.GameScreen;
 import com.quickbite.connector2.GameSettings;
 import com.quickbite.connector2.GameStats;
-import com.quickbite.connector2.MainMenu;
+import com.quickbite.connector2.screens.MainMenu;
 import com.quickbite.connector2.SoundManager;
 
 import java.text.DecimalFormat;
@@ -39,7 +40,7 @@ public class GameScreenGUI {
     private static ImageButton backButton;
 
     /* Game over screen */
-    private static Label roundsSurvivedLabel, bestTimeLabel, lostReasonLabel, avgTimeLabel, scoreLabel, roundsLabel;
+    private static Label roundsSurvivedLabel, bestTimeLabel, lostReasonLabel, avgTimeLabel, scoreLabel, previousScoreLabel, roundsLabel;
 
     /* Starting screen stuff */
     private static int state = 0, innerState = 0;
@@ -130,6 +131,10 @@ public class GameScreenGUI {
         scoreLabel = new Label("", titleLabelStyle);
         scoreLabel.setAlignment(Align.center);
         scoreLabel.setFontScale(0.4f);
+
+        previousScoreLabel = new Label("", titleLabelStyle);
+        previousScoreLabel.setAlignment(Align.center);
+        previousScoreLabel.setFontScale(0.4f);
 
         roundsLabel = new Label("", titleLabelStyle);
         roundsLabel.setAlignment(Align.center);
@@ -337,6 +342,8 @@ public class GameScreenGUI {
      */
     public static void gameOverGUI(){
         gameOverTableReset();
+        int counter = 1, space = 30;
+        float delayTime = 0.08f, fadeTime = 0.75f;
 
         lostReasonLabel.setText(GH.getLostReason());
         scoreLabel.setText("Score: "+GameStats.currScore);
@@ -347,36 +354,59 @@ public class GameScreenGUI {
         avgTimeLabel.setText("Average Time: "+formatter.format(GameStats.avgTime/1000)+"s.");
         bestTimeLabel.setText("Best Time: "+formatter.format(GameStats.bestTime/1000)+"s.");
 
-        if(GameSettings.gameType == GameSettings.GameType.Timed){
+        //Only add why we lost if it's timed or frenzy
+        if(GameSettings.gameType == GameSettings.GameType.Timed || GameSettings.gameType == GameSettings.GameType.Frenzy){
             gameOverTable.add(lostReasonLabel).expandX().fillX();
-            gameOverTable.row().padTop(50f);
+            gameOverTable.row().padTop(space);
+            lostReasonLabel.addAction(Actions.sequence(Actions.delay(counter*delayTime), Actions.fadeIn(fadeTime)));
+            counter++;
         }
 
         gameOverTable.add(scoreLabel).expandX().fillX();
-        gameOverTable.row().padTop(50f);
+        gameOverTable.row().padTop(space);
+        scoreLabel.addAction(Actions.sequence(Actions.delay(counter*delayTime), Actions.fadeIn(fadeTime)));
+        counter++;
+
+        previousScoreLabel.setText("Highest score: "+GameData.scoreMap.get(GameSettings.gameType, 0));
+        gameOverTable.add(previousScoreLabel).expandX().fillX();
+        gameOverTable.row().padTop(space);
+        previousScoreLabel.addAction(Actions.sequence(Actions.delay(counter*delayTime), Actions.fadeIn(fadeTime)));
+        counter++;
+
         gameOverTable.add(roundsLabel).expandX().fillX();
-        gameOverTable.row().padTop(50f);
+        gameOverTable.row().padTop(space);
+        roundsLabel.addAction(Actions.sequence(Actions.delay(counter*delayTime), Actions.fadeIn(fadeTime)));
+        counter++;
+
         if(GameSettings.gameType != GameSettings.GameType.Frenzy) {
             gameOverTable.add(avgTimeLabel).expandX().fillX();
-            gameOverTable.row().padTop(50f);
-            gameOverTable.add(bestTimeLabel).expandX().fillX();
-            gameOverTable.row().padTop(50f);
-        }
-        gameOverTable.add(restartButton).size(200f, 75f);
-        gameOverTable.row().padTop(50f);
-        gameOverTable.add(mainMenuButton).size(200f, 75f);
+            gameOverTable.row().padTop(space);
+            avgTimeLabel.addAction(Actions.sequence(Actions.delay(counter * delayTime), Actions.fadeIn(fadeTime)));
+            counter++;
 
+            gameOverTable.add(bestTimeLabel).expandX().fillX();
+            gameOverTable.row().padTop(space);
+            bestTimeLabel.addAction(Actions.sequence(Actions.delay(counter * delayTime), Actions.fadeIn(fadeTime)));
+            counter++;
+        }
+
+        gameOverTable.add(restartButton).size(200f, 75f);
+        gameOverTable.row().padTop(space);
+        restartButton.addAction(Actions.sequence(Actions.delay(counter*delayTime), Actions.fadeIn(fadeTime)));
+        counter++;
+
+        gameOverTable.add(mainMenuButton).size(200f, 75f);
+        mainMenuButton.addAction(Actions.sequence(Actions.delay(counter*delayTime), Actions.fadeIn(fadeTime)));
+        counter++;
+
+        lostReasonLabel.getColor().a = 0f;
         scoreLabel.getColor().a = 0f;
         avgTimeLabel.getColor().a = 0f;
         bestTimeLabel.getColor().a = 0f;
         restartButton.getColor().a = 0f;
         mainMenuButton.getColor().a = 0f;
-
-        scoreLabel.addAction(Actions.fadeIn(0.5f));
-        avgTimeLabel.addAction(Actions.sequence(Actions.delay(0.1f), Actions.fadeIn(0.5f)));
-        bestTimeLabel.addAction(Actions.sequence(Actions.delay(0.2f), Actions.fadeIn(0.5f)));
-        restartButton.addAction(Actions.sequence(Actions.delay(0.3f), Actions.fadeIn(0.5f)));
-        mainMenuButton.addAction(Actions.sequence(Actions.delay(0.4f), Actions.fadeIn(0.5f)));
+        roundsLabel.getColor().a = 0f;
+        previousScoreLabel.getColor().a = 0f;
 
         gameOverTable.setFillParent(true);
         hideGameGUI();

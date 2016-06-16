@@ -1,4 +1,4 @@
-package com.quickbite.connector2;
+package com.quickbite.connector2.screens;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
@@ -9,6 +9,10 @@ import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.TimeUtils;
 import com.badlogic.gdx.utils.Timer;
+import com.quickbite.connector2.Game;
+import com.quickbite.connector2.GameData;
+import com.quickbite.connector2.GameShape;
+import com.quickbite.connector2.ICallback;
 import com.quickbite.connector2.gui.MainMenuGUI;
 
 /**

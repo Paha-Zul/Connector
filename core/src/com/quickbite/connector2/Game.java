@@ -16,6 +16,7 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.utils.viewport.StretchViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
+import com.quickbite.connector2.screens.LogoScreen;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;

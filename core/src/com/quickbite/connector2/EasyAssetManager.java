@@ -23,7 +23,11 @@ public class EasyAssetManager extends AssetManager {
 
             return null;
         }
-        return super.get(dataMap.get(commonName).path, type);
+
+        if(this.isLoaded(dataMap.get(commonName).path))
+            return super.get(dataMap.get(commonName).path, type);
+
+        return null;
     }
 
     /**

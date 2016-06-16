@@ -4,6 +4,7 @@ import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Array;
+import com.quickbite.connector2.screens.GameScreen;
 
 /**
  * Created by Paha on 1/23/2016.
@@ -41,10 +42,8 @@ public class GameScreenClickListener implements InputProcessor {
         //Check if we clicked/touched on a shape. If so, record it and start dragging.
         for(GameShape shape : GameData.gameShapeList){
             if(!shape.isLocked() && shape.isOver(worldPos.x, worldPos.y)){
-                this.screen.currShape = shape;
-                this.screen.lineLists[this.screen.lineCounter].add(new Vector2(shape.position.x, shape.position.y));
+                this.screen.shapeClicked(shape);
                 this.dragging = true;
-                SoundManager.playSound("pop", 0.75f);
             }
         }
         return false;
@@ -74,7 +73,6 @@ public class GameScreenClickListener implements InputProcessor {
                     this.screen.lineLists[this.screen.lineCounter].add(new Vector2(shape.position.x, shape.position.y));
 
                     this.screen.shapesConnected(this.screen.currShape, shape);
-                    SoundManager.playSound("pop", 0.75f);
                 }
                 break;
             }
