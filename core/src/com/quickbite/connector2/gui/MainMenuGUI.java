@@ -12,6 +12,7 @@ import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.actions.Actions;
 import com.badlogic.gdx.scenes.scene2d.ui.ButtonGroup;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
+import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
 import com.badlogic.gdx.scenes.scene2d.ui.ImageTextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Stack;
@@ -42,7 +43,7 @@ public class MainMenuGUI {
 
     public static TextButton quit;
     public static ImageTextButton leaderboards, loginGPG, start;
-    public static TextButton colorSame, colorRandom, matchShape, matchColor, modePractice, modeBest, modeTimed, modeFrenzy, startGame;
+    public static TextButton colorSame, colorRandom, matchShape, matchColor, modePractice, modeBest, modeTimed, modeFrenzy, startGame, infoButton;
     public static TextButton threeShapes, fourShapes, fiveShapes, sixShapes;
 
     public static TextButton bestLeaderButton, timedLeaderButton;
@@ -91,12 +92,22 @@ public class MainMenuGUI {
     }
 
     private static void buildMainMenu(){
-        NinePatch patch1 = new NinePatch(Game.easyAssetManager.get("buttonDark_up9", Texture.class));
-        NinePatch patch2 = new NinePatch(Game.easyAssetManager.get("buttonDark_down9", Texture.class));
+        NinePatch patchUp = new NinePatch(Game.easyAssetManager.get("buttonDark_up9", Texture.class), 8, 8, 11, 7);
+        NinePatch patchDown = new NinePatch(Game.easyAssetManager.get("buttonDark_down9", Texture.class), 8, 8, 11, 7);
+
+        ImageButton.ImageButtonStyle soundButtonStyle = new ImageButton.ImageButtonStyle();
+        soundButtonStyle.up = new NinePatchDrawable(patchUp);
+        soundButtonStyle.down = new NinePatchDrawable(patchDown);
+        soundButtonStyle.imageUp = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("soundIcon", Texture.class)));
+
+        ImageButton.ImageButtonStyle musicButtonStyle = new ImageButton.ImageButtonStyle();
+        musicButtonStyle.up = new NinePatchDrawable(patchUp);
+        musicButtonStyle.down = new NinePatchDrawable(patchDown);
+        musicButtonStyle.imageUp = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("musicIcon", Texture.class)));
 
         TextButton.TextButtonStyle regularStyle = new TextButton.TextButtonStyle();
-        regularStyle.up = new NinePatchDrawable(patch1);
-        regularStyle.down = new NinePatchDrawable(patch2);
+        regularStyle.up = new NinePatchDrawable(patchUp);
+        regularStyle.down = new NinePatchDrawable(patchDown);
         regularStyle.font = Game.defaultHugeFont;
         regularStyle.fontColor = Color.WHITE;
         regularStyle.disabledFontColor = new Color(1, 1, 1, 0.5f);
@@ -116,10 +127,11 @@ public class MainMenuGUI {
         ImageTextButton.ImageTextButtonStyle loginStyle = new ImageTextButton.ImageTextButtonStyle(startStyle);
         loginStyle.imageUp = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("googlePlayGamesIcon", Texture.class)));
 
-        TextButton infoButton = new TextButton("?", regularStyle);
-        infoButton.setPosition(0f, Game.viewport.getWorldHeight() - 40);
+        infoButton = new TextButton("?", regularStyle);
         infoButton.getLabel().setFontScale(0.5f);
-        infoButton.setSize(40f, 40f);
+
+        final ImageButton toggleSound = new ImageButton(soundButtonStyle);
+        final ImageButton toggleMusic = new ImageButton(musicButtonStyle);
 
         start = new ImageTextButton("Start", startStyle);
         start.getLabel().setFontScale(0.4f);
@@ -147,7 +159,13 @@ public class MainMenuGUI {
         quit = new TextButton("Quit", regularStyle);
         quit.getLabel().setFontScale(0.3f);
 
+        Table iconTable = new Table();
         Table buttonTable = new Table();
+
+        iconTable.add(infoButton).left().padLeft(5f).size(45f);
+        iconTable.add().expandX().fillX();
+        iconTable.add(toggleSound).padRight(10f).size(45f);
+        iconTable.add(toggleMusic).padRight(5f).size(45f);
 
         buttonTable.add(start).size(200, 75);
         buttonTable.row().padTop(40);
@@ -160,10 +178,13 @@ public class MainMenuGUI {
 
         mainMenuTable.top();
 
+        mainMenuTable.add(iconTable).fillX();
         mainMenuTable.row().padTop(50);
         mainMenuTable.add(titleImage);
         mainMenuTable.row().padTop(150);
         mainMenuTable.add(buttonTable);
+
+//        mainMenuTable.debugAll();
 
         mainTable.add(mainMenuTable);
         mainTable.setFillParent(true);
@@ -171,13 +192,38 @@ public class MainMenuGUI {
 
         mainMenuTable.setFillParent(true);
         Game.stage.addActor(mainMenuTable);
-        Game.stage.addActor(infoButton);
 
         infoButton.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
                 infoTable.addAction(Actions.moveTo(0f, 0f, 0.4f, Interpolation.circleOut));
                 SoundManager.playSound("click");
+            }
+        });
+
+        toggleMusic.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                if(toggleMusic.isChecked()){
+                    toggleMusic.getImage().getColor().a = 0.5f;
+                    SoundManager.setMusicOn(false);
+                }else{
+                    toggleMusic.getImage().getColor().a = 1f;
+                    SoundManager.setMusicOn(true);
+                }
+            }
+        });
+
+        toggleSound.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                if(toggleSound.isChecked()){
+                    toggleSound.getImage().getColor().a = 0.5f;
+                    SoundManager.setSoundsOn(false);
+                }else{
+                    toggleSound.getImage().getColor().a = 1f;
+                    SoundManager.setSoundsOn(true);
+                }
             }
         });
     }
@@ -416,8 +462,8 @@ public class MainMenuGUI {
             public void clicked(InputEvent event, float x, float y) {
                 super.clicked(event, x, y);
                 checkAllOptionsSelected();
-                changeChoices(GameSettings.GameType.Practice);
                 GameSettings.gameType = GameSettings.GameType.Practice;
+                changeChoices(GameSettings.GameType.Practice);
                 SoundManager.playSound("click");
             }
         });
@@ -426,9 +472,9 @@ public class MainMenuGUI {
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 super.clicked(event, x, y);
-                checkAllOptionsSelected();
                 changeChoices(GameSettings.GameType.Fastest);
                 GameSettings.gameType = GameSettings.GameType.Fastest;
+                checkAllOptionsSelected();
                 SoundManager.playSound("click");
             }
         });
@@ -437,9 +483,9 @@ public class MainMenuGUI {
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 super.clicked(event, x, y);
-                checkAllOptionsSelected();
                 changeChoices(GameSettings.GameType.Timed);
                 GameSettings.gameType = GameSettings.GameType.Timed;
+                checkAllOptionsSelected();
                 SoundManager.playSound("click");
             }
         });
@@ -448,9 +494,9 @@ public class MainMenuGUI {
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 super.clicked(event, x, y);
-                checkAllOptionsSelected();
                 changeChoices(GameSettings.GameType.Frenzy);
                 GameSettings.gameType = GameSettings.GameType.Frenzy;
+                checkAllOptionsSelected();
                 SoundManager.playSound("click");
             }
         });
@@ -608,6 +654,7 @@ public class MainMenuGUI {
     private static void toMainMenu(){
         mainMenuTable.addAction(Actions.moveTo(0f, 0f, 0.3f, Interpolation.circle));
         choicesTable.addAction(Actions.moveTo(Game.viewport.getWorldWidth(), 0f, 0.3f, Interpolation.circle));
+
         GameSettings.reset();
         clearSelectedChoices();
     }
@@ -618,6 +665,7 @@ public class MainMenuGUI {
     private static void toChoicesMenu(){
         choicesTable.addAction(Actions.moveTo(0f, 0f, 0.3f, Interpolation.circle));
         mainMenuTable.addAction(Actions.moveTo(-Game.viewport.getWorldWidth(), 0f, 0.3f, Interpolation.circle));
+
         checkAllOptionsSelected();
     }
 

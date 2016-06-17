@@ -385,7 +385,9 @@ public class GameScreen implements Screen{
                 counter = 0;
                 this.roundStarted();
             }
-        //If roundEnding, spin the GameData.shapeTextures out!
+
+            GameScreenGUI.update(delta);
+            //If roundEnding, spin the GameData.shapeTextures out!
         }else if(currGameState == GameState.Ending){
             if(!startedRoundEnd)
                 this.startRoundEnd();
@@ -649,7 +651,7 @@ public class GameScreen implements Screen{
         //If the game type is time attack
         }else if(GameSettings.gameType == GameSettings.GameType.Timed){
             if(GameStats.avgTime == 0) GameStats.currScore = 0;
-            else GameStats.currScore = (int)((2*(GameStats.currRound-1)) * (20f/(GameStats.avgTime/1000)) * (GameSettings.numShapes*3));
+            else GameStats.currScore = (int)((2*(GameStats.currRound-1)) * (20f/(GameStats.avgTime/1000)) * (GameSettings.numShapes*8));
 
             leaderboard = Constants.LEADERBOARD_TIMED;
 

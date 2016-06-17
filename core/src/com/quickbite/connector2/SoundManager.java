@@ -53,7 +53,9 @@ public class SoundManager {
      */
     public static void setMusicOn(boolean playing){
         musicOn = playing;
+
         if(!musicOn && currMusic.isPlaying()) currMusic.stop();
+        if(musicOn && !currMusic.isPlaying()) currMusic.play();
     }
 
     /**

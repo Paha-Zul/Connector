@@ -19,6 +19,7 @@ public class CheckCollision implements Runnable{
     private float mouseX, mouseY;
     private Vector2 prev, curr;
     private int listCounter;
+    private int squareRadius;
 
     public CheckCollision(GameScreen game, Array<GameShape> shapes, int listCounter, Array<Vector2>[] pointLists, GameShape currShape, float mouseX, float mouseY, Vector2 prev, Vector2 curr){
         this.game = game;
@@ -30,6 +31,10 @@ public class CheckCollision implements Runnable{
         this.prev = prev;
         this.curr = curr;
         this.listCounter = listCounter;
+
+        int half = (int)GameData.sizeOfShapes/2;
+        this.squareRadius = half*half;
+
     }
 
     @Override
@@ -40,7 +45,7 @@ public class CheckCollision implements Runnable{
             GameShape shape = this.shapes.get(i);
             if(shape.isStarting() || shape.isEnding()) continue; //If starting or ending at the time, pass.
 
-            boolean intersect = Intersector.intersectSegmentCircle(this.prev, this.curr, shape.position, 1024);
+            boolean intersect = Intersector.intersectSegmentCircle(this.prev, this.curr, shape.position, squareRadius);
 
             boolean condition = this.currShape.checkInvalidIntersection(shape);
 
