@@ -72,4 +72,12 @@ public class SoundManager {
     }
 
 
+    public static boolean isMusicOn(){
+        return musicOn;
+    }
+
+    public static boolean isSoundsOn(){
+        return soundsOn;
+    }
+
 }

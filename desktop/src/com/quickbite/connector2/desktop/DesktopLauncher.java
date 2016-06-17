@@ -2,11 +2,9 @@ package com.quickbite.connector2.desktop;
 
 import com.badlogic.gdx.backends.lwjgl.LwjglApplication;
 import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration;
-import com.badlogic.gdx.utils.Array;
 import com.quickbite.connector2.ActionResolver;
 import com.quickbite.connector2.AdInterface;
 import com.quickbite.connector2.Game;
-import com.quickbite.connector2.gui.MainMenuGUI;
 
 public class DesktopLauncher implements ActionResolver, AdInterface {
 
@@ -65,24 +63,6 @@ public class DesktopLauncher implements ActionResolver, AdInterface {
 	public void getCenteredLeaderboardScore(String leaderboardID, int timeSpan, int leaderboardType, float timeoutSeconds) {
 		System.out.println("Getting Leaderboard Centered Score with timespane of "+timeSpan);
 
-		//We'll write an example here
-		Array<String> ranks = new Array<String>();
-		Array<String> names = new Array<String>();
-		Array<String> scores = new Array<String>();
-
-		ranks.add("1");
-		ranks.add("2");
-		ranks.add("3");
-
-		names.add("John");
-		names.add("Billy");
-		names.add("Tommy");
-
-		scores.add("152");
-		scores.add("125");
-		scores.add("98");
-
-		MainMenuGUI.loadLeaderboardScores(ranks, names, scores);
 	}
 
 	@Override

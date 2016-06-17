@@ -4,7 +4,6 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.ParticleEffect;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
@@ -35,7 +34,6 @@ public class GameScreen implements Screen{
 
     private boolean startedRoundEnd = false, roundStartingFlag = false;
 
-    private TextureRegion topTexture;
     private Game game;
 
     public Integer[] colorIDs;
@@ -76,7 +74,6 @@ public class GameScreen implements Screen{
         int ySpots = (int)((Game.camera.viewportHeight - (Game.camera.viewportHeight*this.topArea) - GameData.playAreaPadding.getBottom())/GameData.sizeOfSpots);
         int numPositions = xSpots*ySpots;
 
-        this.topTexture = new TextureRegion(Game.easyAssetManager.get("Top", Texture.class));
 
         this.positions = new Array<Vector2>(numPositions);
         if(GameSettings.gameType == GameSettings.GameType.Frenzy) //Only initialize this list if we need it.
@@ -267,11 +264,6 @@ public class GameScreen implements Screen{
 
     private void draw(SpriteBatch batch){
         batch.setColor(Color.WHITE);
-        batch.draw(this.topTexture, Game.camera.position.x - Game.viewport.getWorldWidth()/2,
-                Game.camera.position.y + Game.viewport.getWorldHeight()/2 - Game.viewport.getWorldHeight()*this.topArea,
-                Gdx.graphics.getWidth(), Game.viewport.getWorldHeight()*this.topArea);
-
-
         this.drawParticles(batch, Gdx.graphics.getDeltaTime());
         this.drawShapes(batch);
     }

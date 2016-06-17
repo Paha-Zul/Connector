@@ -27,7 +27,6 @@ import com.google.android.gms.games.leaderboard.LeaderboardScore;
 import com.google.android.gms.games.leaderboard.LeaderboardVariant;
 import com.google.android.gms.games.leaderboard.Leaderboards;
 import com.google.example.games.basegameutils.GameHelper;
-import com.quickbite.connector2.gui.MainMenuGUI;
 
 public class AndroidLauncher extends AndroidApplication implements GameHelper.GameHelperListener, ActionResolver, AdInterface {
 	GameHelper gameHelper;
@@ -308,7 +307,6 @@ public class AndroidLauncher extends AndroidApplication implements GameHelper.Ga
                     scores.add(score.getDisplayScore());
                 }
 
-                MainMenuGUI.loadLeaderboardScores(ranks, names, scores);
             }
         });
 
@@ -320,7 +318,6 @@ public class AndroidLauncher extends AndroidApplication implements GameHelper.Ga
 					Gdx.app.debug("Leaderboard", "Leaderboard Timed out successfully");
 					pendingResult.cancel();
 					timeOutTimer.clear();
-                    MainMenuGUI.loadLeaderboardScores(null, null, null);
 				}
 			}
 		}, 0, 0.5f);

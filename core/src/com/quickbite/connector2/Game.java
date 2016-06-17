@@ -36,7 +36,7 @@ public class Game extends com.badlogic.gdx.Game {
 	public static AdInterface adInterface;
 
 
-	public static TextureAtlas shapeAtlas;
+	public static TextureAtlas shapeAtlas, UIAtlas;
 
 	public Game(ActionResolver actionResolver, AdInterface ads){
 		resolver = actionResolver;

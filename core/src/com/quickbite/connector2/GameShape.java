@@ -160,7 +160,7 @@ public class GameShape {
             if (GameSettings.matchType == GameSettings.MatchType.Shapes)
                 condition = this.getShapeType() == otherShape.getShapeType();
             else if (GameSettings.matchType == GameSettings.MatchType.Color)
-                condition = this.getColor() == otherShape.getColor();
+                condition = this.getColor().equals(otherShape.getColor());
         }
 
         return condition;
@@ -171,10 +171,16 @@ public class GameShape {
         if(!this.starting && !this.ending && !otherShape.starting && !otherShape.ending) {
             if (GameSettings.matchType == GameSettings.MatchType.Shapes)
                 condition = this.getShapeType() == otherShape.getShapeType();
-            else if (GameSettings.matchType == GameSettings.MatchType.Color)
-                condition = this.getColor() == otherShape.getColor();
+            else if (GameSettings.matchType == GameSettings.MatchType.Color) {
+                condition = this.getColor().equals(otherShape.getColor());
+            }
         }
 
         return condition;
+    }
+
+    @Override
+    public String toString() {
+        return shapeType+"/"+color;
     }
 }

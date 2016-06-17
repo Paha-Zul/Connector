@@ -1,8 +1,6 @@
 package com.quickbite.connector2.gui;
 
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Interpolation;
 import com.badlogic.gdx.scenes.scene2d.Action;
@@ -19,11 +17,11 @@ import com.badlogic.gdx.utils.Align;
 import com.quickbite.connector2.GH;
 import com.quickbite.connector2.Game;
 import com.quickbite.connector2.GameData;
-import com.quickbite.connector2.screens.GameScreen;
 import com.quickbite.connector2.GameSettings;
 import com.quickbite.connector2.GameStats;
-import com.quickbite.connector2.screens.MainMenu;
 import com.quickbite.connector2.SoundManager;
+import com.quickbite.connector2.screens.GameScreen;
+import com.quickbite.connector2.screens.MainMenu;
 
 import java.text.DecimalFormat;
 
@@ -48,7 +46,7 @@ public class GameScreenGUI {
     public static Label centerLabel; //This label is special. We will draw this one manually to the screen.
     private static Label startingColorType, startingMatchType, startingGameType;
     private static Table startingTable;
-    private static Image firstShape, secondShape, overlay;
+    private static Image firstShape, secondShape;
     private static float waitTime = 0;
     private static TextureRegion[] gameOverShapes;
     private static DecimalFormat formatter = new DecimalFormat("0.00");
@@ -71,19 +69,17 @@ public class GameScreenGUI {
 
         gameOverShapes = new TextureRegion[2];
 
-        Texture texture = Game.easyAssetManager.get("checkmark", Texture.class);
-        texture.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
+        TextureRegion texture = Game.UIAtlas.findRegion("checkmark");
         gameOverShapes[0] = new TextureRegion(texture);
 
-        texture = Game.easyAssetManager.get("X", Texture.class);
-        texture.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
+        texture = Game.UIAtlas.findRegion("X");
         gameOverShapes[1] = new TextureRegion(texture);
 
-        TextureRegion arrow = new TextureRegion(Game.easyAssetManager.get("leftArrow2", Texture.class));
+        TextureRegion arrow = new TextureRegion(Game.UIAtlas.findRegion("leftArrow2"));
 
         ImageButton.ImageButtonStyle imageButtonStyle = new ImageButton.ImageButtonStyle();
-        imageButtonStyle.up = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("buttonDark_up", Texture.class)));
-        imageButtonStyle.down = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("buttonDark_down", Texture.class)));
+        imageButtonStyle.up = new TextureRegionDrawable(new TextureRegion(Game.UIAtlas.findRegion("buttonDark_up")));
+        imageButtonStyle.down = new TextureRegionDrawable(new TextureRegion(Game.UIAtlas.findRegion("buttonDark_down")));
         imageButtonStyle.imageUp = new TextureRegionDrawable(arrow);
         imageButtonStyle.imageDown = new TextureRegionDrawable(arrow);
 
@@ -100,8 +96,8 @@ public class GameScreenGUI {
         backButton.getImageCell().pad(5f, 5f, 5f, 5f);
 
         TextButton.TextButtonStyle style = new TextButton.TextButtonStyle();
-        style.up = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("buttonDark_up", Texture.class)));
-        style.down = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("buttonDark_down", Texture.class)));
+        style.up = new TextureRegionDrawable(new TextureRegion(Game.UIAtlas.findRegion("buttonDark_up")));
+        style.down = new TextureRegionDrawable(new TextureRegion(Game.UIAtlas.findRegion("buttonDark_down")));
         style.font = Game.defaultHugeFont;
 
     /* The restartGame and main menu button for when the game ends */
@@ -204,11 +200,6 @@ public class GameScreenGUI {
         startingGameType.setAlignment(Align.center);
         startingGameType.setColor(1, 1, 1, 0);
         startingGameType.setFontScale(0.5f);
-
-        overlay = new Image(new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("whitePixel", Texture.class))));
-        overlay.setColor(0.1f, 0.1f, 0.1f, 1f);
-        overlay.setSize(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-        overlay.setPosition(0,0);
 
         Table shapeTable = new Table();
 

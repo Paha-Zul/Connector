@@ -14,6 +14,7 @@ import com.quickbite.connector2.SoundManager;
 
 /**
  * Created by Paha on 1/20/2016.
+ * Acts as the loading screen. Displays the company logo while loading assets.
  */
 public class LogoScreen implements Screen{
     private Game game;
@@ -55,6 +56,7 @@ public class LogoScreen implements Screen{
         if(assetsLoaded && logoDone){
             SoundManager.playMusic();
             Game.shapeAtlas = Game.easyAssetManager.get("shapes", TextureAtlas.class);
+            Game.UIAtlas = Game.easyAssetManager.get("UI", TextureAtlas.class);
             Game.defaultHugeFont = Game.easyAssetManager.get("default", BitmapFont.class);
             Game.defaultHugeFont.getRegion().getTexture().setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
             game.setScreen(new MainMenu(game));

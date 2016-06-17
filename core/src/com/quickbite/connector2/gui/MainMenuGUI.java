@@ -23,21 +23,19 @@ import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.utils.NinePatchDrawable;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Align;
-import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Timer;
+import com.quickbite.connector2.GH;
 import com.quickbite.connector2.Game;
 import com.quickbite.connector2.GameData;
-import com.quickbite.connector2.screens.GameScreen;
 import com.quickbite.connector2.GameSettings;
-import com.quickbite.connector2.screens.MainMenu;
 import com.quickbite.connector2.SoundManager;
+import com.quickbite.connector2.screens.GameScreen;
+import com.quickbite.connector2.screens.MainMenu;
 
 /**
  * Created by Paha on 5/2/2016.
  */
 public class MainMenuGUI {
-    private static MainMenuGUI instance;
-
     public static Table mainTable, leaderSelectionTable, choicesTable, leaderDisplayTable, mainMenuTable;
     public static Table infoTable;
 
@@ -46,12 +44,7 @@ public class MainMenuGUI {
     public static TextButton colorSame, colorRandom, matchShape, matchColor, modePractice, modeBest, modeTimed, modeFrenzy, startGame, infoButton;
     public static TextButton threeShapes, fourShapes, fiveShapes, sixShapes;
 
-    public static TextButton bestLeaderButton, timedLeaderButton;
-
     public static Image titleImage;
-
-    private static TextButton.TextButtonStyle darkButtonStyle, clearGreenSelectionStyle;
-    private static Label.LabelStyle bigLabelStyle;
 
     private static Game game;
     private static MainMenu mainMenu;
@@ -65,18 +58,6 @@ public class MainMenuGUI {
         leaderDisplayTable = new Table();
         leaderSelectionTable = new Table();
         mainMenuTable = new Table();
-
-        TextButton.TextButtonStyle regularStyle = new TextButton.TextButtonStyle();
-        regularStyle.up = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("buttonDark_up", Texture.class)));
-        regularStyle.down = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("buttonDark_down", Texture.class)));
-        regularStyle.font = Game.defaultHugeFont;
-        regularStyle.disabledFontColor = new Color(1, 1, 1, 0.5f);
-
-        TextButton.TextButtonStyle style = new TextButton.TextButtonStyle();
-        style.up = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("defaultButton_clear", Texture.class)));
-        style.down = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("defaultButton_green", Texture.class)));
-        style.checked = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("defaultButton_green", Texture.class)));
-        style.font = Game.defaultHugeFont;
 
         titleImage = new Image(Game.easyAssetManager.get("title", Texture.class));
 
@@ -92,18 +73,18 @@ public class MainMenuGUI {
     }
 
     private static void buildMainMenu(){
-        NinePatch patchUp = new NinePatch(Game.easyAssetManager.get("buttonDark_up9", Texture.class), 8, 8, 11, 7);
-        NinePatch patchDown = new NinePatch(Game.easyAssetManager.get("buttonDark_down9", Texture.class), 8, 8, 11, 7);
+        NinePatch patchUp = new NinePatch(Game.UIAtlas.findRegion("buttonDark_up9"), 8, 8, 11, 7);
+        NinePatch patchDown = new NinePatch(Game.UIAtlas.findRegion("buttonDark_down9"), 8, 8, 11, 7);
 
         ImageButton.ImageButtonStyle soundButtonStyle = new ImageButton.ImageButtonStyle();
         soundButtonStyle.up = new NinePatchDrawable(patchUp);
         soundButtonStyle.down = new NinePatchDrawable(patchDown);
-        soundButtonStyle.imageUp = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("soundIcon", Texture.class)));
+        soundButtonStyle.imageUp = new TextureRegionDrawable(Game.UIAtlas.findRegion("soundIcon"));
 
         ImageButton.ImageButtonStyle musicButtonStyle = new ImageButton.ImageButtonStyle();
         musicButtonStyle.up = new NinePatchDrawable(patchUp);
         musicButtonStyle.down = new NinePatchDrawable(patchDown);
-        musicButtonStyle.imageUp = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("musicIcon", Texture.class)));
+        musicButtonStyle.imageUp = new TextureRegionDrawable(Game.UIAtlas.findRegion("musicIcon"));
 
         TextButton.TextButtonStyle regularStyle = new TextButton.TextButtonStyle();
         regularStyle.up = new NinePatchDrawable(patchUp);
@@ -113,25 +94,28 @@ public class MainMenuGUI {
         regularStyle.disabledFontColor = new Color(1, 1, 1, 0.5f);
 
         ImageTextButton.ImageTextButtonStyle startStyle = new ImageTextButton.ImageTextButtonStyle();
-        startStyle.up = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("buttonDark_up", Texture.class)));
-        startStyle.down = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("buttonDark_down", Texture.class)));
-        startStyle.disabled = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("buttonDark_up", Texture.class)));
+        startStyle.up = new TextureRegionDrawable(Game.UIAtlas.findRegion("buttonDark_up"));
+        startStyle.down = new TextureRegionDrawable(Game.UIAtlas.findRegion("buttonDark_down"));
+        startStyle.disabled = new TextureRegionDrawable(Game.UIAtlas.findRegion("buttonDark_up"));
         startStyle.font = Game.defaultHugeFont;
         startStyle.fontColor = Color.WHITE;
         startStyle.disabledFontColor = new Color(1, 1, 1, 0.5f);
-        startStyle.imageUp = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("startIcon", Texture.class)));
+        startStyle.imageUp = new TextureRegionDrawable(Game.UIAtlas.findRegion("startIcon"));
 
         ImageTextButton.ImageTextButtonStyle leaderboardButtonStyle = new ImageTextButton.ImageTextButtonStyle(startStyle);
-        leaderboardButtonStyle.imageUp = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("leaderboardIcon", Texture.class)));
+        leaderboardButtonStyle.imageUp = new TextureRegionDrawable(Game.UIAtlas.findRegion("leaderboardIcon"));
 
         ImageTextButton.ImageTextButtonStyle loginStyle = new ImageTextButton.ImageTextButtonStyle(startStyle);
-        loginStyle.imageUp = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("googlePlayGamesIcon", Texture.class)));
+        loginStyle.imageUp = new TextureRegionDrawable(Game.UIAtlas.findRegion("googlePlayGamesIcon"));
 
         infoButton = new TextButton("?", regularStyle);
         infoButton.getLabel().setFontScale(0.5f);
 
         final ImageButton toggleSound = new ImageButton(soundButtonStyle);
+        toggleSound.getImage().setColor(GameData.colorMap.get("Blue"));
+
         final ImageButton toggleMusic = new ImageButton(musicButtonStyle);
+        toggleMusic.getImage().setColor(GameData.colorMap.get("Orange"));
 
         start = new ImageTextButton("Start", startStyle);
         start.getLabel().setFontScale(0.4f);
@@ -205,7 +189,7 @@ public class MainMenuGUI {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
                 if(toggleMusic.isChecked()){
-                    toggleMusic.getImage().getColor().a = 0.5f;
+                    toggleMusic.getImage().getColor().a = 0.3f;
                     SoundManager.setMusicOn(false);
                 }else{
                     toggleMusic.getImage().getColor().a = 1f;
@@ -218,7 +202,7 @@ public class MainMenuGUI {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
                 if(toggleSound.isChecked()){
-                    toggleSound.getImage().getColor().a = 0.5f;
+                    toggleSound.getImage().getColor().a = 0.3f;
                     SoundManager.setSoundsOn(false);
                 }else{
                     toggleSound.getImage().getColor().a = 1f;
@@ -226,6 +210,9 @@ public class MainMenuGUI {
                 }
             }
         });
+
+        toggleSound.setChecked(!SoundManager.isSoundsOn());
+        toggleMusic.setChecked(!SoundManager.isMusicOn());
     }
 
     public static void changeLoginButton(boolean loggedIn){
@@ -244,34 +231,35 @@ public class MainMenuGUI {
         choicesTable = new Table();
 
         TextButton.TextButtonStyle regularStyle = new TextButton.TextButtonStyle();
-        regularStyle.up = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("buttonDark_up", Texture.class)));
-        regularStyle.down = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("buttonDark_down", Texture.class)));
+        regularStyle.up = new TextureRegionDrawable(Game.UIAtlas.findRegion("buttonDark_up"));
+        regularStyle.down = new TextureRegionDrawable(Game.UIAtlas.findRegion("buttonDark_down"));
         regularStyle.font = Game.defaultHugeFont;
         regularStyle.disabledFontColor = new Color(1, 1, 1, 0.5f);
         regularStyle.disabledFontColor = new Color(0.5f, 0.5f, 0.5f, 0.5f);
 
         TextButton.TextButtonStyle numShapesButtonStyle = new TextButton.TextButtonStyle();
-        numShapesButtonStyle.up = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("defaultButton_clear", Texture.class)));
-        numShapesButtonStyle.checked = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("pixelGreen", Texture.class)));
+        numShapesButtonStyle.checked = new TextureRegionDrawable(new TextureRegion(GH.createPixel(new Color(Color.GREEN.r, Color.GREEN.g, Color.GREEN.b, 0.7f))));
         numShapesButtonStyle.font = Game.defaultHugeFont;
         numShapesButtonStyle.disabledFontColor = new Color(0.5f, 0.5f, 0.5f, 0.5f);
         numShapesButtonStyle.fontColor = Color.WHITE;
 
         TextButton.TextButtonStyle colorButtonStyle = new TextButton.TextButtonStyle(numShapesButtonStyle);
-        colorButtonStyle.checked = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("pixelGold", Texture.class)));
+        colorButtonStyle.checked = new TextureRegionDrawable(new TextureRegion(GH.createPixel(new Color(Color.GOLD.r, Color.GOLD.g, Color.GOLD.b, 0.7f))));
 
         TextButton.TextButtonStyle matchButtonStyle = new TextButton.TextButtonStyle(numShapesButtonStyle);
-        matchButtonStyle.checked = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("pixelRed", Texture.class)));
+        matchButtonStyle.checked = new TextureRegionDrawable(new TextureRegion(GH.createPixel(new Color(Color.RED.r, Color.RED.g, Color.RED.b, 0.7f))));
 
+        Color blue = GameData.colorMap.get("Blue");
+        blue.a = 0.7f;
         TextButton.TextButtonStyle modeButtonStyle = new TextButton.TextButtonStyle(numShapesButtonStyle);
-        modeButtonStyle.checked = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("pixelBlue", Texture.class)));
+        modeButtonStyle.checked = new TextureRegionDrawable(new TextureRegion(GH.createPixel(blue)));
 
 
         TextButton.TextButtonStyle buttonStyle = new  TextButton.TextButtonStyle();
         buttonStyle.font = Game.defaultHugeFont;
-        buttonStyle.up = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("buttonDark_up", Texture.class)));
-        buttonStyle.over = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("buttonDark_up", Texture.class)));
-        buttonStyle.down = new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("buttonDark_down", Texture.class)));
+        buttonStyle.up = new TextureRegionDrawable(Game.UIAtlas.findRegion("buttonDark_up"));
+        buttonStyle.over = new TextureRegionDrawable(Game.UIAtlas.findRegion("buttonDark_up"));
+        buttonStyle.down = new TextureRegionDrawable(Game.UIAtlas.findRegion("buttonDark_down"));
 
         TextButton backButton = new TextButton("Back", buttonStyle);
         backButton.getLabel().setFontScale(0.4f);
@@ -543,19 +531,19 @@ public class MainMenuGUI {
         modeLabel.setAlignment(Align.center);
         modeLabel.setFontScale(0.35f);
 
-        Image greenBackground = new Image(Game.easyAssetManager.get("pixelWhite", Texture.class));
+        Image greenBackground = new Image(GH.whitePixel);
         greenBackground.setColor(Color.GREEN);
         greenBackground.getColor().a = 0.75f;
 
-        Image redBackground = new Image(Game.easyAssetManager.get("pixelWhite", Texture.class));
+        Image redBackground = new Image(GH.whitePixel);
         redBackground.setColor(Color.RED);
         redBackground.getColor().a = 0.75f;
 
-        Image goldBackground = new Image(Game.easyAssetManager.get("pixelWhite", Texture.class));
+        Image goldBackground = new Image(GH.whitePixel);
         goldBackground.setColor(Color.GOLD);
         goldBackground.getColor().a = 0.75f;
 
-        Image blueBackground = new Image(Game.easyAssetManager.get("pixelWhite", Texture.class));
+        Image blueBackground = new Image(GH.whitePixel);
         blueBackground.setColor(56f/255f, 122f/255f, 244f/255f, 0.75f);
 
         Stack numShapesStack = new Stack(greenBackground, numShapesLabel);
@@ -737,62 +725,6 @@ public class MainMenuGUI {
         checkAllOptionsSelected();
     }
 
-    /**
-     * Takes in information and creates a mainTable layout with the information.
-     * @param ranks The ranks.
-     * @param names The names.
-     * @param scores The scores.
-     */
-    public static void loadLeaderboardScores(Array<String> ranks, Array<String> names, Array<String> scores){
-        if(ranks == null || names == null || scores == null){
-            mainTable.clear();
-            mainTable.add(leaderSelectionTable);
-            return;
-        }
-
-        mainTable.clear();
-        leaderDisplayTable.clear();
-
-        Table innerTable = new Table();
-        Label.LabelStyle style = new Label.LabelStyle(Game.defaultHugeFont, Color.WHITE);
-
-        innerTable.add(new Label("Rank", style));
-        innerTable.add().padRight(10);
-        innerTable.add(new Label("Name", style));
-        innerTable.add().padRight(10);
-        innerTable.add(new Label("Score", style));
-        innerTable.row().padTop(20);
-
-        for(int i=0;i<names.size;i++){
-            Label rank = new Label(ranks.get(i), style);
-            Label name = new Label(names.get(i), style);
-            Label score = new Label(scores.get(i), style);
-
-            innerTable.add(rank);
-            innerTable.add().padRight(10);
-            innerTable.add(name);
-            innerTable.add().padRight(10);
-            innerTable.add(score);
-            innerTable.row();
-        }
-
-        TextButton backButton = new TextButton("Back", darkButtonStyle);
-        backButton.addListener(new ChangeListener() {
-            @Override
-            public void changed(ChangeEvent event, Actor actor) {
-                mainTable.clear();
-                mainTable.add(leaderSelectionTable); // Go back to the selection mainTable.
-            }
-        });
-
-        leaderDisplayTable.add(innerTable);
-        leaderDisplayTable.row().padTop(50);
-        leaderDisplayTable.add(backButton);
-
-        mainTable.add(leaderDisplayTable);
-        //leaderSelectionTable.debugAll();
-    }
-
     public static void makeInfoPage(){
         infoTable = new Table();
         infoTable.setFillParent(true);
@@ -820,7 +752,7 @@ public class MainMenuGUI {
 
         TextButton.TextButtonStyle buttonStyle = new TextButton.TextButtonStyle();
         buttonStyle.font = Game.defaultHugeFont;
-        buttonStyle.up = new NinePatchDrawable(new NinePatch(Game.easyAssetManager.get("buttonDark_up9", Texture.class), 8, 8, 11, 7));
+        buttonStyle.up = new NinePatchDrawable(new NinePatch(Game.UIAtlas.findRegion("buttonDark_up9"), 8, 8, 11, 7));
 
         TextButton backButton = new TextButton("Back", buttonStyle);
         backButton.getLabel().setFontScale(0.3f);
@@ -860,7 +792,7 @@ public class MainMenuGUI {
         clickSoundBy.setWrap(true);
         clickSoundBy.setAlignment(Align.center);
 
-        Label popSoundBy = new Label("'3 Popping Pops' by Eternitys\n (on freesound.org) / CC BY 1.0", style);
+        Label popSoundBy = new Label("'3 Popping Pops' by wubitog\n (on freesound.org) / CC BY 1.0", style);
         popSoundBy.setFontScale(fontScale);
         popSoundBy.setWrap(true);
         popSoundBy.setAlignment(Align.center);
@@ -904,7 +836,7 @@ public class MainMenuGUI {
         innerTable.row();
         innerTable.add(backButton).size(150f, 50f);
 
-        infoTable.setBackground(new TextureRegionDrawable(new TextureRegion(Game.easyAssetManager.get("pixelDark", Texture.class))));
+        infoTable.setBackground(new TextureRegionDrawable(new TextureRegion(GH.createPixel(Color.BLACK))));
         infoTable.add(scrollPane).expand().fill();
         infoTable.setPosition(Game.viewport.getWorldWidth(), 0f);
 

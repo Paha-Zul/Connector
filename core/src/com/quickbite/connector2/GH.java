@@ -1,11 +1,15 @@
 package com.quickbite.connector2;
 
+import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.Pixmap;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.math.MathUtils;
 
 /**
  * Created by Paha on 1/24/2016.
  */
 public class GH {
+    public static Texture whitePixel = createPixel(Color.WHITE);
 
     /**
      * Lerps a float value from start to target.
@@ -51,6 +55,20 @@ public class GH {
             ar[index] = ar[i];
             ar[i] = a;
         }
+    }
+
+    public static Texture createPixel(Color color){
+        return createPixel(color, 1, 1);
+    }
+
+    public static Texture createPixel(Color color, int width, int height) {
+        Pixmap pixmap = new Pixmap(width, height, Pixmap.Format.RGBA8888);
+        pixmap.setColor(color.r, color.g, color.b, color.a);
+        pixmap.fillRectangle( 0, 0, width, height );
+        Texture pixmaptex = new Texture(pixmap);
+        pixmap.dispose();
+
+        return pixmaptex;
     }
 
 }

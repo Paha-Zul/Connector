@@ -76,7 +76,6 @@ public class GameData {
         gameShapeList = new Array<GameShape>();
     }
 
-
     public static class Padding{
         private float top, right, bottom, left;
 
