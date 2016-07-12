@@ -71,6 +71,11 @@ public class DesktopLauncher implements ActionResolver, AdInterface {
 	}
 
 	@Override
+	public void submitEvent(String eventID) {
+		System.out.println("Submitting for eventID "+eventID);
+	}
+
+	@Override
 	public void showAdmobBannerAd() {
 		System.out.println("Showing banner");
 	}

@@ -35,6 +35,7 @@ public class AndroidLauncher extends AndroidApplication implements GameHelper.Ga
 	private View gameView;
 	private AdListener adListener;
 	private InterstitialAd interstitialAd;
+	private boolean showingBannerAd = false;
 
 	@Override
 	protected void onCreate (Bundle savedInstanceState) {
@@ -67,6 +68,19 @@ public class AndroidLauncher extends AndroidApplication implements GameHelper.Ga
 		fLayout.setLayoutParams(fParams);
 
 		AdView admobView = createAdView();
+		admobView.setAdListener(new AdListener() {
+			@Override
+			public void onAdLoaded() {
+				if(showingBannerAd){
+//					runOnUiThread(new Runnable() {
+//						@Override
+//						public void run() {
+//							adView.setVisibility(View.VISIBLE);
+//						}
+//					});
+				}
+			}
+		});
 
 		View gameView = createGameView(cfg, game);
 
@@ -81,11 +95,9 @@ public class AndroidLauncher extends AndroidApplication implements GameHelper.Ga
 		interstitialAd.setAdListener(new AdListener() {
 			@Override
 			public void onAdLoaded() {
-//				Toast.makeText(getApplicationContext(), "Finished Loading Interstitial", Toast.LENGTH_SHORT).show();
 			}
 			@Override
 			public void onAdClosed() {
-//				Toast.makeText(getApplicationContext(), "Closed Interstitial", Toast.LENGTH_SHORT).show();
                 AdRequest interstitialRequest = new AdRequest.Builder().build();
                 interstitialAd.loadAd(interstitialRequest);
 				SoundManager.playMusic();
@@ -123,6 +135,7 @@ public class AndroidLauncher extends AndroidApplication implements GameHelper.Ga
 
 	@Override
 	public void showAdmobBannerAd() {
+		showingBannerAd = true;
 		runOnUiThread(new Runnable() {
 			@Override
 			public void run() {
@@ -133,6 +146,7 @@ public class AndroidLauncher extends AndroidApplication implements GameHelper.Ga
 
 	@Override
 	public void hideAdmobBannerAd() {
+		showingBannerAd = false;
 		runOnUiThread(new Runnable() {
 			@Override
 			public void run() {
@@ -327,6 +341,11 @@ public class AndroidLauncher extends AndroidApplication implements GameHelper.Ga
 	@Override
 	public void getTopLeaderboardScores(String leaderboardID, int timeSpan, int numScores) {
 		Games.Leaderboards.loadTopScores(gameHelper.getApiClient(), leaderboardID, timeSpan, LeaderboardVariant.COLLECTION_PUBLIC, 10);
+	}
+
+	@Override
+	public void submitEvent(String eventID) {
+		Games.Events.increment(gameHelper.getApiClient(), eventID, 1);
 	}
 
 	@Override

@@ -14,5 +14,5 @@ public class GameStats {
     public static double startTime, endTime, bestTime, avgTime;
     public static boolean failedLastRound;
     public static RoundOver roundOverReason;
-    public static int numberTimesWentBackToMainMenu = 0, numberTimesMainMenuBetweenInterAd = 2;
+    public static int numberTimesWentBackToMainMenu = 1, numberTimesMainMenuBetweenInterAd = 2;
 }

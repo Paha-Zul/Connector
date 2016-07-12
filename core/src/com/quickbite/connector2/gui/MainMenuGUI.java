@@ -24,6 +24,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.NinePatchDrawable;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.Timer;
+import com.quickbite.connector2.Constants;
 import com.quickbite.connector2.GH;
 import com.quickbite.connector2.Game;
 import com.quickbite.connector2.GameData;
@@ -39,8 +40,7 @@ public class MainMenuGUI {
     public static Table mainTable, leaderSelectionTable, choicesTable, leaderDisplayTable, mainMenuTable;
     public static Table infoTable;
 
-    public static TextButton quit;
-    public static ImageTextButton leaderboards, loginGPG, start;
+    public static ImageTextButton leaderboards, loginGPG, start, quit;
     public static TextButton colorSame, colorRandom, matchShape, matchColor, modePractice, modeBest, modeTimed, modeFrenzy, startGame, infoButton;
     public static TextButton threeShapes, fourShapes, fiveShapes, sixShapes;
 
@@ -105,6 +105,9 @@ public class MainMenuGUI {
         ImageTextButton.ImageTextButtonStyle leaderboardButtonStyle = new ImageTextButton.ImageTextButtonStyle(startStyle);
         leaderboardButtonStyle.imageUp = new TextureRegionDrawable(Game.UIAtlas.findRegion("leaderboardIcon"));
 
+        ImageTextButton.ImageTextButtonStyle quitButtonStyle = new ImageTextButton.ImageTextButtonStyle(startStyle);
+        quitButtonStyle.imageUp = new TextureRegionDrawable(Game.UIAtlas.findRegion("X"));
+
         ImageTextButton.ImageTextButtonStyle loginStyle = new ImageTextButton.ImageTextButtonStyle(startStyle);
         loginStyle.imageUp = new TextureRegionDrawable(Game.UIAtlas.findRegion("googlePlayGamesIcon"));
 
@@ -138,10 +141,14 @@ public class MainMenuGUI {
         loginGPG.getImageCell().left();
         loginGPG.getImage().setColor(Color.GREEN);
 
-        changeLoginButton(Game.resolver.getSignedInGPGS());
+        quit = new ImageTextButton("Quit", quitButtonStyle);
+        quit.getLabel().setFontScale(0.4f);
+        quit.getLabelCell().fillX().expandX();
+        quit.getImageCell().size(64f, 64f);
+        quit.getImageCell().left();
+        quit.getImage().setColor(Color.RED);
 
-        quit = new TextButton("Quit", regularStyle);
-        quit.getLabel().setFontScale(0.3f);
+        changeLoginButton(Game.resolver.getSignedInGPGS());
 
         Table iconTable = new Table();
         Table buttonTable = new Table();
@@ -152,12 +159,12 @@ public class MainMenuGUI {
         iconTable.add(toggleMusic).padRight(5f).size(45f);
 
         buttonTable.add(start).size(200, 75);
-        buttonTable.row().padTop(40);
+        buttonTable.row().padTop(20);
         buttonTable.add(loginGPG).size(200, 75);
-        buttonTable.row().padTop(40);
+        buttonTable.row().padTop(20);
         buttonTable.add(leaderboards).size(200, 75);
-//        buttonTable.row().padTop(40);
-//        buttonTable.add(quit).size(150, 40).colspan(2);
+        buttonTable.row().padTop(20);
+        buttonTable.add(quit).size(200, 75);
 //        buttonTable.debugAll();
 
         mainMenuTable.top();
@@ -165,7 +172,7 @@ public class MainMenuGUI {
         mainMenuTable.add(iconTable).fillX();
         mainMenuTable.row().padTop(50);
         mainMenuTable.add(titleImage);
-        mainMenuTable.row().padTop(150);
+        mainMenuTable.row().padTop(50);
         mainMenuTable.add(buttonTable);
 
 //        mainMenuTable.debugAll();
@@ -182,6 +189,7 @@ public class MainMenuGUI {
             public void changed(ChangeEvent event, Actor actor) {
                 infoTable.addAction(Actions.moveTo(0f, 0f, 0.4f, Interpolation.circleOut));
                 SoundManager.playSound("click");
+                Game.resolver.submitEvent(Constants.EVENT_CHECKEDINFO);
             }
         });
 
@@ -195,6 +203,8 @@ public class MainMenuGUI {
                     toggleMusic.getImage().getColor().a = 1f;
                     SoundManager.setMusicOn(true);
                 }
+
+                Game.resolver.submitEvent(Constants.EVENT_TOGGLEDMUSIC);
             }
         });
 
@@ -208,6 +218,8 @@ public class MainMenuGUI {
                     toggleSound.getImage().getColor().a = 1f;
                     SoundManager.setSoundsOn(true);
                 }
+
+                Game.resolver.submitEvent(Constants.EVENT_TOGGLEDSOUND);
             }
         });
 
@@ -327,6 +339,7 @@ public class MainMenuGUI {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
                 SoundManager.playSound("click");
+                Game.resolver.submitEvent(Constants.EVENT_QUIT);
                 Gdx.app.exit();
             }
         });
@@ -334,10 +347,9 @@ public class MainMenuGUI {
         leaderboards.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
-//                mainTable.clear();
                 Game.resolver.getLeaderboardGPGS("DoesntMatter");
                 SoundManager.playSound("click");
-//                mainTable.add(leaderSelectionTable);
+                Game.resolver.submitEvent(Constants.EVENT_CHECKEDLEADERBOARDS);
             }
         });
 
@@ -350,6 +362,7 @@ public class MainMenuGUI {
                     Game.resolver.logoutGPGS();
 
                 SoundManager.playSound("click");
+                Game.resolver.submitEvent(Constants.EVENT_LOGGEDIN);
             }
         });
 
@@ -617,6 +630,7 @@ public class MainMenuGUI {
                 game.setScreen(new GameScreen(game));
                 Timer.instance().clear();
                 GameData.reset(); //Reset the data from the main menu fanciness
+                GH.incrementGameSettingsEvent();
                 return true;
             }
         }));

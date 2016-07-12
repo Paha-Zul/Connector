@@ -14,4 +14,5 @@ public interface ActionResolver {
     void getLeaderboardScore(String leaderboardID, int timeSpan);
     void getCenteredLeaderboardScore(String leaderboardID, int timeSpan, int leaderboardType, float timeoutSeconds);
     void getTopLeaderboardScores(String leaderboardID, int timeSpan, int numScores);
+    void submitEvent(String eventID);
 }

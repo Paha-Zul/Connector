@@ -71,4 +71,44 @@ public class GH {
         return pixmaptex;
     }
 
+    public static void incrementGameSettingsEvent(){
+        String ID = "";
+        switch(GameSettings.gameType){
+            case Practice:
+                ID = Constants.EVENT_PRACTICE;
+                break;
+            case Fastest:
+                ID = Constants.EVENT_BEST;
+                break;
+            case Timed:
+                ID = Constants.EVENT_TIMED;
+                break;
+            case Frenzy:
+                ID = Constants.EVENT_FRENZY;
+                break;
+            case Nothing:
+                break;
+        }
+
+        Game.resolver.submitEvent(ID);
+
+        ID = "";
+        switch(GameSettings.numShapes){
+            case 3:
+                ID = Constants.EVENT_3;
+                break;
+            case 4:
+                ID = Constants.EVENT_4;
+                break;
+            case 5:
+                ID = Constants.EVENT_5;
+                break;
+            case 6:
+                ID = Constants.EVENT_6;
+                break;
+        }
+
+        Game.resolver.submitEvent(ID);
+    }
+
 }
