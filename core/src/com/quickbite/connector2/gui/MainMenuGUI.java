@@ -9,6 +9,7 @@ import com.badlogic.gdx.math.Interpolation;
 import com.badlogic.gdx.scenes.scene2d.Action;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
+import com.badlogic.gdx.scenes.scene2d.Touchable;
 import com.badlogic.gdx.scenes.scene2d.actions.Actions;
 import com.badlogic.gdx.scenes.scene2d.ui.ButtonGroup;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
@@ -40,18 +41,25 @@ public class MainMenuGUI {
     public static Table mainTable, leaderSelectionTable, choicesTable, leaderDisplayTable, mainMenuTable;
     public static Table infoTable;
 
-    public static ImageTextButton leaderboards, loginGPG, start, quit;
-    public static TextButton colorSame, colorRandom, matchShape, matchColor, modePractice, modeBest, modeTimed, modeFrenzy, startGame, infoButton;
-    public static TextButton threeShapes, fourShapes, fiveShapes, sixShapes;
+    private static ImageTextButton leaderboards, loginGPG, start, quit;
+    private static TextButton colorSame, colorRandom, matchShape, matchColor, modePractice, modeBest, modeTimed, modeFrenzy, startGame, infoButton;
+    private static TextButton threeShapes, fourShapes, fiveShapes, sixShapes;
+    private static Stack noAdsButtonStack;
 
     public static Image titleImage;
 
     private static Game game;
     private static MainMenu mainMenu;
 
+    private static NinePatch patchUp;
+    private static NinePatch patchDown;
+
     public static void makeGUI(final Game game, final MainMenu mainMenu){
         MainMenuGUI.game = game;
         MainMenuGUI.mainMenu = mainMenu;
+
+        patchUp = new NinePatch(Game.UIAtlas.findRegion("buttonDark_up9"), 8, 8, 11, 7);
+        patchDown = new NinePatch(Game.UIAtlas.findRegion("buttonDark_down9"), 8, 8, 11, 7);
 
         mainTable = new Table();
 
@@ -73,9 +81,6 @@ public class MainMenuGUI {
     }
 
     private static void buildMainMenu(){
-        NinePatch patchUp = new NinePatch(Game.UIAtlas.findRegion("buttonDark_up9"), 8, 8, 11, 7);
-        NinePatch patchDown = new NinePatch(Game.UIAtlas.findRegion("buttonDark_down9"), 8, 8, 11, 7);
-
         ImageButton.ImageButtonStyle soundButtonStyle = new ImageButton.ImageButtonStyle();
         soundButtonStyle.up = new NinePatchDrawable(patchUp);
         soundButtonStyle.down = new NinePatchDrawable(patchDown);
@@ -85,6 +90,12 @@ public class MainMenuGUI {
         musicButtonStyle.up = new NinePatchDrawable(patchUp);
         musicButtonStyle.down = new NinePatchDrawable(patchDown);
         musicButtonStyle.imageUp = new TextureRegionDrawable(Game.UIAtlas.findRegion("musicIcon"));
+
+        TextButton.TextButtonStyle removeButtonStyle = new TextButton.TextButtonStyle();
+        removeButtonStyle.up = new NinePatchDrawable(patchUp);
+        removeButtonStyle.down = new NinePatchDrawable(patchDown);
+        removeButtonStyle.font = Game.defaultHugeFont;
+        removeButtonStyle.fontColor = Color.WHITE;
 
         TextButton.TextButtonStyle regularStyle = new TextButton.TextButtonStyle();
         regularStyle.up = new NinePatchDrawable(patchUp);
@@ -120,6 +131,14 @@ public class MainMenuGUI {
         final ImageButton toggleMusic = new ImageButton(musicButtonStyle);
         toggleMusic.getImage().setColor(GameData.colorMap.get("Orange"));
 
+        final TextButton removeAdsButton = new TextButton("Ads", removeButtonStyle);
+        removeAdsButton.getLabel().setFontScale(0.2f);
+        final Image image = new Image(new TextureRegionDrawable(Game.UIAtlas.findRegion("no")));
+        image.setSize(40f, 40f);
+        image.setTouchable(Touchable.disabled);
+
+        noAdsButtonStack = new Stack(removeAdsButton, image);
+
         start = new ImageTextButton("Start", startStyle);
         start.getLabel().setFontScale(0.4f);
         start.getLabelCell().fillX().expandX();
@@ -153,11 +172,14 @@ public class MainMenuGUI {
         Table iconTable = new Table();
         Table buttonTable = new Table();
 
+        //The info button, remove ads, toggle sound/music buttons.
         iconTable.add(infoButton).left().padLeft(5f).size(45f);
         iconTable.add().expandX().fillX();
+        if(Game.adInterface.showAds()) iconTable.add(noAdsButtonStack).padRight(10f).size(45f);
         iconTable.add(toggleSound).padRight(10f).size(45f);
         iconTable.add(toggleMusic).padRight(5f).size(45f);
 
+        //The main set of buttons.
         buttonTable.add(start).size(200, 75);
         buttonTable.row().padTop(20);
         buttonTable.add(loginGPG).size(200, 75);
@@ -165,17 +187,15 @@ public class MainMenuGUI {
         buttonTable.add(leaderboards).size(200, 75);
         buttonTable.row().padTop(20);
         buttonTable.add(quit).size(200, 75);
-//        buttonTable.debugAll();
 
         mainMenuTable.top();
 
+        //Laying out the icon table, title, and main buttons.
         mainMenuTable.add(iconTable).fillX();
         mainMenuTable.row().padTop(50);
         mainMenuTable.add(titleImage);
         mainMenuTable.row().padTop(50);
         mainMenuTable.add(buttonTable);
-
-//        mainMenuTable.debugAll();
 
         mainTable.add(mainMenuTable);
         mainTable.setFillParent(true);
@@ -223,8 +243,80 @@ public class MainMenuGUI {
             }
         });
 
+        removeAdsButton.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                SoundManager.playSound("click");
+                setupBuyNoAds();
+            }
+        });
+
         toggleSound.setChecked(!SoundManager.isSoundsOn());
         toggleMusic.setChecked(!SoundManager.isMusicOn());
+    }
+
+    private static void setupBuyNoAds(){
+        final Table table = new Table();
+        final Table innerTable = new Table();
+
+        final Label.LabelStyle labelStyle = new Label.LabelStyle(Game.defaultHugeFont, Color.WHITE);
+
+        final TextButton.TextButtonStyle buttonStyle = new TextButton.TextButtonStyle();
+        buttonStyle.up = new NinePatchDrawable(patchUp);
+        buttonStyle.down = new NinePatchDrawable(patchDown);
+        buttonStyle.font = Game.defaultHugeFont;
+        buttonStyle.fontColor = Color.WHITE;
+
+        final Label descLabel = new Label("Do you want to pay $0.99 to support the developer and remove ads from the game?", labelStyle);
+        descLabel.setWrap(true);
+        descLabel.setFontScale(0.4f);
+        descLabel.setAlignment(Align.center);
+
+        final TextButton yes = new TextButton("Yes!", buttonStyle);
+        yes.getLabel().setAlignment(Align.center);
+        yes.getLabel().setFontScale(0.4f);
+
+        final TextButton no = new TextButton("No!", buttonStyle);
+        no.getLabel().setFontScale(0.4f);
+
+        innerTable.row();
+        innerTable.add(descLabel).expandX().fillX().colspan(2).pad(0f, 10f, 0f, 10f);
+        innerTable.row().spaceTop(50f);
+        innerTable.add(yes).size(100f, 50f).expandX();
+        innerTable.add(no).size(100f, 50f).expandX();
+        innerTable.row();
+
+        table.add(innerTable).expandX().fillX();
+        table.setFillParent(true);
+        table.setTouchable(Touchable.enabled); //This makes it so things behind the table can't be clicked.
+
+        table.background(new TextureRegionDrawable(new TextureRegion(GH.createPixel(new Color(0.1f, 0.1f, 0.1f, 0.9f)))));
+
+        yes.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                //Do stuff
+                SoundManager.playSound("click");
+                Game.resolver.purchaseNoAds();
+                table.remove();
+            }
+        });
+
+        no.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                //?
+                SoundManager.playSound("click");
+                table.remove();
+            }
+        });
+
+//        table.debugAll();
+        Game.stage.addActor(table);
+    }
+
+    public static void removeNoAdsButton(){
+        noAdsButtonStack.remove();
     }
 
     public static void changeLoginButton(boolean loggedIn){
@@ -362,7 +454,6 @@ public class MainMenuGUI {
                     Game.resolver.logoutGPGS();
 
                 SoundManager.playSound("click");
-                Game.resolver.submitEvent(Constants.EVENT_LOGGEDIN);
             }
         });
 
