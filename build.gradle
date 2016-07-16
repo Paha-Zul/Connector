@@ -23,7 +23,9 @@ allprojects {
         box2DLightsVersion = '1.4'
         ashleyVersion = '1.7.0'
         aiVersion = '1.7.0'
-        adMobVersion = '8.4.0'
+        adMobVersion = '9.2.0'
+        googleServicesVersion = '9.2.0'
+        gdxPayVersion = '0.9.0'
     }
 
     repositories {
@@ -43,6 +45,8 @@ project(":desktop") {
         compile "com.badlogicgames.gdx:gdx-box2d-platform:$gdxVersion:natives-desktop"
         compile "com.badlogicgames.gdx:gdx-freetype-platform:$gdxVersion:natives-desktop"
         compile "com.badlogicgames.gdx:gdx-tools:$gdxVersion"
+
+//        compile "com.badlogicgames.gdxpay:gdx-pay-desktop-apple:$gdxPayVersion"
     }
 }
 
@@ -68,11 +72,14 @@ project(":android") {
         natives "com.badlogicgames.gdx:gdx-freetype-platform:$gdxVersion:natives-armeabi"
         natives "com.badlogicgames.gdx:gdx-freetype-platform:$gdxVersion:natives-armeabi-v7a"
         natives "com.badlogicgames.gdx:gdx-freetype-platform:$gdxVersion:natives-x86"
-        compile 'com.android.support:appcompat-v7:+'
-        compile 'com.android.support:support-v4:+'
-        compile 'com.google.android.gms:play-services-games:+'
+//        compile 'com.android.support:appcompat-v7:$googleServicesVersion'
+//        compile 'com.android.support:support-v4:$googleServicesVersion'
+        compile "com.google.android.gms:play-services-games:$googleServicesVersion"
         compile "com.google.android.gms:play-services-ads:$adMobVersion"
-//        files('libs/chartboost.jar')
+
+//        compile "com.badlogicgames.gdxpay:gdx-pay-android:$gdxPayVersion"
+//        compile "com.badlogicgames.gdxpay:gdx-pay-android-openiab:$gdxPayVersion"
+//        compile "com.badlogicgames.gdxpay:gdx-pay-android-ouya:$gdxPayVersion"
     }
 
 }
@@ -89,6 +96,9 @@ project(":ios") {
         compile "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-ios"
         compile "com.badlogicgames.gdx:gdx-box2d-platform:$gdxVersion:natives-ios"
         compile "com.badlogicgames.gdx:gdx-freetype-platform:$gdxVersion:natives-ios"
+
+//        compile "com.badlogicgames.gdxpay:gdx-pay-iosrobovm-apple:$gdxPayVersion"
+
     }
 }
 
@@ -118,6 +128,8 @@ project(":core") {
         compile "com.badlogicgames.gdx:gdx-freetype:$gdxVersion"
         compile "net.dermetfan.libgdx-utils:libgdx-utils:0.13.2"
         compile "net.dermetfan.libgdx-utils:libgdx-utils-box2d:0.13.2"
+
+//        compile "com.badlogicgames.gdxpay:gdx-pay-client:$gdxPayVersion"
     }
 }
 

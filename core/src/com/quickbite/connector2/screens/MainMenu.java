@@ -9,8 +9,10 @@ import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.TimeUtils;
 import com.badlogic.gdx.utils.Timer;
+import com.quickbite.connector2.GH;
 import com.quickbite.connector2.Game;
 import com.quickbite.connector2.GameData;
+import com.quickbite.connector2.GameSettings;
 import com.quickbite.connector2.GameShape;
 import com.quickbite.connector2.ICallback;
 import com.quickbite.connector2.gui.MainMenuGUI;
@@ -31,6 +33,10 @@ public class MainMenu implements Screen {
     public void show() {
         MainMenuGUI.makeGUI(game, this);
         GameData.reset();
+
+        setupPurchases();
+
+//        testScores();
 
         //We put this here to reset the input processor from the GameScreen
         // when we come back to the main menu.
@@ -62,6 +68,87 @@ public class MainMenu implements Screen {
                 GameData.gameShapeList.add(shape1);
             }
         }, 0f, 1f);
+    }
+
+    private void setupPurchases(){
+//        PurchaseSystem.onAppRestarted();
+//
+//        if (PurchaseSystem.hasManager()) {
+//
+//            // purchase system is ready to start. Let's initialize our product list etc...
+//            PurchaseManagerConfig config = new PurchaseManagerConfig();
+//            config.addOffer(new Offer());
+////            config.addOffer()
+////            config.addOffer()
+//            config.addStoreParam(PurchaseManagerConfig.STORE_NAME_ANDROID_GOOGLE, "<Google key>");
+////            config.addStoreParam(PurchaseManagerConfig.STORE_NAME_ANDROID_OUYA, new Object[] {
+////                    OUYA_DEVELOPER_ID,
+////                    KEYPATH
+////            });
+//
+//
+//
+//            // let's start the purchase system...
+//            PurchaseSystem.install(new PurchaseObserver() {
+//                @Override
+//                public void handleInstall() {
+//
+//                }
+//
+//                @Override
+//                public void handleInstallError(Throwable e) {
+//
+//                }
+//
+//                @Override
+//                public void handleRestore(Transaction[] transactions) {
+//
+//                }
+//
+//                @Override
+//                public void handleRestoreError(Throwable e) {
+//
+//                }
+//
+//                @Override
+//                public void handlePurchase(Transaction transaction) {
+//
+//                }
+//
+//                @Override
+//                public void handlePurchaseError(Throwable e) {
+//
+//                }
+//
+//                @Override
+//                public void handlePurchaseCanceled() {
+//
+//                }
+//            }, config);
+//
+//            // to make a purchase (results are reported to the observer)
+//            PurchaseSystem.purchase("product_identifier");
+//
+//            // (*) to restore existing purchases (results are reported to the observer)
+////            PurchaseSystem.purchaseRestore();
+//
+//            // obtain localized product information (not supported by all platforms)
+////            Information information = PurchaseSystem.getInformation("product_identifier");
+//        }
+    }
+
+    private void testScores(){
+        System.out.println(""+GH.calcScore(GameSettings.GameType.Fastest, 1000, 1000, 3, 8, 8));
+        System.out.println(""+GH.calcScore(GameSettings.GameType.Fastest, 1500, 1000, 3, 10, 10));
+
+        System.out.println(""+GH.calcScore(GameSettings.GameType.Fastest, 1000, 1000, 4, 8, 8));
+        System.out.println(""+GH.calcScore(GameSettings.GameType.Fastest, 2000, 1000, 4, 10, 10));
+
+        System.out.println(""+GH.calcScore(GameSettings.GameType.Fastest, 2000, 1000, 5, 8, 8));
+        System.out.println(""+GH.calcScore(GameSettings.GameType.Fastest, 2500, 1000, 5, 10, 10));
+
+        System.out.println(""+GH.calcScore(GameSettings.GameType.Fastest, 2500, 1000, 6, 8, 8));
+        System.out.println(""+GH.calcScore(GameSettings.GameType.Fastest, 3000, 1000, 6, 10, 10));
     }
 
     @Override

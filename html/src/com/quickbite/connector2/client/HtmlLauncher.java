@@ -75,6 +75,11 @@ public class HtmlLauncher extends GwtApplication implements ActionResolver, AdIn
     }
 
     @Override
+    public void purchaseNoAds() {
+
+    }
+
+    @Override
     public void showAdmobBannerAd() {
 
     }
@@ -97,5 +102,10 @@ public class HtmlLauncher extends GwtApplication implements ActionResolver, AdIn
     @Override
     public void hideAdmobInterAd() {
 
+    }
+
+    @Override
+    public boolean showAds() {
+        return false;
     }
 }

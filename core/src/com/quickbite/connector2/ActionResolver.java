@@ -4,6 +4,11 @@ package com.quickbite.connector2;
  * Created by Paha on 1/28/2016.
  */
 public interface ActionResolver {
+    String SKU_NOADS = "no_ads";
+
+    // (arbitrary) request code for the purchase flow
+    int RC_REQUEST = 10001;
+
     boolean getSignedInGPGS();
     void loginGPGS();
     void logoutGPGS();
@@ -15,4 +20,6 @@ public interface ActionResolver {
     void getCenteredLeaderboardScore(String leaderboardID, int timeSpan, int leaderboardType, float timeoutSeconds);
     void getTopLeaderboardScores(String leaderboardID, int timeSpan, int numScores);
     void submitEvent(String eventID);
+
+    void purchaseNoAds();
 }

@@ -76,6 +76,11 @@ public class DesktopLauncher implements ActionResolver, AdInterface {
 	}
 
 	@Override
+	public void purchaseNoAds() {
+		System.out.println("Purchasing no ads");
+	}
+
+	@Override
 	public void showAdmobBannerAd() {
 		System.out.println("Showing banner");
 	}
@@ -98,5 +103,10 @@ public class DesktopLauncher implements ActionResolver, AdInterface {
 	@Override
 	public void hideAdmobInterAd() {
 		System.out.println("Hiding inter");
+	}
+
+	@Override
+	public boolean showAds() {
+		return true;
 	}
 }

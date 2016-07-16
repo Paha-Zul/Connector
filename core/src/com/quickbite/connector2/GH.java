@@ -111,4 +111,43 @@ public class GH {
         Game.resolver.submitEvent(ID);
     }
 
+    /**
+     * Calculates a score based on some parameters
+     * @param gameType The GameType of the match
+     * @param avgTime The average time in milliseconds (3000 = 3 seconds)
+     * @param bestTime The best time in milliseconds (3000 = 3 seconds)
+     * @param numShapes The number of shapes for the match
+     * @param currRound The current round the match ended on (mostly for time attack match)
+     * @param successfulRounds The number of successful rounds (mostly for best out of 10)
+     * @return A pair that holds the leaderboard ID and the score.
+     */
+    public static Pair<String, Integer> calcScore(GameSettings.GameType gameType, double avgTime, double bestTime, int numShapes, int currRound, int successfulRounds){
+        String leaderboard = "";
+        int score = 0;
+        //If the game type is best out of 10
+        if(gameType == GameSettings.GameType.Fastest) {
+            if (avgTime == 0) score = 0;
+            else
+                score = (int) (successfulRounds*10f + (10f / (avgTime / 1000f))*10f + (numShapes-2)*75 + (10f/(bestTime/1000f))*10f);
+
+            leaderboard = Constants.LEADERBOARD_BEST;
+
+            //If the game type is time attack
+        }else if(gameType == GameSettings.GameType.Timed){
+            if(avgTime == 0 || currRound == 0) score = 0;
+            else score = (int)((currRound-1)*10 + (10f/(avgTime/1000))*10 + (numShapes-2)*75);
+
+            leaderboard = Constants.LEADERBOARD_TIMED;
+
+            //If the game type is challenge.
+        }else if(gameType == GameSettings.GameType.Frenzy){
+//            if(GameStats.avgTime == 0) GameStats.currScore = 0;
+            score = (int)(125*(successfulRounds));
+
+            leaderboard = Constants.LEADERBOARD_FRENZY;
+        }
+
+//        saveScore(leaderboard, GameSettings.gameType, GameStats.currScore);
+        return new Pair<String, Integer>(leaderboard, score);
+    }
 }

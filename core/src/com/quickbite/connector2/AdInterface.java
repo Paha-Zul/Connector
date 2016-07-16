@@ -9,4 +9,6 @@ public interface AdInterface {
     void loadAdmobInterAd();
     void showAdmobInterAd();
     void hideAdmobInterAd();
+
+    boolean showAds();
 }

@@ -12,7 +12,6 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
-import com.quickbite.connector2.Constants;
 import com.quickbite.connector2.GH;
 import com.quickbite.connector2.Game;
 import com.quickbite.connector2.GameData;
@@ -21,6 +20,7 @@ import com.quickbite.connector2.GameSettings;
 import com.quickbite.connector2.GameShape;
 import com.quickbite.connector2.GameStats;
 import com.quickbite.connector2.ICallback;
+import com.quickbite.connector2.Pair;
 import com.quickbite.connector2.SoundManager;
 import com.quickbite.connector2.gui.GameScreenGUI;
 
@@ -606,14 +606,14 @@ public class GameScreen implements Screen{
      * Timed game over.
      */
     private void gameOverTimed(){
-        this.calcScore();
+        this.getScore();
     }
 
     /**
      * Best game over.
      */
     private void gameOverBest(){
-        this.calcScore();
+        this.getScore();
     }
 
     /**
@@ -627,35 +627,13 @@ public class GameScreen implements Screen{
      * Practice game over.
      */
     private void gameOverChallenge(){
-        this.calcScore();
+        this.getScore();
     }
 
-    private void calcScore(){
-        String leaderboard = "";
-        //If the game type is best out of 10
-        if(GameSettings.gameType == GameSettings.GameType.Fastest) {
-            if (GameStats.avgTime == 0) GameStats.currScore = 0;
-            else
-                GameStats.currScore = (int) ((3 * GameStats.successfulRounds) * (20f / (GameStats.avgTime / 1000)) * (GameSettings.numShapes * 3));
-
-            leaderboard = Constants.LEADERBOARD_BEST;
-
-        //If the game type is time attack
-        }else if(GameSettings.gameType == GameSettings.GameType.Timed){
-            if(GameStats.avgTime == 0) GameStats.currScore = 0;
-            else GameStats.currScore = (int)((2*(GameStats.currRound-1)) * (20f/(GameStats.avgTime/1000)) * (GameSettings.numShapes*8));
-
-            leaderboard = Constants.LEADERBOARD_TIMED;
-
-            //If the game type is challenge.
-        }else if(GameSettings.gameType == GameSettings.GameType.Frenzy){
-//            if(GameStats.avgTime == 0) GameStats.currScore = 0;
-            GameStats.currScore = (int)(125*(GameStats.successfulRounds));
-
-            leaderboard = Constants.LEADERBOARD_FRENZY;
-        }
-
-        saveScore(leaderboard, GameSettings.gameType, GameStats.currScore);
+    private void getScore(){
+        Pair<String, Integer> pair = GH.calcScore(GameSettings.gameType, GameStats.avgTime, GameStats.bestTime, GameSettings.numShapes, GameStats.currRound, GameStats.successfulRounds);
+        GameStats.currScore = pair.getSecond();
+        saveScore(pair.getFirst(), GameSettings.gameType, pair.getSecond());
     }
 
     /**

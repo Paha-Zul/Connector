@@ -1,6 +1,5 @@
 apply plugin: 'com.android.library'
 
-
 buildscript {
     repositories {
         jcenter()
@@ -20,7 +19,7 @@ dependencies {
         ext.support_library_version = '20.0.+'
     }
     if (!project.hasProperty('gms_library_version')) {
-        ext.gms_library_version = '8.1.0'
+        ext.gms_library_version = '9.2.0'
     }
 
     compile "com.android.support:appcompat-v7:${appcompat_library_version}"
@@ -38,11 +37,13 @@ android {
         ext.android_version = '23'
     }
 
-    defaultConfig {
-        multiDexEnabled true
-    }
-
     compileSdkVersion android_compile_version
     buildToolsVersion android_version
+
+    defaultConfig {
+        minSdkVersion 9
+        targetSdkVersion 23
+    }
+
 }
 

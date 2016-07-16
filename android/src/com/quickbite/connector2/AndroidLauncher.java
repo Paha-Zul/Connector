@@ -1,19 +1,24 @@
 package com.quickbite.connector2;
 
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
 import android.widget.RelativeLayout;
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.backends.android.AndroidApplication;
 import com.badlogic.gdx.backends.android.AndroidApplicationConfiguration;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.TimeUtils;
 import com.badlogic.gdx.utils.Timer;
+import com.example.android.trivialdrivesample.util.IabHelper;
+import com.example.android.trivialdrivesample.util.IabResult;
+import com.example.android.trivialdrivesample.util.Inventory;
+import com.example.android.trivialdrivesample.util.Purchase;
 import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdSize;
@@ -27,6 +32,7 @@ import com.google.android.gms.games.leaderboard.LeaderboardScore;
 import com.google.android.gms.games.leaderboard.LeaderboardVariant;
 import com.google.android.gms.games.leaderboard.Leaderboards;
 import com.google.example.games.basegameutils.GameHelper;
+import com.quickbite.connector2.gui.MainMenuGUI;
 
 public class AndroidLauncher extends AndroidApplication implements GameHelper.GameHelperListener, ActionResolver, AdInterface {
 	GameHelper gameHelper;
@@ -35,15 +41,26 @@ public class AndroidLauncher extends AndroidApplication implements GameHelper.Ga
 	private View gameView;
 	private AdListener adListener;
 	private InterstitialAd interstitialAd;
-	private boolean showingBannerAd = false;
+	private boolean showingBannerAd = false, showAds = false, bannerAdLoaded = false;
+	private IabHelper mHelper;
 
 	@Override
 	protected void onCreate (Bundle savedInstanceState) {
 		Game game = new Game(this, this);
 
+		initBilling();
+
 		AndroidApplicationConfiguration config = new AndroidApplicationConfiguration();
 		initialize(game, config);
 
+		setupUpGameHelper();
+
+		super.onCreate(savedInstanceState);
+
+		setupAds(game);
+	}
+
+	private void setupUpGameHelper(){
 		if (gameHelper == null) {
 			gameHelper = new GameHelper(this, GameHelper.CLIENT_GAMES);
 			gameHelper.setMaxAutoSignInAttempts(0);
@@ -51,9 +68,9 @@ public class AndroidLauncher extends AndroidApplication implements GameHelper.Ga
 		}
 
 		gameHelper.setup(this);
+	}
 
-		super.onCreate(savedInstanceState);
-
+	private void setupAds(Game game){
 		AndroidApplicationConfiguration cfg = new AndroidApplicationConfiguration();
 		cfg.useAccelerometer = false;
 		cfg.useCompass = false;
@@ -68,19 +85,6 @@ public class AndroidLauncher extends AndroidApplication implements GameHelper.Ga
 		fLayout.setLayoutParams(fParams);
 
 		AdView admobView = createAdView();
-		admobView.setAdListener(new AdListener() {
-			@Override
-			public void onAdLoaded() {
-				if(showingBannerAd){
-//					runOnUiThread(new Runnable() {
-//						@Override
-//						public void run() {
-//							adView.setVisibility(View.VISIBLE);
-//						}
-//					});
-				}
-			}
-		});
 
 		View gameView = createGameView(cfg, game);
 
@@ -98,8 +102,8 @@ public class AndroidLauncher extends AndroidApplication implements GameHelper.Ga
 			}
 			@Override
 			public void onAdClosed() {
-                AdRequest interstitialRequest = new AdRequest.Builder().build();
-                interstitialAd.loadAd(interstitialRequest);
+				AdRequest interstitialRequest = new AdRequest.Builder().build();
+				interstitialAd.loadAd(interstitialRequest);
 				SoundManager.playMusic();
 			}
 		});
@@ -116,7 +120,7 @@ public class AndroidLauncher extends AndroidApplication implements GameHelper.Ga
 		FrameLayout.LayoutParams fParams = new FrameLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT,
 				Gravity.BOTTOM|android.view.Gravity.CENTER_HORIZONTAL);
 		adView.setLayoutParams(fParams);
-		adView.setBackgroundColor(android.graphics.Color.BLACK);
+		adView.setBackgroundColor(Color.TRANSPARENT);
 		return adView;
 	}
 
@@ -135,13 +139,15 @@ public class AndroidLauncher extends AndroidApplication implements GameHelper.Ga
 
 	@Override
 	public void showAdmobBannerAd() {
-		showingBannerAd = true;
-		runOnUiThread(new Runnable() {
-			@Override
-			public void run() {
-				adView.setVisibility(View.VISIBLE);
-			}
-		});
+		if(showAds) {
+			showingBannerAd = true;
+			runOnUiThread(new Runnable() {
+				@Override
+				public void run() {
+					adView.setVisibility(View.VISIBLE);
+				}
+			});
+		}
 	}
 
 	@Override
@@ -162,28 +168,29 @@ public class AndroidLauncher extends AndroidApplication implements GameHelper.Ga
 
 	@Override
 	public void showAdmobInterAd() {
-		try {
-			runOnUiThread(new Runnable() {
-				public void run() {
-				  if (interstitialAd.isLoaded()) {
-					interstitialAd.show();
-//                    Toast.makeText(getApplicationContext(), "Showing Interstitial", Toast.LENGTH_SHORT).show();
-				  }
-				  else {
-//					AdRequest interstitialRequest = new AdRequest.Builder().build();
-//					interstitialAd.loadAd(interstitialRequest);
-//					Toast.makeText(getApplicationContext(), "Loading Interstitial", Toast.LENGTH_SHORT).show();
-				  }
-				}
-			});
-	   	} catch (Exception e) {
-
+		if(showAds) {
+			try {
+				runOnUiThread(new Runnable() {
+					public void run() {
+						if (interstitialAd.isLoaded()) {
+							interstitialAd.show();
+						}
+					}
+				});
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 		}
 	}
 
 	@Override
 	public void hideAdmobInterAd() {
 
+	}
+
+	@Override
+	public boolean showAds() {
+		return showAds;
 	}
 
 	@Override
@@ -202,6 +209,17 @@ public class AndroidLauncher extends AndroidApplication implements GameHelper.Ga
 	public void onActivityResult(int request, int response, Intent data) {
 		super.onActivityResult(request, response, data);
 		gameHelper.onActivityResult(request, response, data);
+
+//		if ((request == 100) && response == GamesActivityResultCodes.RESULT_RECONNECT_REQUIRED) {
+//			gameHelper.disconnect();
+//			// update your logic here (show login btn, hide logout btn).
+//		} else {
+//			try {
+//				gameHelper.onActivityResult(request, response, data);
+//			}catch(Exception e){
+//				e.printStackTrace();
+//			}
+//		}
 	}
 
 	@Override
@@ -240,21 +258,18 @@ public class AndroidLauncher extends AndroidApplication implements GameHelper.Ga
 				}
 			});
 		} catch (final Exception ex) {
-
+			ex.printStackTrace();
 		}
 	}
 
 	@Override
 	public void logoutGPGS() {
-		try {
-			runOnUiThread(new Runnable(){
-				public void run() {
-					gameHelper.signOut();
-				}
-			});
-		} catch (final Exception ex) {
-
-		}
+        Log.d("AndroidLauncher", "Trying to sign out");
+		runOnUiThread(new Runnable() {
+			public void run() {
+				gameHelper.signOut();
+			}
+		});
 	}
 
 	@Override
@@ -275,14 +290,12 @@ public class AndroidLauncher extends AndroidApplication implements GameHelper.Ga
 	public void getLeaderboardGPGS(String leaderboardID) {
 		if (getSignedInGPGS()) {
 			startActivityForResult(Games.Leaderboards.getAllLeaderboardsIntent(gameHelper.getApiClient()), 100);
-		}else if (!gameHelper.isConnecting()) {
-			//loginGPGS();
 		}
 	}
 
 	@Override
 	public void getAchievementsGPGS() {
-		//startActivityForResult(gameHelper.getGamesClient().getAchievementsIntent(), 101);
+		//startActivityForResult(gameHelper.getGamesClient().getAchievementsIntent(), 100);
 	}
 
 	@Override
@@ -329,7 +342,6 @@ public class AndroidLauncher extends AndroidApplication implements GameHelper.Ga
 			@Override
 			public void run() {
 				if(TimeUtils.millis() >= timeStarted + _timeout) {
-					Gdx.app.debug("Leaderboard", "Leaderboard Timed out successfully");
 					pendingResult.cancel();
 					timeOutTimer.clear();
 				}
@@ -347,6 +359,70 @@ public class AndroidLauncher extends AndroidApplication implements GameHelper.Ga
 	public void submitEvent(String eventID) {
 		Games.Events.increment(gameHelper.getApiClient(), eventID, 1);
 	}
+
+	private void initBilling(){
+		System.out.println("Starting up billing...");
+
+		mHelper = new IabHelper(this, "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAiqYxrqMywByEg2dXFaOlcZBNP/JV3fA5iOw+a52SNMEQOW2fsPIkR0MpnnkUW66wzPGdr9gzR" +
+				"4Ete5UO3lvbkDo7YFrOtETazfV5FVLNVoCZhb0Yp3Wo9ewRlEayfkJOKTfNDlCqKiRaKyMgtZRX0BG47N25VOV8Hg1qP/Q0bFXSd+WANnwZAyPuinTUtFFkSW1G9Nnzy1LshS4zJsdY" +
+				"F+T0tpRQ/8lK/DySoRPZp58d6IUsNCTTQaDTY42gHs4CnhAP6DQRSmhjXZZZ4VnA67D9DcKzazFt3A97cSU2MzhR0q+VAAlzb/gMaLbeWLFckwRV3x1U4+9aa+1pa1L/SQIDAQAB");
+
+		mHelper.startSetup(new IabHelper.OnIabSetupFinishedListener() {
+			@Override
+			public void onIabSetupFinished(IabResult result) {
+				if (!result.isSuccess()) {
+					// Oh noes, there was a problem.
+                    Log.d("AndroidLauncher", "There was a problem starting billing");
+				}else {
+					//Let's then query the inventory...
+					try {
+						mHelper.queryInventoryAsync(mGotInventoryListener);
+					} catch (IabHelper.IabAsyncInProgressException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+		});
+	}
+
+	@Override
+	public void purchaseNoAds() {
+		try {
+			//Launch the purchase flow with a test SKU for now.
+			mHelper.launchPurchaseFlow(this, SKU_NOADS, RC_REQUEST, new IabHelper.OnIabPurchaseFinishedListener() {
+				@Override
+				public void onIabPurchaseFinished(IabResult result, Purchase info) {
+					if(!result.isSuccess()){
+
+					}else{
+						showAds = false;
+						hideAdmobBannerAd();
+						MainMenuGUI.removeNoAdsButton();
+					}
+				}
+			}, "hmm");
+		} catch (IabHelper.IabAsyncInProgressException e) {
+			e.printStackTrace();
+		}
+	}
+
+	private IabHelper.QueryInventoryFinishedListener mGotInventoryListener = new IabHelper.QueryInventoryFinishedListener() {
+		@Override
+		public void onQueryInventoryFinished(IabResult result, Inventory inv) {
+			if(result.isFailure() || mHelper == null || inv == null) {
+//				System.out.println("InventoryCallback, Something went wrong. result failed: "+result.isFailure()+
+//						", mHelper null: "+(mHelper == null) +", inventory null: "+(inv == null));
+				return;
+			}
+
+			if (inv.hasPurchase("no_ads")) {
+				showAds = false;
+				hideAdmobBannerAd();
+			} else {
+				showAds = true;
+			}
+		}
+	};
 
 	@Override
 	public void onSignInFailed() {
