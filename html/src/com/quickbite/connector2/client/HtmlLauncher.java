@@ -6,6 +6,7 @@ import com.badlogic.gdx.backends.gwt.GwtApplicationConfiguration;
 import com.quickbite.connector2.ActionResolver;
 import com.quickbite.connector2.AdInterface;
 import com.quickbite.connector2.Game;
+import com.quickbite.connector2.gui.GameOverGUI;
 
 public class HtmlLauncher extends GwtApplication implements ActionResolver, AdInterface{
 
@@ -45,7 +46,7 @@ public class HtmlLauncher extends GwtApplication implements ActionResolver, AdIn
     }
 
     @Override
-    public void getCurrentRankInLeaderboards(String tableID) {
+    public void getCurrentRankInLeaderboards(String tableID, GameOverGUI gameOverGUI) {
 
     }
 

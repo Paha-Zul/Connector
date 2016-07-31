@@ -22,6 +22,7 @@ import com.quickbite.connector2.GameStats;
 import com.quickbite.connector2.ICallback;
 import com.quickbite.connector2.Pair;
 import com.quickbite.connector2.SoundManager;
+import com.quickbite.connector2.gui.GameOverGUI;
 import com.quickbite.connector2.gui.GameScreenGUI;
 
 /**
@@ -34,7 +35,7 @@ public class GameScreen implements Screen{
 
     private boolean startedRoundEnd = false, roundStartingFlag = false;
 
-    private Game game;
+    public Game game;
 
     public Integer[] colorIDs;
     public Array<Vector2> positions;
@@ -52,8 +53,14 @@ public class GameScreen implements Screen{
 
     private float counter, challengeCounter = 1f;
 
+    public GameScreenGUI gameScreenGUI;
+    public GameOverGUI gameOverGUI;
+
     public GameScreen(Game game){
         this.game = game;
+
+        gameScreenGUI = new GameScreenGUI(this);
+        gameOverGUI = new GameOverGUI(this);
 
         GameShape.gameScreen = this; //Static reference.
 
@@ -99,7 +106,7 @@ public class GameScreen implements Screen{
 
         this.currGameState = GameState.Beginning;
 
-        GameScreenGUI.initGameScreenGUI(this.game, this);
+        gameScreenGUI.initGameScreenGUI(this.game, this);
     }
 
     public void reset(){
@@ -117,7 +124,7 @@ public class GameScreen implements Screen{
      * Restarts the current game mode.
      */
     public void restartGame(){
-        GameScreenGUI.createStartingGUI(this.game, this);
+        gameScreenGUI.createStartingGUI(this.game, this);
         this.reset();
     }
 
@@ -248,7 +255,7 @@ public class GameScreen implements Screen{
         update(delta);
 
         Game.batch.begin();
-        GameScreenGUI.centerLabel.draw(Game.batch, 1f);
+        gameScreenGUI.centerLabel.draw(Game.batch, 1f);
         Game.batch.end();
 
         Game.renderer.begin(ShapeRenderer.ShapeType.Filled);
@@ -382,7 +389,7 @@ public class GameScreen implements Screen{
             this.roundStarted();
         }
 
-        GameScreenGUI.update(delta);
+        gameScreenGUI.update(delta);
     }
 
     /**
@@ -403,7 +410,7 @@ public class GameScreen implements Screen{
             this.updateFrenzy(delta);
         }
 
-        GameScreenGUI.update(delta);
+        gameScreenGUI.update(delta);
     }
 
     /**
@@ -501,7 +508,7 @@ public class GameScreen implements Screen{
         if(GameSettings.gameType == GameSettings.GameType.Frenzy)
             counter = 99999999;
 
-        GameScreenGUI.hideGameOverGUI();
+        gameScreenGUI.hide();
     }
 
     /**
@@ -552,7 +559,7 @@ public class GameScreen implements Screen{
 
         this.startedRoundEnd = true;
 
-        GameScreenGUI.roundOverGUI();
+        gameScreenGUI.roundOverGUI();
 
         if(GameSettings.gameType == GameSettings.GameType.Fastest)
             this.roundOverFastest(GameStats.failedLastRound);
@@ -592,7 +599,7 @@ public class GameScreen implements Screen{
         GameStats.currRound++; //This needs to be called before init() round below.
 
         GameData.gameShapeList = new Array<GameShape>();
-        GameScreenGUI.roundEndedGUI();
+        gameScreenGUI.roundEndedGUI();
         this.currGameState = GameState.Starting; //By default, set it to roundStarting the round again.
 
         //We don't need a round ended for practice since it keeps goind forever.
@@ -625,8 +632,6 @@ public class GameScreen implements Screen{
         this.currGameState = GameState.Ending;
         this.clickListener.dragging = false;
     }
-
-
 
     /**
      * specific Timed round ending.
@@ -668,7 +673,8 @@ public class GameScreen implements Screen{
                 break;
         }
 
-        GameScreenGUI.gameOverGUI();
+        gameScreenGUI.hide();
+        gameOverGUI.show();
     }
 
     /**
@@ -779,7 +785,7 @@ public class GameScreen implements Screen{
     public void dispose() {
         GameData.reset();
         this.colorIDs = null;
-        GameScreenGUI.reset();
+        gameScreenGUI.reset();
     }
 
 

@@ -1,5 +1,7 @@
 package com.quickbite.connector2;
 
+import com.quickbite.connector2.gui.GameOverGUI;
+
 /**
  * Created by Paha on 1/28/2016.
  */
@@ -14,7 +16,7 @@ public interface ActionResolver {
     void logoutGPGS();
     void submitScoreGPGS(String tableID, long score);
     void unlockAchievementGPGS(String achievementId);
-    void getCurrentRankInLeaderboards(String tableID);
+    void getCurrentRankInLeaderboards(String tableID, GameOverGUI gameOverGUI);
     void getLeaderboardGPGS(String leaderboardID);
     void getAchievementsGPGS();
     void getLeaderboardScore(String leaderboardID, int timeSpan);

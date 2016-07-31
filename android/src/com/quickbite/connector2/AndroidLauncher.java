@@ -32,7 +32,7 @@ import com.google.android.gms.games.leaderboard.LeaderboardScore;
 import com.google.android.gms.games.leaderboard.LeaderboardVariant;
 import com.google.android.gms.games.leaderboard.Leaderboards;
 import com.google.example.games.basegameutils.GameHelper;
-import com.quickbite.connector2.gui.GameScreenGUI;
+import com.quickbite.connector2.gui.GameOverGUI;
 import com.quickbite.connector2.gui.MainMenuGUI;
 
 public class AndroidLauncher extends AndroidApplication implements GameHelper.GameHelperListener, ActionResolver, AdInterface {
@@ -317,7 +317,7 @@ public class AndroidLauncher extends AndroidApplication implements GameHelper.Ga
 	}
 
 	@Override
-	public void getCurrentRankInLeaderboards(String tableID) {
+	public void getCurrentRankInLeaderboards(String tableID, final GameOverGUI gameOverGUI) {
 		dailyGood = weeklyGood = allTimeGood = false;
 
 		if (getSignedInGPGS()) {
@@ -331,7 +331,7 @@ public class AndroidLauncher extends AndroidApplication implements GameHelper.Ga
 				@Override
 				public void onResult(@NonNull Leaderboards.LoadPlayerScoreResult loadScoresResult) {
 					if(loadScoresResult.getStatus().getStatusCode() == GamesStatusCodes.STATUS_OK && loadScoresResult.getScore() != null) {
-						GameScreenGUI.setDailyRank(loadScoresResult.getScore().getDisplayRank());
+						gameOverGUI.setDailyRank(loadScoresResult.getScore().getDisplayRank());
 						dailyGood = true;
 						checkToCancelTimer(timeOutTimer);
 					}
@@ -342,7 +342,7 @@ public class AndroidLauncher extends AndroidApplication implements GameHelper.Ga
 				@Override
 				public void onResult(@NonNull Leaderboards.LoadPlayerScoreResult loadScoresResult) {
 					if(loadScoresResult.getStatus().getStatusCode() == GamesStatusCodes.STATUS_OK && loadScoresResult.getScore() != null) {
-						GameScreenGUI.setWeekylRank(loadScoresResult.getScore().getDisplayRank());
+						gameOverGUI.setWeekylRank(loadScoresResult.getScore().getDisplayRank());
 						weeklyGood = true;
 						checkToCancelTimer(timeOutTimer);
 					}
@@ -353,7 +353,7 @@ public class AndroidLauncher extends AndroidApplication implements GameHelper.Ga
 				@Override
 				public void onResult(@NonNull Leaderboards.LoadPlayerScoreResult loadScoresResult) {
 					if(loadScoresResult.getStatus().getStatusCode() == GamesStatusCodes.STATUS_OK && loadScoresResult.getScore() != null) {
-						GameScreenGUI.setAllTimeRank(loadScoresResult.getScore().getDisplayRank());
+						gameOverGUI.setAllTimeRank(loadScoresResult.getScore().getDisplayRank());
 						allTimeGood = true;
 						checkToCancelTimer(timeOutTimer);
 					}
@@ -373,18 +373,18 @@ public class AndroidLauncher extends AndroidApplication implements GameHelper.Ga
 						allTimeResult.cancel();
 						timeOutTimer.clear();
 
-						if(!dailyGood) GameScreenGUI.setDailyRank("NA");
-						if(!weeklyGood) GameScreenGUI.setWeekylRank("NA");
-						if(!allTimeGood) GameScreenGUI.setAllTimeRank("NA");
+						if(!dailyGood) gameOverGUI.setDailyRank("NA");
+						if(!weeklyGood) gameOverGUI.setWeekylRank("NA");
+						if(!allTimeGood) gameOverGUI.setAllTimeRank("NA");
 
 						dailyGood = weeklyGood = allTimeGood = false;
 					}
 				}
 			}, 0, 0.5f);
 		}else {
-			if (!dailyGood) GameScreenGUI.setDailyRank("NA");
-			if (!weeklyGood) GameScreenGUI.setWeekylRank("NA");
-			if (!allTimeGood) GameScreenGUI.setAllTimeRank("NA");
+			if (!dailyGood) gameOverGUI.setDailyRank("NA");
+			if (!weeklyGood) gameOverGUI.setWeekylRank("NA");
+			if (!allTimeGood) gameOverGUI.setAllTimeRank("NA");
 		}
 	}
 
