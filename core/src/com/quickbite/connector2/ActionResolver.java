@@ -14,6 +14,7 @@ public interface ActionResolver {
     void logoutGPGS();
     void submitScoreGPGS(String tableID, long score);
     void unlockAchievementGPGS(String achievementId);
+    void getCurrentRankInLeaderboards(String tableID);
     void getLeaderboardGPGS(String leaderboardID);
     void getAchievementsGPGS();
     void getLeaderboardScore(String leaderboardID, int timeSpan);

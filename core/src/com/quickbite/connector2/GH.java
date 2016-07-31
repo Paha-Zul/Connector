@@ -9,8 +9,6 @@ import com.badlogic.gdx.math.MathUtils;
  * Created by Paha on 1/24/2016.
  */
 public class GH {
-    public static Texture whitePixel = createPixel(Color.WHITE);
-
     /**
      * Lerps a float value from start to target.
      * @param curr The current value of the lerp.
@@ -149,5 +147,22 @@ public class GH {
 
 //        saveScore(leaderboard, GameSettings.gameType, GameStats.currScore);
         return new Pair<String, Integer>(leaderboard, score);
+    }
+
+    public static String getCurrentLeaderboardTableID(){
+        String id = "";
+        switch(GameSettings.gameType){
+            case Fastest:
+                id = Constants.LEADERBOARD_BEST;
+                break;
+            case Timed:
+                id = Constants.LEADERBOARD_TIMED;
+                break;
+            case Frenzy:
+                id = Constants.EVENT_FRENZY;
+                break;
+        }
+
+        return id;
     }
 }

@@ -10,6 +10,7 @@ import com.badlogic.gdx.scenes.scene2d.actions.Actions;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.utils.Align;
 import com.quickbite.connector2.Game;
+import com.quickbite.connector2.GameData;
 import com.quickbite.connector2.SoundManager;
 
 /**
@@ -54,11 +55,13 @@ public class LogoScreen implements Screen{
     public void render(float delta) {
         boolean assetsLoaded = Game.easyAssetManager.update();
         if(assetsLoaded && logoDone){
+            Game.easyAssetManager.finishLoading();
             SoundManager.playMusic();
             Game.shapeAtlas = Game.easyAssetManager.get("shapes", TextureAtlas.class);
             Game.UIAtlas = Game.easyAssetManager.get("UI", TextureAtlas.class);
             Game.defaultHugeFont = Game.easyAssetManager.get("default", BitmapFont.class);
             Game.defaultHugeFont.getRegion().getTexture().setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
+            GameData.init();
             game.setScreen(new MainMenu(game));
         }
     }

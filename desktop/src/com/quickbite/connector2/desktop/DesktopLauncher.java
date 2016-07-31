@@ -45,6 +45,11 @@ public class DesktopLauncher implements ActionResolver, AdInterface {
 	}
 
 	@Override
+	public void getCurrentRankInLeaderboards(String tableID) {
+
+	}
+
+	@Override
 	public void getLeaderboardGPGS(String leaderboardID) {
 		System.out.println("Getting leaderboard "+leaderboardID);
 	}

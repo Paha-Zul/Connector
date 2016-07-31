@@ -3,6 +3,7 @@ package com.quickbite.connector2.gui;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Interpolation;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.Action;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.actions.Actions;
@@ -34,10 +35,11 @@ public class GameScreenGUI {
     private static Table rightTable = new Table();
     private static Table gameOverTable = new Table();
     private static Image gameOverImage;
-    private static TextButton restartButton, mainMenuButton;
+    private static TextButton restartButton, mainMenuButton, moreStatsButton;
     private static ImageButton backButton;
 
     /* Game over screen */
+    private static Table buttonTable, dailyTable, weeklyTable, AllTimeTable;
     private static Label roundsSurvivedLabel, bestTimeLabel, lostReasonLabel, avgTimeLabel, scoreLabel, previousScoreLabel, roundsLabel;
 
     /* Starting screen stuff */
@@ -45,6 +47,8 @@ public class GameScreenGUI {
 
     public static Label centerLabel; //This label is special. We will draw this one manually to the screen.
     private static Label startingColorType, startingMatchType, startingGameType;
+    private static Label dailyRank, weeklyRank, allTimeRank;
+    private static Image dailyLoading, weeklyLoading, allTimeLoading;
     private static Table startingTable;
     private static Image firstShape, secondShape;
     private static float waitTime = 0;
@@ -103,10 +107,10 @@ public class GameScreenGUI {
     /* The restartGame and main menu button for when the game ends */
 
         restartButton = new TextButton("Restart", style);
-        restartButton.getLabel().setFontScale(0.4f);
+        restartButton.getLabel().setFontScale(0.3f);
 
         mainMenuButton = new TextButton("Main Menu", style);
-        mainMenuButton.getLabel().setFontScale(0.4f);
+        mainMenuButton.getLabel().setFontScale(0.3f);
 
         restartButton.addListener(new ChangeListener() {
             @Override
@@ -119,6 +123,15 @@ public class GameScreenGUI {
             public void changed(ChangeEvent event, Actor actor) {
                 Game.stage.clear();
                 toMainMenu(gameScreen, game);
+            }
+        });
+
+        moreStatsButton = new TextButton("+", style);
+        moreStatsButton.getLabel().setFontScale(0.4f);
+        moreStatsButton.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                showMoreStats();
             }
         });
 
@@ -141,8 +154,22 @@ public class GameScreenGUI {
         bestTimeLabel.setFontScale(0.4f);
 
         lostReasonLabel = new Label("", titleLabelStyle);
+        lostReasonLabel.setColor(Color.RED);
+        lostReasonLabel.setWrap(true);
         lostReasonLabel.setAlignment(Align.center);
         lostReasonLabel.setFontScale(0.4f);
+
+        dailyRank = new Label("", titleLabelStyle);
+        dailyRank.setAlignment(Align.center);
+        dailyRank.setFontScale(0.4f);
+
+        weeklyRank = new Label("", titleLabelStyle);
+        weeklyRank.setAlignment(Align.center);
+        weeklyRank.setFontScale(0.4f);
+
+        allTimeRank = new Label("", titleLabelStyle);
+        allTimeRank.setAlignment(Align.center);
+        allTimeRank.setFontScale(0.4f);
 
         avgTimeLabel = new Label("", titleLabelStyle);
         avgTimeLabel.setAlignment(Align.center);
@@ -153,6 +180,21 @@ public class GameScreenGUI {
         centerLabel.setPosition(0, 0);
         centerLabel.setFontScale(1.5f);
         centerLabel.getColor().a = 0.5f;
+
+        dailyLoading = new Image(Game.shapeAtlas.findRegion("Square"));
+        dailyLoading.setColor(Color.RED);
+        dailyLoading.setSize(32, 32);
+        dailyLoading.setOrigin(Align.center);
+
+        weeklyLoading = new Image(Game.shapeAtlas.findRegion("Square"));
+        weeklyLoading.setColor(Color.RED);
+        weeklyLoading.setSize(32, 32);
+        weeklyLoading.setOrigin(Align.center);
+
+        allTimeLoading = new Image(Game.shapeAtlas.findRegion("Square"));
+        allTimeLoading.setColor(Color.RED);
+        allTimeLoading.setSize(32, 32);
+        allTimeLoading.setOrigin(Align.center);
 
         leftTable.add(backButton).size(45f).pad(10f, 10f, 0f, 0f);
         leftTable.left().top();
@@ -242,39 +284,13 @@ public class GameScreenGUI {
         startingTable.row().padTop(40);
         startingTable.add(startingGameType).expandX().fillX();
 
-//        fadeInStartScreen(screen);
         slideInStartScreen(screen);
-
-
-//        Game.stage.addActor(startingTable);
 
         Game.stage.addActor(startingColorType);
         Game.stage.addActor(startingMatchType);
         Game.stage.addActor(firstShape);
         Game.stage.addActor(secondShape);
         Game.stage.addActor(startingGameType);
-    }
-
-    private static void fadeInStartScreen(final GameScreen screen){
-        startingColorType.getColor().a = 0f;
-        startingMatchType.getColor().a = 0f;
-        firstShape.getColor().a = 0f;
-        secondShape.getColor().a = 0f;
-        startingGameType.getColor().a = 0f;
-
-        startingColorType.addAction(Actions.sequence(Actions.fadeIn(0.5f)));
-        startingMatchType.addAction(Actions.sequence(Actions.delay(0.4f), Actions.fadeIn(0.5f)));
-        firstShape.addAction(Actions.sequence(Actions.delay(0.8f), Actions.fadeIn(0.5f)));
-        secondShape.addAction(Actions.sequence(Actions.delay(0.8f), Actions.fadeIn(0.5f)));
-        startingGameType.addAction(Actions.sequence(Actions.delay(1.2f), Actions.fadeIn(0.5f)));
-        startingTable.addAction(Actions.sequence(Actions.delay(3.5f), Actions.fadeOut(0.5f), Actions.delay(0.5f), new Action() {
-            @Override
-            public boolean act(float delta) {
-                Game.stage.clear();
-                screen.beginGame();
-                return true;
-            }
-        }));
     }
 
     private static void slideInStartScreen(final GameScreen screen){
@@ -310,7 +326,7 @@ public class GameScreenGUI {
         }));
     }
 
-    public static void showGameGUI(){
+    public static void hideGameOverGUI(){
         Game.stage.clear();
         Game.stage.addActor(centerTable);
         Game.stage.addActor(leftTable);
@@ -318,7 +334,7 @@ public class GameScreenGUI {
         gameOverTable.remove();
     }
 
-    public static void hideGameGUI(){
+    public static void showGameOverGUI(){
         centerTable.remove();
         leftTable.remove();
         rightTable.remove();
@@ -326,6 +342,11 @@ public class GameScreenGUI {
         centerLabel.setText("");
 
         Game.stage.addActor(gameOverTable);
+
+        //Gotta clear these
+        dailyLoading.clearActions();
+        weeklyLoading.clearActions();
+        allTimeLoading.clearActions();
     }
 
     /**
@@ -333,80 +354,186 @@ public class GameScreenGUI {
      */
     public static void gameOverGUI(){
         gameOverTableReset();
-        int counter = 1, space = 30;
-        float delayTime = 0.08f, fadeTime = 0.75f;
+        int space = 30;
+
+        //We want this at the top.
+        gameOverTable.setFillParent(true);
+        showGameOverGUI();
+
+        //We want to only show a few stats initially. Maybe the reason we lost at the top, main achievement (rounds completed?) and score
 
         lostReasonLabel.setText(GH.getLostReason());
         scoreLabel.setText("Score: "+GameStats.currScore);
+
+        //Choose either "connections made" or "rounds completed"
         if(GameSettings.gameType == GameSettings.GameType.Frenzy)
             roundsLabel.setText(GameStats.successfulRounds+" Connections Made!");
         else
             roundsLabel.setText(GameStats.successfulRounds+" Rounds Completed!");
+
+        //Average time and best time.
         avgTimeLabel.setText("Average Time: "+formatter.format(GameStats.avgTime/1000)+"s.");
         bestTimeLabel.setText("Best Time: "+formatter.format(GameStats.bestTime/1000)+"s.");
 
         //Only add why we lost if it's timed or frenzy
         if(GameSettings.gameType == GameSettings.GameType.Timed || GameSettings.gameType == GameSettings.GameType.Frenzy){
-            gameOverTable.add(lostReasonLabel).expandX().fillX();
-            gameOverTable.row().padTop(space);
-            lostReasonLabel.addAction(Actions.sequence(Actions.delay(counter*delayTime), Actions.fadeIn(fadeTime)));
-            counter++;
+            gameOverTable.add(lostReasonLabel).expandX().fillX().padBottom(space).padTop(space);
+            gameOverTable.row();
         }
 
-        gameOverTable.add(scoreLabel).expandX().fillX();
-        gameOverTable.row().padTop(space);
-        scoreLabel.addAction(Actions.sequence(Actions.delay(counter*delayTime), Actions.fadeIn(fadeTime)));
-        counter++;
+        //Add the round we ended on.
+        gameOverTable.add(roundsLabel).expandX().fillX().padBottom(space);
+        gameOverTable.row();
 
-        previousScoreLabel.setText("Highest score: "+GameData.scoreMap.get(GameSettings.gameType, 0));
-        gameOverTable.add(previousScoreLabel).expandX().fillX();
-        gameOverTable.row().padTop(space);
-        previousScoreLabel.addAction(Actions.sequence(Actions.delay(counter*delayTime), Actions.fadeIn(fadeTime)));
-        counter++;
+        //Add the score.
+        gameOverTable.add(scoreLabel).expandX().fillX().padBottom(space);
+        gameOverTable.row();
 
-        gameOverTable.add(roundsLabel).expandX().fillX();
-        gameOverTable.row().padTop(space);
-        roundsLabel.addAction(Actions.sequence(Actions.delay(counter*delayTime), Actions.fadeIn(fadeTime)));
-        counter++;
+        buttonTable = new Table();
 
+        buttonTable.add(restartButton).size(150f, 50f);
+        buttonTable.add(moreStatsButton).size(50f, 50f).pad(0f, 10f, 0f, 10f);
+        buttonTable.add(mainMenuButton).size(150f, 50f);
+
+        gameOverTable.add(buttonTable);
+        gameOverTable.row();
+
+        //Here we set up the tables, but don't add them to the game over table yet.
+        setUpScoreTables();
+
+        gameOverTable.top();
+
+        //We have to validate and execute the game over table once. This lays out the table so we can get
+        //correct positions.
+        gameOverTable.validate();
+        gameOverTable.act(0.016f);
+//        gameOverTable.debugAll();
+//        buttonTable.debugAll();
+
+        float time = 0.5f;
+        float delay = 0f;
+        float delayIncr = 0.1f;
+        float startingY = -200f;
+
+        slideInFromTopOrBottom(lostReasonLabel, startingY, time, delay += delayIncr);
+        slideInFromTopOrBottom(roundsLabel, startingY, time, delay += delayIncr);
+        slideInFromTopOrBottom(scoreLabel, startingY, time, delay += delayIncr);
+        slideInFromTopOrBottom(buttonTable, startingY, time, delay += delayIncr);
+
+        //Do this last. Even if we aren't showing the score right away!
+        Game.resolver.getCurrentRankInLeaderboards(GH.getCurrentLeaderboardTableID());
+
+        //Apparently we need this to set the initial positions of stuff we've moved.
+        gameOverTable.validate();
+        gameOverTable.act(0.016f);
+        Game.stage.act();
+    }
+
+    private static void setUpScoreTables(){
+        dailyTable = new Table();
+        weeklyTable = new Table();
+        AllTimeTable = new Table();
+
+        dailyTable.add(dailyRank);
+        dailyTable.add(dailyLoading).size(32);
+
+        weeklyTable.add(weeklyRank);
+        weeklyTable.add(weeklyLoading).size(32);
+
+        AllTimeTable.add(allTimeRank);
+        AllTimeTable.add(allTimeLoading).size(32);
+
+        dailyLoading.addAction(Actions.forever(Actions.rotateBy(5f)));
+        weeklyLoading.addAction(Actions.forever(Actions.rotateBy(5f)));
+        allTimeLoading.addAction(Actions.forever(Actions.rotateBy(5f)));
+    }
+
+    private static void slideInFromTopOrBottom(Actor actor, float startingY, float time, float delay){
+        Vector2 originalPos = new Vector2(actor.getX(), actor.getY());
+
+        //This doesn't work sometimes?
+        actor.setPosition(originalPos.x, startingY);
+        actor.addAction(Actions.moveTo(originalPos.x, startingY));
+
+        actor.addAction(Actions.sequence(Actions.delay(delay), Actions.moveTo(originalPos.x, originalPos.y, time, Interpolation.circleOut)));
+    }
+
+    private static void showMoreStats(){
+//        Display the extra stats...
+        int space = 30;
+
+        buttonTable.remove(); //We'll add this back later.
+        moreStatsButton.remove(); //Gone!
+
+        //Add the highest score.
+        previousScoreLabel.setText("Highest score: "+ GameData.scoreMap.get(GameSettings.gameType, 0));
+        gameOverTable.add(previousScoreLabel).expandX().fillX().padBottom(space);
+        gameOverTable.row();
+
+        //If not frenzy, add average and best time.
         if(GameSettings.gameType != GameSettings.GameType.Frenzy) {
-            gameOverTable.add(avgTimeLabel).expandX().fillX();
-            gameOverTable.row().padTop(space);
-            avgTimeLabel.addAction(Actions.sequence(Actions.delay(counter * delayTime), Actions.fadeIn(fadeTime)));
-            counter++;
+            gameOverTable.add(avgTimeLabel).expandX().fillX().padBottom(space);
+            gameOverTable.row();
 
-            gameOverTable.add(bestTimeLabel).expandX().fillX();
-            gameOverTable.row().padTop(space);
-            bestTimeLabel.addAction(Actions.sequence(Actions.delay(counter * delayTime), Actions.fadeIn(fadeTime)));
-            counter++;
+            gameOverTable.add(bestTimeLabel).expandX().fillX().padBottom(space);
+            gameOverTable.row();
         }
 
-        gameOverTable.add(restartButton).size(200f, 75f);
+        gameOverTable.add(dailyTable).expandX().fillX();
         gameOverTable.row().padTop(space);
-        restartButton.addAction(Actions.sequence(Actions.delay(counter*delayTime), Actions.fadeIn(fadeTime)));
-        counter++;
 
-        gameOverTable.add(mainMenuButton).size(200f, 75f);
-        mainMenuButton.addAction(Actions.sequence(Actions.delay(counter*delayTime), Actions.fadeIn(fadeTime)));
-        counter++;
+        gameOverTable.add(weeklyTable).expandX().fillX();
+        gameOverTable.row().padTop(space);
 
-        lostReasonLabel.getColor().a = 0f;
-        scoreLabel.getColor().a = 0f;
-        avgTimeLabel.getColor().a = 0f;
-        bestTimeLabel.getColor().a = 0f;
-        restartButton.getColor().a = 0f;
-        mainMenuButton.getColor().a = 0f;
-        roundsLabel.getColor().a = 0f;
-        previousScoreLabel.getColor().a = 0f;
+        gameOverTable.add(AllTimeTable).expandX().fillX();
+        gameOverTable.row().padTop(space);
 
-        gameOverTable.setFillParent(true);
-        hideGameGUI();
+        gameOverTable.add(buttonTable);
+
+        gameOverTable.validate();
+        gameOverTable.act(0.016f);
+        Game.stage.act();
+
+        float time = 0.5f;
+        float delay = 0f;
+        float delayIncr = 0.1f;
+        float startingY = -200f;
+
+        slideInFromTopOrBottom(previousScoreLabel, startingY, time, delay += delayIncr);
+        slideInFromTopOrBottom(avgTimeLabel, startingY, time, delay += delayIncr);
+        slideInFromTopOrBottom(bestTimeLabel, startingY, time, delay += delayIncr);
+        slideInFromTopOrBottom(dailyTable, startingY, time, delay += delayIncr);
+        slideInFromTopOrBottom(weeklyTable, startingY, time, delay += delayIncr);
+        slideInFromTopOrBottom(AllTimeTable, startingY, time, delay += delayIncr);
+        slideInFromTopOrBottom(buttonTable, startingY, time, delay += delayIncr);
+    }
+
+    public static void setDailyRank(String rank){
+        dailyRank.setText("Daily rank: "+rank);
+        dailyLoading.remove();
+        dailyLoading.clearActions();
+    }
+
+    public static void setWeekylRank(String rank){
+        weeklyRank.setText("Weekly rank: "+rank);
+        weeklyLoading.remove();
+        weeklyLoading.clearActions();
+    }
+
+    public static void setAllTimeRank(String rank){
+        allTimeRank.setText("All Time rank: "+rank);
+        allTimeLoading.remove();
+        allTimeLoading.clearActions();
     }
 
     private static void gameOverTableReset(){
         centerTable.remove();
         leftTable.remove();
         rightTable.remove();
+
+        dailyRank.setText("Daily rank: -");
+        weeklyRank.setText("Weekly rank: -");
+        allTimeRank.setText("All Time rank: -");
 
         gameOverTable.clear();
     }

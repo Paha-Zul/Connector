@@ -10,18 +10,19 @@ public class SoundManager {
     public static float gameSoundVolume = 1f;
     public static float gameMusicVolume = 0.7f;
 
+    private static Music currMusic;
+    private static boolean musicOn = true, soundsOn = true;
+
     public static void playSound(String name){
         SoundManager.playSound(name, gameSoundVolume);
     }
-
-    private static Music currMusic;
-    private static boolean musicOn = true, soundsOn = true;
 
     public static void playSound(String name, float volume){
         if(!soundsOn) return;
 
         Sound sound = Game.easyAssetManager.get(name, Sound.class);
-        sound.play(volume);
+        long id = sound.play(volume);
+        System.out.println(id+"");
     }
 
     public static void stopSound(String name){
@@ -54,8 +55,10 @@ public class SoundManager {
     public static void setMusicOn(boolean playing){
         musicOn = playing;
 
-        if(!musicOn && currMusic.isPlaying()) currMusic.stop();
-        if(musicOn && !currMusic.isPlaying()) currMusic.play();
+        if(!musicOn && currMusic.isPlaying())
+            currMusic.pause();
+        else if(musicOn)
+            playMusic();
     }
 
     /**
@@ -66,11 +69,10 @@ public class SoundManager {
         soundsOn = on;
     }
 
-    public static void stopMusic(){
+    public static void pauseMusic(){
         if(currMusic!=null && currMusic.isPlaying())
-            currMusic.stop();
+            currMusic.pause();
     }
-
 
     public static boolean isMusicOn(){
         return musicOn;
@@ -80,4 +82,11 @@ public class SoundManager {
         return soundsOn;
     }
 
+    public static void dispose() {
+        //We need to unload this because it won't play if we open the app again after using Gdx.app.exit()
+        Game.easyAssetManager.unload("gameMusicTrack");
+        currMusic.stop();
+        currMusic.dispose();
+        currMusic = null;
+    }
 }

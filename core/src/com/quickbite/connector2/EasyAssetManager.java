@@ -24,8 +24,8 @@ public class EasyAssetManager extends AssetManager {
             return null;
         }
 
-        if(this.isLoaded(dataMap.get(commonName).path))
-            return super.get(dataMap.get(commonName).path, type);
+        if(this.isLoaded(ref.path))
+            return super.get(ref.path, type);
 
         return null;
     }
@@ -65,6 +65,17 @@ public class EasyAssetManager extends AssetManager {
     public synchronized <T> void load(String fileName, String commonName, Class<T> type, AssetLoaderParameters<T> param) {
         super.load(fileName, type, param);
         dataMap.put(commonName, new DataReference(commonName, fileName));
+    }
+
+    @Override
+    public synchronized void unload(String commonName) {
+        DataReference ref = dataMap.get(commonName);
+        String dataName = "";
+        if(ref != null)
+            dataName = ref.path;
+        else
+            dataName = commonName;
+        super.unload(dataName);
     }
 
     /**

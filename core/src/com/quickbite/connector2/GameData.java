@@ -17,7 +17,7 @@ import java.util.HashMap;
  * Holds the data mainly for the GameScreen. Can also be used for other instances (like main menu?)
  */
 public class GameData {
-    public static HashMap<String, Color> colorMap = new HashMap<String, Color>();
+    public static HashMap<String, Color> colorMap;
     public static final Padding playAreaPadding = new Padding(0f, 25f, 25f, 25f);
     public static float sizeOfSpots, sizeOfShapes;
     public static Array<ParticleEffect> particleEffects = new Array<ParticleEffect>();
@@ -25,18 +25,21 @@ public class GameData {
     public static Array<GameShape> gameShapeList = new Array<GameShape>();
     public static TextureRegion[] shapeTextures;
     public static TextureRegion[] shapesGlow;
-    public static Preferences prefs = Gdx.app.getPreferences("scores");
+    public static Preferences prefs;
 
     public static ObjectIntMap<GameSettings.GameType> scoreMap = new ObjectIntMap<GameSettings.GameType>(10);
 
-    static{
-        colorMap.put("Red", Color.RED);
+    public static void init(){
+        prefs = Gdx.app.getPreferences("scores");
+
+        colorMap = new HashMap<String, Color>();
+        colorMap.put("Red", new Color(Color.RED));
         colorMap.put("Blue", new Color(56f/255f, 122f/255f, 244f/255f, 1f));
-        colorMap.put("Green", Color.GREEN);
-        colorMap.put("Gold", Color.GOLD);
-        colorMap.put("Red", Color.RED);
-        colorMap.put("Cyan", Color.CYAN);
-        colorMap.put("Orange", Color.ORANGE);
+        colorMap.put("Green", new Color(Color.GREEN));
+        colorMap.put("Gold", new Color(Color.GOLD));
+        colorMap.put("Red", new Color(Color.RED));
+        colorMap.put("Cyan", new Color(Color.CYAN));
+        colorMap.put("Orange", new Color(Color.ORANGE));
 
         shapeTextures = new TextureRegion[6];
         shapeTextures[0] = Game.shapeAtlas.findRegion("Star");
@@ -58,6 +61,8 @@ public class GameData {
         effect.load(Gdx.files.internal("particles/explosion.p"), Gdx.files.internal("particles/"));
 
         GameData.explosionEffectPool = new ParticleEffectPool(effect, 4, 10);
+
+        loadLocalScoreMap();
     }
 
     public static void gameInit(){
@@ -74,6 +79,16 @@ public class GameData {
     public static void reset(){
         particleEffects = new Array<ParticleEffect>();
         gameShapeList = new Array<GameShape>();
+    }
+
+    /**
+     * Loads the score map from the local score file. This is for fast displaying to highest scores
+     * and such.
+     */
+    private static void loadLocalScoreMap(){
+        scoreMap.put(GameSettings.GameType.Fastest, prefs.getInteger(Constants.LEADERBOARD_BEST, 0));
+        scoreMap.put(GameSettings.GameType.Timed, prefs.getInteger(Constants.LEADERBOARD_TIMED, 0));
+        scoreMap.put(GameSettings.GameType.Frenzy, prefs.getInteger(Constants.LEADERBOARD_FRENZY, 0));
     }
 
     public static class Padding{
@@ -101,5 +116,11 @@ public class GameData {
         public float getLeft(){
             return left;
         }
+    }
+
+    public static void dispose(){
+//        colorMap = null;
+//        shapesGlow = null;
+//        shapeTextures = null;
     }
 }

@@ -351,47 +351,85 @@ public class GameScreen implements Screen{
      * @param delta The time between frames.
      */
     private void update(float delta){
-        if(currGameState == GameState.Beginning) {
-
-        }else if(currGameState == GameState.Running){
-            //Frenzy is special
-            if(GameSettings.gameType != GameSettings.GameType.Frenzy) {
-                if(GameSettings.gameType == GameSettings.GameType.Timed)
-                    this.updateTimedGame(delta);
-
-                if (GameStats.winCounter >= GameSettings.numShapes) {
-                    GameStats.winCounter = 0;
-                    this.setRoundOver(false, GameStats.RoundOver.Won);
-                }
-            }else{
-                this.updateFrenzy(delta);
-            }
-
-            GameScreenGUI.update(delta);
-        //If roundStarting, spin the GameData.shapeTextures in!
-        }else if(currGameState == GameState.Starting){
-            if(!roundStartingFlag)
-                roundStarting();
-            counter+=delta;
-            if(counter >= 0.5) {
-                counter = 0;
-                this.roundStarted();
-            }
-
-            GameScreenGUI.update(delta);
-            //If roundEnding, spin the GameData.shapeTextures out!
-        }else if(currGameState == GameState.Ending){
-            if(!startedRoundEnd)
-                this.startRoundEnd();
-            counter+=delta;
-            if(counter >= 0.5) {
-                counter = 0;
-                this.roundEnded();
-            }
-        }else if(this.currGameState == GameState.Over){
-            this.gameOver();
-            this.currGameState = GameState.Limbo;
+        switch(currGameState){
+            case Beginning:
+                break;
+            case Running:
+                roundRunning(delta);
+                break;
+            case Starting:
+                roundStarting(delta);
+                break;
+            case Ending:
+                roundEnding(delta);
+                break;
+            case Over:
+                roundGameOver(delta);
+                break;
         }
+    }
+
+    /**
+     * Called during the round starting state.
+     * @param delta The time between frames.
+     */
+    private void roundStarting(float delta){
+        if(!roundStartingFlag)
+            roundStarting();
+        counter+=delta;
+        if(counter >= 0.5) {
+            counter = 0;
+            this.roundStarted();
+        }
+
+        GameScreenGUI.update(delta);
+    }
+
+    /**
+     * Called during the round running state.
+     * @param delta The time between frames.
+     */
+    private void roundRunning(float delta){
+        //Frenzy is special
+        if(GameSettings.gameType != GameSettings.GameType.Frenzy) {
+            if(GameSettings.gameType == GameSettings.GameType.Timed)
+                this.updateTimedGame(delta);
+
+            if (GameStats.winCounter >= GameSettings.numShapes) {
+                GameStats.winCounter = 0;
+                this.setRoundOver(false, GameStats.RoundOver.Won);
+            }
+        }else{
+            this.updateFrenzy(delta);
+        }
+
+        GameScreenGUI.update(delta);
+    }
+
+    /**
+     * Called during the round ending state.
+     * @param delta The time between frames
+     */
+    private void roundEnding(float delta){
+        if(!startedRoundEnd) {
+            this.startRoundEnd();
+            if(peekAtGameOver()) //If the game is going to be over, save the score ahead of time.
+                getAndSaveScore();
+        }
+        counter+=delta;
+        if(counter >= 0.5) {
+            counter = 0;
+            this.roundEnded();
+        }
+    }
+
+    /**
+     * Called during the round game over state.
+     * @param delta The time between frames.
+     */
+    private void roundGameOver(float delta){
+        this.gameOver();
+        this.currGameState = GameState.Limbo;
     }
 
     /**
@@ -463,7 +501,7 @@ public class GameScreen implements Screen{
         if(GameSettings.gameType == GameSettings.GameType.Frenzy)
             counter = 99999999;
 
-        GameScreenGUI.showGameGUI();
+        GameScreenGUI.hideGameOverGUI();
     }
 
     /**
@@ -494,6 +532,10 @@ public class GameScreen implements Screen{
         this.initLineLists();
     }
 
+    /**
+     * Begins ending the round. Checks if we failed the last round, records time,
+     * handles shapes closing out, and the X or checkmark from the GUI.
+     */
     private void startRoundEnd(){
         if(!GameStats.failedLastRound) {
             if(GameSettings.gameType != GameSettings.GameType.Frenzy)
@@ -523,6 +565,27 @@ public class GameScreen implements Screen{
     }
 
     /**
+     * Peeks at if the game will be over after this round. Call when the round starts to end.
+     */
+    private boolean peekAtGameOver(){
+
+        switch(GameSettings.gameType){
+            case Fastest:
+                if(GameStats.currRound + 1 >= GameStats.maxRounds) //Add +1 because we are peeking and we are 1 behind.
+                    return true;
+            case Timed:
+                if(GameStats.failedLastRound)
+                    return true;
+                break;
+            case Frenzy:
+                return true;
+
+        }
+
+        return false;
+    }
+
+    /**
      * Called when the round should be ended.
      */
     private void roundEnded(){
@@ -532,16 +595,19 @@ public class GameScreen implements Screen{
         GameScreenGUI.roundEndedGUI();
         this.currGameState = GameState.Starting; //By default, set it to roundStarting the round again.
 
-        //If it was the fastest game type, check if we finished all of our rounds.
-        if(GameSettings.gameType == GameSettings.GameType.Fastest){
-            this.roundEndedBest();
-
-        //If it was the time game type, game over if we failed once.
-        }else if(GameSettings.gameType == GameSettings.GameType.Timed && GameStats.failedLastRound){
-            this.roundEndedTimed();
-
-        }else if(GameSettings.gameType == GameSettings.GameType.Frenzy){
-            roundEndedChallenge();
+        //We don't need a round ended for practice since it keeps goind forever.
+        switch(GameSettings.gameType){
+            case Practice:
+                break;
+            case Fastest:
+                this.roundEndedBest();
+                break;
+            case Timed:
+                this.roundEndedTimed();
+                break;
+            case Frenzy:
+                this.roundEndedFrenzy();
+                break;
         }
 
         this.startedRoundEnd = false;
@@ -560,11 +626,14 @@ public class GameScreen implements Screen{
         this.clickListener.dragging = false;
     }
 
+
+
     /**
      * specific Timed round ending.
      */
     private void roundEndedTimed(){
-        this.currGameState = GameState.Over;
+        if(GameStats.failedLastRound)
+            this.currGameState = GameState.Over;
     }
 
     /**
@@ -576,7 +645,7 @@ public class GameScreen implements Screen{
         }
     }
 
-    private void roundEndedChallenge(){
+    private void roundEndedFrenzy(){
         this.currGameState = GameState.Over;
     }
 
@@ -606,14 +675,14 @@ public class GameScreen implements Screen{
      * Timed game over.
      */
     private void gameOverTimed(){
-        this.getScore();
+//        this.getAndSaveScore();
     }
 
     /**
      * Best game over.
      */
     private void gameOverBest(){
-        this.getScore();
+//        this.getAndSaveScore();
     }
 
     /**
@@ -627,17 +696,29 @@ public class GameScreen implements Screen{
      * Practice game over.
      */
     private void gameOverChallenge(){
-        this.getScore();
+//        this.getAndSaveScore();
     }
 
-    private void getScore(){
+    /**
+     * Calculates the score and returns it.
+     */
+    private Pair<String, Integer> getScore(){
+        Pair<String, Integer> pair = GH.calcScore(GameSettings.gameType, GameStats.avgTime, GameStats.bestTime, GameSettings.numShapes, GameStats.currRound, GameStats.successfulRounds);
+        GameStats.currScore = pair.getSecond();
+        return pair;
+    }
+
+    /**
+     * Calculates the score and saves it.
+     */
+    private void getAndSaveScore(){
         Pair<String, Integer> pair = GH.calcScore(GameSettings.gameType, GameStats.avgTime, GameStats.bestTime, GameSettings.numShapes, GameStats.currRound, GameStats.successfulRounds);
         GameStats.currScore = pair.getSecond();
         saveScore(pair.getFirst(), GameSettings.gameType, pair.getSecond());
     }
 
     /**
-     * Saves the score.
+     * Saves the score both locally and to the leaderboards if able.
      * @param leaderboard The leaderboard ID to use and save to.
      * @param type The type of game being played
      * @param score The score

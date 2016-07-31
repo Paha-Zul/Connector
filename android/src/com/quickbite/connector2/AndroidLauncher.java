@@ -3,6 +3,7 @@ package com.quickbite.connector2;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.util.Log;
 import android.view.Gravity;
@@ -12,7 +13,6 @@ import android.widget.FrameLayout;
 import android.widget.RelativeLayout;
 import com.badlogic.gdx.backends.android.AndroidApplication;
 import com.badlogic.gdx.backends.android.AndroidApplicationConfiguration;
-import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.TimeUtils;
 import com.badlogic.gdx.utils.Timer;
 import com.example.android.trivialdrivesample.util.IabHelper;
@@ -32,10 +32,14 @@ import com.google.android.gms.games.leaderboard.LeaderboardScore;
 import com.google.android.gms.games.leaderboard.LeaderboardVariant;
 import com.google.android.gms.games.leaderboard.Leaderboards;
 import com.google.example.games.basegameutils.GameHelper;
+import com.quickbite.connector2.gui.GameScreenGUI;
 import com.quickbite.connector2.gui.MainMenuGUI;
 
 public class AndroidLauncher extends AndroidApplication implements GameHelper.GameHelperListener, ActionResolver, AdInterface {
 	GameHelper gameHelper;
+	final private static String TAG = "AndroidLauncher";
+
+	private boolean resumed = false, changedFocus = false;
 
 	private AdView adView;
 	private View gameView;
@@ -43,6 +47,9 @@ public class AndroidLauncher extends AndroidApplication implements GameHelper.Ga
 	private InterstitialAd interstitialAd;
 	private boolean showingBannerAd = false, showAds = false, bannerAdLoaded = false;
 	private IabHelper mHelper;
+
+	private boolean dailyGood = false, weeklyGood = false, allTimeGood = false;
+
 
 	@Override
 	protected void onCreate (Bundle savedInstanceState) {
@@ -104,7 +111,7 @@ public class AndroidLauncher extends AndroidApplication implements GameHelper.Ga
 			public void onAdClosed() {
 				AdRequest interstitialRequest = new AdRequest.Builder().build();
 				interstitialAd.loadAd(interstitialRequest);
-				SoundManager.playMusic();
+//				SoundManager.playMusic();
 			}
 		});
 
@@ -209,6 +216,7 @@ public class AndroidLauncher extends AndroidApplication implements GameHelper.Ga
 	public void onActivityResult(int request, int response, Intent data) {
 		super.onActivityResult(request, response, data);
 		gameHelper.onActivityResult(request, response, data);
+		mHelper.handleActivityResult(request, response, data);
 
 //		if ((request == 100) && response == GamesActivityResultCodes.RESULT_RECONNECT_REQUIRED) {
 //			gameHelper.disconnect();
@@ -225,12 +233,24 @@ public class AndroidLauncher extends AndroidApplication implements GameHelper.Ga
 	@Override
 	public void onResume() {
 		super.onResume();
-		SoundManager.playMusic();
+		resumed = true;
+		if(changedFocus)
+			SoundManager.playMusic();
+	}
+
+	@Override
+	public void onWindowFocusChanged(boolean hasFocus) {
+		super.onWindowFocusChanged(hasFocus);
+		changedFocus = hasFocus;
+		if(changedFocus && resumed)
+			SoundManager.playMusic();
 	}
 
 	@Override
 	public void onPause() {
 		super.onPause();
+		resumed = false;
+		SoundManager.pauseMusic();
 	}
 
 	@Override
@@ -264,7 +284,6 @@ public class AndroidLauncher extends AndroidApplication implements GameHelper.Ga
 
 	@Override
 	public void logoutGPGS() {
-        Log.d("AndroidLauncher", "Trying to sign out");
 		runOnUiThread(new Runnable() {
 			public void run() {
 				gameHelper.signOut();
@@ -275,8 +294,19 @@ public class AndroidLauncher extends AndroidApplication implements GameHelper.Ga
 	@Override
 	public void submitScoreGPGS(String tableID, long score) {
         if (getSignedInGPGS()) {
-            Games.Leaderboards.submitScore(gameHelper.getApiClient(), tableID, score);
-        }
+			Games.Leaderboards.submitScore(gameHelper.getApiClient(), tableID, score);
+		}
+	}
+
+	/**
+	 * Cancels the timout Timer for getting ranks.
+	 * @param timeOutTimer
+     */
+	private void checkToCancelTimer(Timer timeOutTimer){
+		if(dailyGood && weeklyGood && allTimeGood){
+			timeOutTimer.clear();
+			dailyGood = weeklyGood = allTimeGood = false;
+		}
 	}
 
 	@Override
@@ -284,6 +314,78 @@ public class AndroidLauncher extends AndroidApplication implements GameHelper.Ga
         if (getSignedInGPGS()) {
             Games.Achievements.unlock(gameHelper.getApiClient(), achievementId);
         }
+	}
+
+	@Override
+	public void getCurrentRankInLeaderboards(String tableID) {
+		dailyGood = weeklyGood = allTimeGood = false;
+
+		if (getSignedInGPGS()) {
+			final Timer timeOutTimer = new Timer();
+
+			final PendingResult<Leaderboards.LoadPlayerScoreResult> dailyResult = Games.Leaderboards.loadCurrentPlayerLeaderboardScore(gameHelper.getApiClient(), tableID, LeaderboardVariant.TIME_SPAN_DAILY, LeaderboardVariant.COLLECTION_PUBLIC);
+			final PendingResult<Leaderboards.LoadPlayerScoreResult> weekylResult = Games.Leaderboards.loadCurrentPlayerLeaderboardScore(gameHelper.getApiClient(), tableID, LeaderboardVariant.TIME_SPAN_WEEKLY, LeaderboardVariant.COLLECTION_PUBLIC);
+			final PendingResult<Leaderboards.LoadPlayerScoreResult> allTimeResult = Games.Leaderboards.loadCurrentPlayerLeaderboardScore(gameHelper.getApiClient(), tableID, LeaderboardVariant.TIME_SPAN_ALL_TIME, LeaderboardVariant.COLLECTION_PUBLIC);
+
+			dailyResult.setResultCallback(new ResultCallback<Leaderboards.LoadPlayerScoreResult>() {
+				@Override
+				public void onResult(@NonNull Leaderboards.LoadPlayerScoreResult loadScoresResult) {
+					if(loadScoresResult.getStatus().getStatusCode() == GamesStatusCodes.STATUS_OK && loadScoresResult.getScore() != null) {
+						GameScreenGUI.setDailyRank(loadScoresResult.getScore().getDisplayRank());
+						dailyGood = true;
+						checkToCancelTimer(timeOutTimer);
+					}
+				}
+			});
+
+			weekylResult.setResultCallback(new ResultCallback<Leaderboards.LoadPlayerScoreResult>() {
+				@Override
+				public void onResult(@NonNull Leaderboards.LoadPlayerScoreResult loadScoresResult) {
+					if(loadScoresResult.getStatus().getStatusCode() == GamesStatusCodes.STATUS_OK && loadScoresResult.getScore() != null) {
+						GameScreenGUI.setWeekylRank(loadScoresResult.getScore().getDisplayRank());
+						weeklyGood = true;
+						checkToCancelTimer(timeOutTimer);
+					}
+				}
+			});
+
+			allTimeResult.setResultCallback(new ResultCallback<Leaderboards.LoadPlayerScoreResult>() {
+				@Override
+				public void onResult(@NonNull Leaderboards.LoadPlayerScoreResult loadScoresResult) {
+					if(loadScoresResult.getStatus().getStatusCode() == GamesStatusCodes.STATUS_OK && loadScoresResult.getScore() != null) {
+						GameScreenGUI.setAllTimeRank(loadScoresResult.getScore().getDisplayRank());
+						allTimeGood = true;
+						checkToCancelTimer(timeOutTimer);
+					}
+				}
+			});
+
+			final double timeStarted = TimeUtils.millis();
+			final double _timeout = 7000; //In millis, 10 seconds
+
+			//If we wait too long, cancel the result.
+			timeOutTimer.scheduleTask(new Timer.Task() {
+				@Override
+				public void run() {
+					if(TimeUtils.millis() >= timeStarted + _timeout) {
+						dailyResult.cancel();
+						weekylResult.cancel();
+						allTimeResult.cancel();
+						timeOutTimer.clear();
+
+						if(!dailyGood) GameScreenGUI.setDailyRank("NA");
+						if(!weeklyGood) GameScreenGUI.setWeekylRank("NA");
+						if(!allTimeGood) GameScreenGUI.setAllTimeRank("NA");
+
+						dailyGood = weeklyGood = allTimeGood = false;
+					}
+				}
+			}, 0, 0.5f);
+		}else {
+			if (!dailyGood) GameScreenGUI.setDailyRank("NA");
+			if (!weeklyGood) GameScreenGUI.setWeekylRank("NA");
+			if (!allTimeGood) GameScreenGUI.setAllTimeRank("NA");
+		}
 	}
 
 	@Override
@@ -312,7 +414,7 @@ public class AndroidLauncher extends AndroidApplication implements GameHelper.Ga
 		final Timer timeOutTimer = new Timer();
 
 		final PendingResult<Leaderboards.LoadScoresResult> pendingResult = Games.Leaderboards.loadPlayerCenteredScores(gameHelper.getApiClient(),
-				leaderboardID, timeSpan, leaderboardType, 10);
+				leaderboardID, timeSpan, leaderboardType, 1);
 
 		//Create the callback. If valid, call the GUI to load the scores.
 		pendingResult.setResultCallback(new ResultCallback<Leaderboards.LoadScoresResult>() {
@@ -323,17 +425,9 @@ public class AndroidLauncher extends AndroidApplication implements GameHelper.Ga
 				if(loadScoresResult.getStatus().getStatusCode() != GamesStatusCodes.STATUS_OK)
 					return;
 
-				//GUIManager.MainMenuGUI.inst().loadLeaderboardScores();
-                Array<String> ranks = new Array<>();
-                Array<String> names = new Array<>();
-                Array<String> scores = new Array<>();
-
                 for(LeaderboardScore score : loadScoresResult.getScores()){
-                    ranks.add(score.getDisplayRank());
-                    names.add(score.getScoreHolderDisplayName());
-                    scores.add(score.getDisplayScore());
+					score.getDisplayRank();
                 }
-
             }
         });
 
@@ -361,18 +455,13 @@ public class AndroidLauncher extends AndroidApplication implements GameHelper.Ga
 	}
 
 	private void initBilling(){
-		System.out.println("Starting up billing...");
-
-		mHelper = new IabHelper(this, "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAiqYxrqMywByEg2dXFaOlcZBNP/JV3fA5iOw+a52SNMEQOW2fsPIkR0MpnnkUW66wzPGdr9gzR" +
-				"4Ete5UO3lvbkDo7YFrOtETazfV5FVLNVoCZhb0Yp3Wo9ewRlEayfkJOKTfNDlCqKiRaKyMgtZRX0BG47N25VOV8Hg1qP/Q0bFXSd+WANnwZAyPuinTUtFFkSW1G9Nnzy1LshS4zJsdY" +
-				"F+T0tpRQ/8lK/DySoRPZp58d6IUsNCTTQaDTY42gHs4CnhAP6DQRSmhjXZZZ4VnA67D9DcKzazFt3A97cSU2MzhR0q+VAAlzb/gMaLbeWLFckwRV3x1U4+9aa+1pa1L/SQIDAQAB");
+		mHelper = new IabHelper(this, getString(R.string.d2) + getString(R.string.d1) + getString(R.string.d3));
 
 		mHelper.startSetup(new IabHelper.OnIabSetupFinishedListener() {
 			@Override
 			public void onIabSetupFinished(IabResult result) {
 				if (!result.isSuccess()) {
 					// Oh noes, there was a problem.
-                    Log.d("AndroidLauncher", "There was a problem starting billing");
 				}else {
 					//Let's then query the inventory...
 					try {
@@ -392,12 +481,13 @@ public class AndroidLauncher extends AndroidApplication implements GameHelper.Ga
 			mHelper.launchPurchaseFlow(this, SKU_NOADS, RC_REQUEST, new IabHelper.OnIabPurchaseFinishedListener() {
 				@Override
 				public void onIabPurchaseFinished(IabResult result, Purchase info) {
-					if(!result.isSuccess()){
 
-					}else{
+					if(result.isSuccess()){
 						showAds = false;
 						hideAdmobBannerAd();
 						MainMenuGUI.removeNoAdsButton();
+					}else{
+						Log.e(TAG, "Purchase was not successful");
 					}
 				}
 			}, "hmm");
@@ -410,14 +500,27 @@ public class AndroidLauncher extends AndroidApplication implements GameHelper.Ga
 		@Override
 		public void onQueryInventoryFinished(IabResult result, Inventory inv) {
 			if(result.isFailure() || mHelper == null || inv == null) {
-//				System.out.println("InventoryCallback, Something went wrong. result failed: "+result.isFailure()+
-//						", mHelper null: "+(mHelper == null) +", inventory null: "+(inv == null));
 				return;
 			}
 
-			if (inv.hasPurchase("no_ads")) {
+			if (inv.hasPurchase(SKU_NOADS)) {
 				showAds = false;
 				hideAdmobBannerAd();
+
+				//If it matches my test device, consume it for now.
+				if(Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID).equals("93c5883d462d97e9")){
+					try {
+						mHelper.consumeAsync(inv.getPurchase(SKU_NOADS), new IabHelper.OnConsumeFinishedListener() {
+                            @Override
+                            public void onConsumeFinished(Purchase purchase, IabResult result) {
+
+							}
+                        });
+					} catch (IabHelper.IabAsyncInProgressException e) {
+						Log.e(TAG, "Error", e);
+						e.printStackTrace();
+					}
+				}
 			} else {
 				showAds = true;
 			}
@@ -426,12 +529,12 @@ public class AndroidLauncher extends AndroidApplication implements GameHelper.Ga
 
 	@Override
 	public void onSignInFailed() {
-		SoundManager.playMusic();
+//		SoundManager.playMusic();
 	}
 
 	@Override
 	public void onSignInSucceeded() {
-		SoundManager.playMusic();
+//		SoundManager.playMusic();
 	}
 
 

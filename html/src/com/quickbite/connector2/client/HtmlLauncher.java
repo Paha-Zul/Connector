@@ -45,6 +45,11 @@ public class HtmlLauncher extends GwtApplication implements ActionResolver, AdIn
     }
 
     @Override
+    public void getCurrentRankInLeaderboards(String tableID) {
+
+    }
+
+    @Override
     public void getLeaderboardGPGS(String leaderboardID) {
 
     }

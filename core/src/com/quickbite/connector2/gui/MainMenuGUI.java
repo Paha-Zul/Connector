@@ -341,23 +341,25 @@ public class MainMenuGUI {
         regularStyle.disabledFontColor = new Color(1, 1, 1, 0.5f);
         regularStyle.disabledFontColor = new Color(0.5f, 0.5f, 0.5f, 0.5f);
 
+        Color color = GameData.colorMap.get("Green");
         TextButton.TextButtonStyle numShapesButtonStyle = new TextButton.TextButtonStyle();
-        numShapesButtonStyle.checked = new TextureRegionDrawable(new TextureRegion(GH.createPixel(new Color(Color.GREEN.r, Color.GREEN.g, Color.GREEN.b, 0.7f))));
+        numShapesButtonStyle.checked = new TextureRegionDrawable(new TextureRegion(GH.createPixel(new Color(color.r, color.g, color.b, 0.7f))));
         numShapesButtonStyle.font = Game.defaultHugeFont;
         numShapesButtonStyle.disabledFontColor = new Color(0.5f, 0.5f, 0.5f, 0.5f);
         numShapesButtonStyle.fontColor = Color.WHITE;
 
+        color = GameData.colorMap.get("Gold");
         TextButton.TextButtonStyle colorButtonStyle = new TextButton.TextButtonStyle(numShapesButtonStyle);
-        colorButtonStyle.checked = new TextureRegionDrawable(new TextureRegion(GH.createPixel(new Color(Color.GOLD.r, Color.GOLD.g, Color.GOLD.b, 0.7f))));
+        colorButtonStyle.checked = new TextureRegionDrawable(new TextureRegion(GH.createPixel(new Color(color.r, color.g, color.b, 0.7f))));
 
+        color = GameData.colorMap.get("Red");
         TextButton.TextButtonStyle matchButtonStyle = new TextButton.TextButtonStyle(numShapesButtonStyle);
-        matchButtonStyle.checked = new TextureRegionDrawable(new TextureRegion(GH.createPixel(new Color(Color.RED.r, Color.RED.g, Color.RED.b, 0.7f))));
+        matchButtonStyle.checked = new TextureRegionDrawable(new TextureRegion(GH.createPixel(new Color(color.r, color.g,color.b, 0.7f))));
 
-        Color blue = GameData.colorMap.get("Blue");
-        blue.a = 0.7f;
+        color = new Color(GameData.colorMap.get("Blue"));
+        color.a = 0.7f;
         TextButton.TextButtonStyle modeButtonStyle = new TextButton.TextButtonStyle(numShapesButtonStyle);
-        modeButtonStyle.checked = new TextureRegionDrawable(new TextureRegion(GH.createPixel(blue)));
-
+        modeButtonStyle.checked = new TextureRegionDrawable(new TextureRegion(GH.createPixel(color)));
 
         TextButton.TextButtonStyle buttonStyle = new  TextButton.TextButtonStyle();
         buttonStyle.font = Game.defaultHugeFont;
@@ -432,6 +434,12 @@ public class MainMenuGUI {
             public void changed(ChangeEvent event, Actor actor) {
                 SoundManager.playSound("click");
                 Game.resolver.submitEvent(Constants.EVENT_QUIT);
+                SoundManager.dispose();
+                GameData.dispose();
+                Game.stage.clear();
+                Game.easyAssetManager.clear();
+                Game.easyAssetManager.dispose();
+
                 Gdx.app.exit();
             }
         });
@@ -635,20 +643,27 @@ public class MainMenuGUI {
         modeLabel.setAlignment(Align.center);
         modeLabel.setFontScale(0.35f);
 
-        Image greenBackground = new Image(GH.whitePixel);
-        greenBackground.setColor(Color.GREEN);
+        /* The backgrounds for each section label*/
+
+        color = new Color(GameData.colorMap.get("Green"));
+        Image greenBackground = new Image(GH.createPixel(color));
+        greenBackground.setColor(color);
         greenBackground.getColor().a = 0.75f;
 
-        Image redBackground = new Image(GH.whitePixel);
-        redBackground.setColor(Color.RED);
+        color = new Color(GameData.colorMap.get("Red"));
+        Image redBackground = new Image(GH.createPixel(color));
+        redBackground.setColor(color);
         redBackground.getColor().a = 0.75f;
 
-        Image goldBackground = new Image(GH.whitePixel);
-        goldBackground.setColor(Color.GOLD);
+        color = new Color(GameData.colorMap.get("Gold"));
+        Image goldBackground = new Image(GH.createPixel(color));
+        goldBackground.setColor(color);
         goldBackground.getColor().a = 0.75f;
 
-        Image blueBackground = new Image(GH.whitePixel);
-        blueBackground.setColor(56f/255f, 122f/255f, 244f/255f, 0.75f);
+        color = new Color(GameData.colorMap.get("Blue"));
+        Image blueBackground = new Image(GH.createPixel(color));
+        blueBackground.setColor(color);
+        blueBackground.getColor().a = 0.75f;
 
         Stack numShapesStack = new Stack(greenBackground, numShapesLabel);
         Stack colorStack = new Stack(goldBackground, colorLabel);

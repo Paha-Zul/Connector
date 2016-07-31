@@ -26,7 +26,6 @@ public class Game extends com.badlogic.gdx.Game {
 	public static SpriteBatch batch;
 	public static ShapeRenderer renderer;
 	public static OrthographicCamera camera;
-	public static OrthographicCamera UICamera;
 	public static Viewport viewport;
 	public static Stage stage;
 	public static BitmapFont defaultHugeFont;
@@ -120,7 +119,7 @@ public class Game extends com.badlogic.gdx.Game {
 
 	public void loadMusic(FileHandle handle){
 		for(FileHandle h : handle.list()){
-			if(h.name().endsWith(".ogg"))
+			if(h.name().endsWith(".ogg") || h.name().endsWith(".wav"))
 				easyAssetManager.load(h.path(), Music.class);
 		}
 	}

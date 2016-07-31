@@ -42,8 +42,8 @@ project(":desktop") {
         compile project(":core")
         compile "com.badlogicgames.gdx:gdx-backend-lwjgl:$gdxVersion"
         compile "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop"
-        compile "com.badlogicgames.gdx:gdx-box2d-platform:$gdxVersion:natives-desktop"
-        compile "com.badlogicgames.gdx:gdx-freetype-platform:$gdxVersion:natives-desktop"
+//        compile "com.badlogicgames.gdx:gdx-box2d-platform:$gdxVersion:natives-desktop"
+//        compile "com.badlogicgames.gdx:gdx-freetype-platform:$gdxVersion:natives-desktop"
         compile "com.badlogicgames.gdx:gdx-tools:$gdxVersion"
 
 //        compile "com.badlogicgames.gdxpay:gdx-pay-desktop-apple:$gdxPayVersion"
@@ -64,18 +64,20 @@ project(":android") {
         natives "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-armeabi"
         natives "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-armeabi-v7a"
         natives "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-x86"
-        compile "com.badlogicgames.gdx:gdx-box2d:$gdxVersion"
-        natives "com.badlogicgames.gdx:gdx-box2d-platform:$gdxVersion:natives-armeabi"
-        natives "com.badlogicgames.gdx:gdx-box2d-platform:$gdxVersion:natives-armeabi-v7a"
-        natives "com.badlogicgames.gdx:gdx-box2d-platform:$gdxVersion:natives-x86"
-        compile "com.badlogicgames.gdx:gdx-freetype:$gdxVersion"
-        natives "com.badlogicgames.gdx:gdx-freetype-platform:$gdxVersion:natives-armeabi"
-        natives "com.badlogicgames.gdx:gdx-freetype-platform:$gdxVersion:natives-armeabi-v7a"
-        natives "com.badlogicgames.gdx:gdx-freetype-platform:$gdxVersion:natives-x86"
-//        compile 'com.android.support:appcompat-v7:$googleServicesVersion'
-//        compile 'com.android.support:support-v4:$googleServicesVersion'
+//        compile "com.badlogicgames.gdx:gdx-box2d:$gdxVersion"
+//        natives "com.badlogicgames.gdx:gdx-box2d-platform:$gdxVersion:natives-armeabi"
+//        natives "com.badlogicgames.gdx:gdx-box2d-platform:$gdxVersion:natives-armeabi-v7a"
+//        natives "com.badlogicgames.gdx:gdx-box2d-platform:$gdxVersion:natives-x86"
+//        compile "com.badlogicgames.gdx:gdx-freetype:$gdxVersion"
+//        natives "com.badlogicgames.gdx:gdx-freetype-platform:$gdxVersion:natives-armeabi"
+//        natives "com.badlogicgames.gdx:gdx-freetype-platform:$gdxVersion:natives-armeabi-v7a"
+//        natives "com.badlogicgames.gdx:gdx-freetype-platform:$gdxVersion:natives-x86"
+
         compile "com.google.android.gms:play-services-games:$googleServicesVersion"
         compile "com.google.android.gms:play-services-ads:$adMobVersion"
+
+//        compile 'com.android.support:appcompat-v7:$googleServicesVersion'
+//        compile 'com.android.support:support-v4:$googleServicesVersion'
 
 //        compile "com.badlogicgames.gdxpay:gdx-pay-android:$gdxPayVersion"
 //        compile "com.badlogicgames.gdxpay:gdx-pay-android-openiab:$gdxPayVersion"
@@ -94,8 +96,8 @@ project(":ios") {
         compile "org.robovm:robovm-cocoatouch:$roboVMVersion"
         compile "com.badlogicgames.gdx:gdx-backend-robovm:$gdxVersion"
         compile "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-ios"
-        compile "com.badlogicgames.gdx:gdx-box2d-platform:$gdxVersion:natives-ios"
-        compile "com.badlogicgames.gdx:gdx-freetype-platform:$gdxVersion:natives-ios"
+//        compile "com.badlogicgames.gdx:gdx-box2d-platform:$gdxVersion:natives-ios"
+//        compile "com.badlogicgames.gdx:gdx-freetype-platform:$gdxVersion:natives-ios"
 
 //        compile "com.badlogicgames.gdxpay:gdx-pay-iosrobovm-apple:$gdxPayVersion"
 
@@ -111,11 +113,11 @@ project(":html") {
         compile "com.badlogicgames.gdx:gdx-backend-gwt:$gdxVersion"
         compile "com.badlogicgames.gdx:gdx:$gdxVersion:sources"
         compile "com.badlogicgames.gdx:gdx-backend-gwt:$gdxVersion:sources"
-        compile "com.badlogicgames.gdx:gdx-box2d:$gdxVersion:sources"
-        compile "com.badlogicgames.gdx:gdx-box2d-gwt:$gdxVersion:sources"
+//        compile "com.badlogicgames.gdx:gdx-box2d:$gdxVersion:sources"
+//        compile "com.badlogicgames.gdx:gdx-box2d-gwt:$gdxVersion:sources"
+//        compile "net.dermetfan.libgdx-utils:libgdx-utils:0.13.2:sources"
         compile "net.dermetfan.libgdx-utils:libgdx-utils:0.13.2:sources"
-        compile "net.dermetfan.libgdx-utils:libgdx-utils:0.13.2:sources"
-        compile "net.dermetfan.libgdx-utils:libgdx-utils-box2d:0.13.2:sources"
+//        compile "net.dermetfan.libgdx-utils:libgdx-utils-box2d:0.13.2:sources"
     }
 }
 
@@ -124,10 +126,10 @@ project(":core") {
 
     dependencies {
         compile "com.badlogicgames.gdx:gdx:$gdxVersion"
-        compile "com.badlogicgames.gdx:gdx-box2d:$gdxVersion"
-        compile "com.badlogicgames.gdx:gdx-freetype:$gdxVersion"
+//        compile "com.badlogicgames.gdx:gdx-box2d:$gdxVersion"
+//        compile "com.badlogicgames.gdx:gdx-freetype:$gdxVersion"
         compile "net.dermetfan.libgdx-utils:libgdx-utils:0.13.2"
-        compile "net.dermetfan.libgdx-utils:libgdx-utils-box2d:0.13.2"
+//        compile "net.dermetfan.libgdx-utils:libgdx-utils-box2d:0.13.2"
 
 //        compile "com.badlogicgames.gdxpay:gdx-pay-client:$gdxPayVersion"
     }
