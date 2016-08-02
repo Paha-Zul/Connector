@@ -22,4 +22,5 @@ public class Constants {
     public static final String EVENT_QUIT = "CgkI3sW1wbAUEAIQFw";
     public static final String EVENT_CHECKEDLEADERBOARDS = "CgkI3sW1wbAUEAIQFg";
     public static final String EVENT_LOGGEDIN = "CgkI3sW1wbAUEAIQFQ";
+
 }

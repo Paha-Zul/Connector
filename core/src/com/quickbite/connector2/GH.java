@@ -69,7 +69,7 @@ public class GH {
         return pixmaptex;
     }
 
-    public static void incrementGameSettingsEvent(){
+    public static void submitGameSettingsEvent(){
         String ID = "";
         switch(GameSettings.gameType){
             case Practice:
@@ -88,7 +88,7 @@ public class GH {
                 break;
         }
 
-        Game.resolver.submitEvent(ID);
+        Game.resolver.submitEvent(ID, "");
 
         ID = "";
         switch(GameSettings.numShapes){
@@ -106,7 +106,7 @@ public class GH {
                 break;
         }
 
-        Game.resolver.submitEvent(ID);
+        Game.resolver.submitEvent(ID, "");
     }
 
     /**
@@ -159,10 +159,79 @@ public class GH {
                 id = Constants.LEADERBOARD_TIMED;
                 break;
             case Frenzy:
-                id = Constants.EVENT_FRENZY;
+                id = Constants.LEADERBOARD_FRENZY;
                 break;
         }
 
         return id;
+    }
+
+    /**
+     * Using the current configuration of game settings, compiles a string to represent
+     * the game state.
+     * @return A String that represents 'gameType:matchingType:colorType:numShapes'
+     */
+    public static String getCurrGameConfig(){
+        String config = "startingGame";
+
+        switch(GameSettings.gameType){
+            case Practice:
+                config += ":practice";
+                break;
+            case Fastest:
+                config += ":best";
+                break;
+            case Timed:
+                config += ":timed";
+                break;
+            case Frenzy:
+                config += ":frenzy";
+                break;
+            default:
+                config += ":none";
+        }
+
+        switch(GameSettings.matchType){
+            case Shapes:
+                config += ":shapes";
+                break;
+            case Color:
+                config += ":colors";
+                break;
+            default:
+                config += ":none";
+        }
+
+        switch(GameSettings.colorType){
+            case Normal:
+                config += ":same";
+                break;
+            case Random:
+                config += ":random";
+                break;
+            default:
+                config += ":none";
+                break;
+        }
+
+        switch(GameSettings.numShapes){
+            case 3:
+                config += ":3";
+                break;
+            case 4:
+                config += ":4";
+                break;
+            case 5:
+                config += ":5";
+                break;
+            case 6:
+                config += ":6";
+                break;
+            default:
+                config += ":0";
+                break;
+        }
+
+        return config;
     }
 }

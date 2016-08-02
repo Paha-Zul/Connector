@@ -76,7 +76,12 @@ public class HtmlLauncher extends GwtApplication implements ActionResolver, AdIn
     }
 
     @Override
-    public void submitEvent(String eventID) {
+    public void submitEvent(String eventID, String GA_ID) {
+
+    }
+
+    @Override
+    public void submitGameStructure() {
 
     }
 

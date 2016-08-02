@@ -17,6 +17,14 @@ import java.util.HashMap;
  * Holds the data mainly for the GameScreen. Can also be used for other instances (like main menu?)
  */
 public class GameData {
+    public static class FrenzyData{
+        public static final float ROUND_LENGTH = 30f;
+        public static final float SPAWN_BASE_TIME = 1f;
+        public static final float SPAWN_INCREASE_AMOUNT = 0.1f;
+        public static final float SPAWN_INCREASE_RATE = 5f;
+
+    }
+
     public static HashMap<String, Color> colorMap;
     public static final Padding playAreaPadding = new Padding(0f, 25f, 25f, 25f);
     public static float sizeOfSpots, sizeOfShapes;

@@ -26,7 +26,7 @@ public class GameShape {
 
     private float opacity = 1f;
     private float scaleSpeed = 0.5f;
-    private float rotationSpeed = 30f;
+    private float rotationSpeed = 20f;
 
     public GameShape(Vector2 position, int shape, int size, Color color){
         final float bonus = 1.5f;

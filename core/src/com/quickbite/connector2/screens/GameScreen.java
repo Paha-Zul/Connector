@@ -142,7 +142,7 @@ public class GameScreen implements Screen{
             else
                 GameStats.roundTimeLeft = GameStats.roundTimeStart - GameStats.getRoundTimeDecreaseAmountBelow5 * GameStats.currRound;
         }else if(GameSettings.gameType == GameSettings.GameType.Frenzy){
-            GameStats.roundTimeLeft = 20f;
+            GameStats.roundTimeLeft = GameData.FrenzyData.ROUND_LENGTH;
         }
 
         GameStats.winCounter = 0;
@@ -469,8 +469,12 @@ public class GameScreen implements Screen{
     }
 
     private void updateFrenzy(float delta){
+        float spawnThreshold = GameData.FrenzyData.SPAWN_BASE_TIME -
+                (int)((GameData.FrenzyData.ROUND_LENGTH - GameStats.roundTimeLeft)/GameData.FrenzyData.SPAWN_INCREASE_RATE)* GameData.FrenzyData.SPAWN_INCREASE_AMOUNT;
+
         challengeCounter+=delta;
-        if(challengeCounter > 0.75f){
+        if(challengeCounter > spawnThreshold){
+            System.out.println("Spawn Threshold: "+spawnThreshold);
             int randShape = MathUtils.random(0, GameData.shapeTextures.length-1);
             Color randColor = (Color)GameData.colorMap.values().toArray()[MathUtils.random(0, GameData.colorMap.size()-1)];
             final Vector2 position = getRandomPositionAndShuffle();
@@ -501,6 +505,9 @@ public class GameScreen implements Screen{
         }
     }
 
+    /**
+     * The entry point from the starting screen that shows game settings and info.
+     */
     public void beginGame(){
         currGameState = GameState.Starting;
 
@@ -508,7 +515,7 @@ public class GameScreen implements Screen{
         if(GameSettings.gameType == GameSettings.GameType.Frenzy)
             counter = 99999999;
 
-        gameScreenGUI.hide();
+        gameScreenGUI.show();
     }
 
     /**
@@ -731,10 +738,12 @@ public class GameScreen implements Screen{
      */
     private void saveScore(String leaderboard, GameSettings.GameType type, int score){
         //Save it to the prefs and local
-        GameData.prefs.putInteger(leaderboard, score);
-        GameData.prefs.flush();
-        if(GameData.scoreMap.get(type, 0) < score)
+        int highestScore = GameData.scoreMap.get(type, 0);
+        if(score > highestScore) {
+            GameData.prefs.putInteger(leaderboard, score);
+            GameData.prefs.flush();
             GameData.scoreMap.put(type, score);
+        }
 
         //Save to the leaderboard if connected
         Game.resolver.submitScoreGPGS(leaderboard, score);

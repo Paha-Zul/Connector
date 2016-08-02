@@ -60,6 +60,7 @@ project(":android") {
     dependencies {
         compile project(":BaseGameUtils")
         compile project(":core")
+        compile files('libs/gameanalytics.jar')
         compile "com.badlogicgames.gdx:gdx-backend-android:$gdxVersion"
         natives "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-armeabi"
         natives "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-armeabi-v7a"

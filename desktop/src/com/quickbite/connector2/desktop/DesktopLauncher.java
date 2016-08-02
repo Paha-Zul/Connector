@@ -4,6 +4,7 @@ import com.badlogic.gdx.backends.lwjgl.LwjglApplication;
 import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration;
 import com.quickbite.connector2.ActionResolver;
 import com.quickbite.connector2.AdInterface;
+import com.quickbite.connector2.GH;
 import com.quickbite.connector2.Game;
 import com.quickbite.connector2.gui.GameOverGUI;
 
@@ -77,8 +78,13 @@ public class DesktopLauncher implements ActionResolver, AdInterface {
 	}
 
 	@Override
-	public void submitEvent(String eventID) {
-		System.out.println("Submitting for eventID "+eventID);
+	public void submitEvent(String eventID, String GA_ID) {
+		System.out.println("Submitting for eventID "+eventID+" with GA_ID: "+GA_ID);
+	}
+
+	@Override
+	public void submitGameStructure() {
+		System.out.println("Submitting game type: "+ GH.getCurrGameConfig());
 	}
 
 	@Override

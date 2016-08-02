@@ -41,6 +41,8 @@ public class GameOverGUI {
 
     private GameScreen gameScreen;
 
+    private boolean showing = false;
+
     public GameOverGUI(GameScreen gameScreen){
         this.gameScreen = gameScreen;
         final GameScreen _screen = gameScreen;
@@ -150,6 +152,8 @@ public class GameOverGUI {
         allTimeRank.setText("All Time rank: -");
 
         gameOverGUI();
+
+        showing = true;
     }
 
     public void hide(){
@@ -160,6 +164,8 @@ public class GameOverGUI {
         dailyRank.setText("Daily rank: -");
         weeklyRank.setText("Weekly rank: -");
         allTimeRank.setText("All Time rank: -");
+
+        showing = false;
     }
 
     /**
@@ -187,9 +193,11 @@ public class GameOverGUI {
         avgTimeLabel.setText("Average Time: "+formatter.format(GameStats.avgTime/1000)+"s.");
         bestTimeLabel.setText("Best Time: "+formatter.format(GameStats.bestTime/1000)+"s.");
 
+        gameOverTable.row().padTop(space).padBottom(space); //Add an initial row
+
         //Only add why we lost if it's timed or frenzy
         if(GameSettings.gameType == GameSettings.GameType.Timed || GameSettings.gameType == GameSettings.GameType.Frenzy){
-            gameOverTable.add(lostReasonLabel).expandX().fillX().padBottom(space).padTop(space);
+            gameOverTable.add(lostReasonLabel).expandX().fillX().padBottom(space);
             gameOverTable.row();
         }
 
@@ -212,8 +220,6 @@ public class GameOverGUI {
 
         //Here we set up the tables, but don't add them to the game over table yet.
         setUpScoreTables();
-
-        gameOverTable.top();
 
         //We have to validate and execute the game over table once. This lays out the table so we can get
         //correct positions.
@@ -274,6 +280,11 @@ public class GameOverGUI {
 //        Display the extra stats...
         int space = 30;
 
+        //Let's save the current positions of some stuff before we add stuff to the table.
+        Vector2 lostPos = new Vector2(lostReasonLabel.getX(), lostReasonLabel.getY());
+        Vector2 roundPos = new Vector2(roundsLabel.getX(), roundsLabel.getY());
+        Vector2 scorePos = new Vector2(scoreLabel.getX(), scoreLabel.getY());
+
         buttonTable.remove(); //We'll add this back later.
         moreStatsButton.remove(); //Gone!
 
@@ -302,6 +313,7 @@ public class GameOverGUI {
 
         gameOverTable.add(buttonTable);
 
+        //Do this stuff to update positions
         gameOverTable.validate();
         gameOverTable.act(0.016f);
         Game.stage.act();
@@ -310,6 +322,10 @@ public class GameOverGUI {
         float delay = 0f;
         float delayIncr = 0.1f;
         float startingY = -200f;
+
+        slideInFromTopOrBottom(lostReasonLabel, lostPos.y, time, delay += delayIncr);
+        slideInFromTopOrBottom(roundsLabel, roundPos.y, time, delay += delayIncr);
+        slideInFromTopOrBottom(scoreLabel, scorePos.y, time, delay += delayIncr);
 
         slideInFromTopOrBottom(previousScoreLabel, startingY, time, delay += delayIncr);
         slideInFromTopOrBottom(avgTimeLabel, startingY, time, delay += delayIncr);
@@ -323,19 +339,16 @@ public class GameOverGUI {
     public void setDailyRank(String rank){
         dailyRank.setText("Daily rank: "+rank);
         dailyLoading.remove();
-        dailyLoading.clearActions();
     }
 
-    public void setWeekylRank(String rank){
+    public void setWeeklyRank(String rank){
         weeklyRank.setText("Weekly rank: "+rank);
         weeklyLoading.remove();
-        weeklyLoading.clearActions();
     }
 
     public void setAllTimeRank(String rank){
         allTimeRank.setText("All Time rank: "+rank);
         allTimeLoading.remove();
-        allTimeLoading.clearActions();
     }
 
     private void gameOverTableReset(){
@@ -357,4 +370,7 @@ public class GameOverGUI {
         game.setScreen(new MainMenu(game));
     }
 
+    public boolean isShowing(){
+        return showing;
+    }
 }

@@ -42,9 +42,11 @@ public class MainMenuGUI {
     public static Table infoTable;
 
     private static ImageTextButton leaderboards, loginGPG, start, quit;
-    private static TextButton colorSame, colorRandom, matchShape, matchColor, modePractice, modeBest, modeTimed, modeFrenzy, startGame, infoButton;
+    private static TextButton colorSame, colorRandom, matchShape, matchColor, modePractice, modeBest, modeTimed, modeFrenzy, startGameButton, infoButton;
     private static TextButton threeShapes, fourShapes, fiveShapes, sixShapes;
     private static Stack noAdsButtonStack;
+
+    private static ButtonGroup<TextButton> modeGroup, matchGroup, colorGroup, numShapesGroup;
 
     public static Image titleImage;
 
@@ -209,7 +211,7 @@ public class MainMenuGUI {
             public void changed(ChangeEvent event, Actor actor) {
                 infoTable.addAction(Actions.moveTo(0f, 0f, 0.4f, Interpolation.circleOut));
                 SoundManager.playSound("click");
-                Game.resolver.submitEvent(Constants.EVENT_CHECKEDINFO);
+                Game.resolver.submitEvent(Constants.EVENT_CHECKEDINFO, "guiClick:info:click");
             }
         });
 
@@ -224,7 +226,7 @@ public class MainMenuGUI {
                     SoundManager.setMusicOn(true);
                 }
 
-                Game.resolver.submitEvent(Constants.EVENT_TOGGLEDMUSIC);
+                Game.resolver.submitEvent(Constants.EVENT_TOGGLEDMUSIC, "guiClick:toggleMusic:click");
             }
         });
 
@@ -239,7 +241,7 @@ public class MainMenuGUI {
                     SoundManager.setSoundsOn(true);
                 }
 
-                Game.resolver.submitEvent(Constants.EVENT_TOGGLEDSOUND);
+                Game.resolver.submitEvent(Constants.EVENT_TOGGLEDSOUND, "guiClick:toggleSound:click");
             }
         });
 
@@ -247,6 +249,7 @@ public class MainMenuGUI {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
                 SoundManager.playSound("click");
+                Game.resolver.submitEvent("", "guiClick:buyNoAds:click");
                 setupBuyNoAds();
             }
         });
@@ -406,10 +409,10 @@ public class MainMenuGUI {
         modeFrenzy = new TextButton("Frenzy", modeButtonStyle);
         modeFrenzy.getLabel().setFontScale(0.3f);
 
-        startGame = new TextButton("Start", regularStyle);
-        startGame.getLabel().setFontScale(0.4f);
-        startGame.setDisabled(true);
-        startGame.getColor().a = 0.5f;
+        startGameButton = new TextButton("Start", regularStyle);
+        startGameButton.getLabel().setFontScale(0.4f);
+        startGameButton.setDisabled(true);
+        startGameButton.getColor().a = 0.5f;
 
         start.addListener(new ChangeListener() {
             @Override
@@ -433,7 +436,7 @@ public class MainMenuGUI {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
                 SoundManager.playSound("click");
-                Game.resolver.submitEvent(Constants.EVENT_QUIT);
+                Game.resolver.submitEvent(Constants.EVENT_QUIT, "guiClick:quit:click");
                 SoundManager.dispose();
                 GameData.dispose();
                 Game.stage.clear();
@@ -449,17 +452,20 @@ public class MainMenuGUI {
             public void changed(ChangeEvent event, Actor actor) {
                 Game.resolver.getLeaderboardGPGS("DoesntMatter");
                 SoundManager.playSound("click");
-                Game.resolver.submitEvent(Constants.EVENT_CHECKEDLEADERBOARDS);
+                Game.resolver.submitEvent(Constants.EVENT_CHECKEDLEADERBOARDS, "guiClick:leaderboards:click");
             }
         });
 
         loginGPG.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
-                if(((Boolean)loginGPG.getUserObject()))
+                if(((Boolean)loginGPG.getUserObject())) {
                     Game.resolver.loginGPGS();
-                else
+                    Game.resolver.submitEvent("", "guiClick:loginGPG:login");
+                }else {
                     Game.resolver.logoutGPGS();
+                    Game.resolver.submitEvent("", "guiClick:loginGPG:logout");
+                }
 
                 SoundManager.playSound("click");
             }
@@ -601,29 +607,30 @@ public class MainMenuGUI {
             }
         });
 
-        startGame.addListener(new ChangeListener() {
+        startGameButton.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
                 startGame();
+                Game.resolver.submitGameStructure();
                 SoundManager.playSound("click");
             }
         });
 
-        ButtonGroup<TextButton> modeGroup = new ButtonGroup<TextButton>(modePractice, modeBest, modeTimed, modeFrenzy);
+        modeGroup = new ButtonGroup<TextButton>(modePractice, modeBest, modeTimed, modeFrenzy);
         modeGroup.setMaxCheckCount(1);
-        modeGroup.setMinCheckCount(0);
+        modeGroup.setMinCheckCount(1);
 
-        ButtonGroup<TextButton> matchGroup = new ButtonGroup<TextButton>(matchShape, matchColor);
+        matchGroup = new ButtonGroup<TextButton>(matchShape, matchColor);
         matchGroup.setMaxCheckCount(1);
-        matchGroup.setMinCheckCount(0);
+        matchGroup.setMinCheckCount(1);
 
-        ButtonGroup<TextButton> colorGroup = new ButtonGroup<TextButton>(colorSame, colorRandom);
+        colorGroup = new ButtonGroup<TextButton>(colorSame, colorRandom);
         colorGroup.setMaxCheckCount(1);
-        colorGroup.setMinCheckCount(0);
+        colorGroup.setMinCheckCount(1);
 
-        ButtonGroup<TextButton> numShapesGroup = new ButtonGroup<TextButton>(threeShapes, fourShapes, fiveShapes, sixShapes);
+        numShapesGroup = new ButtonGroup<TextButton>(threeShapes, fourShapes, fiveShapes, sixShapes);
         numShapesGroup.setMaxCheckCount(1);
-        numShapesGroup.setMinCheckCount(0);
+        numShapesGroup.setMinCheckCount(1);
 
         Label.LabelStyle labelStyle = new Label.LabelStyle(Game.defaultHugeFont, Color.WHITE);
 
@@ -708,9 +715,9 @@ public class MainMenuGUI {
 
         Table startTable = new Table();
         startTable.add(backButton).size(125, 50).padRight(50);
-        startTable.add(startGame).size(125, 50);
+        startTable.add(startGameButton).size(125, 50);
 
-        choicesTable.add(modeTable).expandX().fillX().padTop(50f);
+        choicesTable.add(modeTable).expandX().fillX().padTop(30f);
         choicesTable.row();
         choicesTable.add(matchTable).expandX().fillX().spaceTop(50f);
         choicesTable.row();
@@ -718,7 +725,7 @@ public class MainMenuGUI {
         choicesTable.row();
         choicesTable.add(numShapesTable).expandX().fillX().spaceTop(50f);
         choicesTable.row();
-        choicesTable.add(startTable).fillX().spaceTop(50f);
+        choicesTable.add(startTable).fillX().spaceTop(20f);
 
         choicesTable.top();
         choicesTable.setFillParent(true);
@@ -736,7 +743,7 @@ public class MainMenuGUI {
                 game.setScreen(new GameScreen(game));
                 Timer.instance().clear();
                 GameData.reset(); //Reset the data from the main menu fanciness
-                GH.incrementGameSettingsEvent();
+                GH.submitGameSettingsEvent();
                 return true;
             }
         }));
@@ -784,12 +791,12 @@ public class MainMenuGUI {
     private static boolean checkAllOptionsSelected(){
         boolean selected = GameSettings.checkAllSelected();
         if(selected) {
-            startGame.setDisabled(false);
-            startGame.getColor().a = 1f;
-            startGame.getStyle().fontColor = Color.WHITE;
+            startGameButton.setDisabled(false);
+            startGameButton.getColor().a = 1f;
+            startGameButton.getStyle().fontColor = Color.WHITE;
         }else{
-            startGame.setDisabled(true);
-            startGame.getColor().a = 0.5f;
+            startGameButton.setDisabled(true);
+            startGameButton.getColor().a = 0.5f;
         }
         return selected;
     }
@@ -818,12 +825,8 @@ public class MainMenuGUI {
             fiveShapes.setDisabled(true);
             sixShapes.setDisabled(true);
 
-            colorSame.setChecked(false);
-            colorRandom.setChecked(false);
-            threeShapes.setChecked(false);
-            fourShapes.setChecked(false);
-            fiveShapes.setChecked(false);
-            sixShapes.setChecked(false);
+            colorGroup.uncheckAll();
+            numShapesGroup.uncheckAll();
 
             GameSettings.numShapes = 3;
             GameSettings.colorType = GameSettings.ColorType.Random;

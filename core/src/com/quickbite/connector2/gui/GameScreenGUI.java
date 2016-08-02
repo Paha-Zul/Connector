@@ -33,12 +33,10 @@ public class GameScreenGUI {
     private Image gameOverImage;
     private ImageButton backButton;
 
-
     public Label centerLabel; //This label is special. We will draw this one manually to the screen.
     private Label startingColorType, startingMatchType, startingGameType;
     private Table startingTable;
     private Image firstShape, secondShape;
-    private float waitTime = 0;
     private TextureRegion[] gameOverShapes;
     private DecimalFormat formatter = new DecimalFormat("0.00");
 
@@ -52,7 +50,7 @@ public class GameScreenGUI {
         if(GameSettings.gameType == GameSettings.GameType.Timed)
             centerLabel.setText(formatter.format(GameStats.roundTimeLeft)+"");
         else if(GameSettings.gameType == GameSettings.GameType.Fastest)
-            centerLabel.setText("Round\n"+GameStats.currRound+"/"+GameStats.maxRounds);
+            centerLabel.setText("Round\n"+(GameStats.currRound+1)+"/"+GameStats.maxRounds);
         else if(GameSettings.gameType == GameSettings.GameType.Practice)
             centerLabel.setText("Practice");
         else if(GameSettings.gameType == GameSettings.GameType.Frenzy)

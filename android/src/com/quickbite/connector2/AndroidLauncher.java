@@ -1,5 +1,6 @@
 package com.quickbite.connector2;
 
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -19,6 +20,7 @@ import com.example.android.trivialdrivesample.util.IabHelper;
 import com.example.android.trivialdrivesample.util.IabResult;
 import com.example.android.trivialdrivesample.util.Inventory;
 import com.example.android.trivialdrivesample.util.Purchase;
+import com.gameanalytics.sdk.GameAnalytics;
 import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdSize;
@@ -43,8 +45,7 @@ public class AndroidLauncher extends AndroidApplication implements GameHelper.Ga
 
 	private AdView adView;
 	private View gameView;
-	private AdListener adListener;
-	private InterstitialAd interstitialAd;
+	private InterstialAdMediator interAds;
 	private boolean showingBannerAd = false, showAds = false, bannerAdLoaded = false;
 	private IabHelper mHelper;
 
@@ -54,6 +55,9 @@ public class AndroidLauncher extends AndroidApplication implements GameHelper.Ga
 	@Override
 	protected void onCreate (Bundle savedInstanceState) {
 		Game game = new Game(this, this);
+
+		GameAnalytics.configureBuild("1.0.2");
+		GameAnalytics.initializeWithGameKey(this, "06fb38014af7b80c56da048dc58621f1", "33294fa657a1b0ccca1fecac2c80ae1b2e7e1ff8");
 
 		initBilling();
 
@@ -101,22 +105,7 @@ public class AndroidLauncher extends AndroidApplication implements GameHelper.Ga
 		setContentView(fLayout);
 		startAdvertising(admobView);
 
-		interstitialAd = new InterstitialAd(this);
-		interstitialAd.setAdUnitId(getString(R.string.inter_ad_unit_id));
-		interstitialAd.setAdListener(new AdListener() {
-			@Override
-			public void onAdLoaded() {
-			}
-			@Override
-			public void onAdClosed() {
-				AdRequest interstitialRequest = new AdRequest.Builder().build();
-				interstitialAd.loadAd(interstitialRequest);
-//				SoundManager.playMusic();
-			}
-		});
-
-		AdRequest interstitialRequest = new AdRequest.Builder().build();
-		interstitialAd.loadAd(interstitialRequest);
+		interAds = new InterstialAdMediator(this);
 	}
 
 	private AdView createAdView() {
@@ -179,8 +168,8 @@ public class AndroidLauncher extends AndroidApplication implements GameHelper.Ga
 			try {
 				runOnUiThread(new Runnable() {
 					public void run() {
-						if (interstitialAd.isLoaded()) {
-							interstitialAd.show();
+						if (interAds.isLoaded()) {
+							interAds.show();
 						}
 					}
 				});
@@ -323,6 +312,8 @@ public class AndroidLauncher extends AndroidApplication implements GameHelper.Ga
 		if (getSignedInGPGS()) {
 			final Timer timeOutTimer = new Timer();
 
+			Log.i("AndroidGame", "Trying to get ranks");
+
 			final PendingResult<Leaderboards.LoadPlayerScoreResult> dailyResult = Games.Leaderboards.loadCurrentPlayerLeaderboardScore(gameHelper.getApiClient(), tableID, LeaderboardVariant.TIME_SPAN_DAILY, LeaderboardVariant.COLLECTION_PUBLIC);
 			final PendingResult<Leaderboards.LoadPlayerScoreResult> weekylResult = Games.Leaderboards.loadCurrentPlayerLeaderboardScore(gameHelper.getApiClient(), tableID, LeaderboardVariant.TIME_SPAN_WEEKLY, LeaderboardVariant.COLLECTION_PUBLIC);
 			final PendingResult<Leaderboards.LoadPlayerScoreResult> allTimeResult = Games.Leaderboards.loadCurrentPlayerLeaderboardScore(gameHelper.getApiClient(), tableID, LeaderboardVariant.TIME_SPAN_ALL_TIME, LeaderboardVariant.COLLECTION_PUBLIC);
@@ -330,10 +321,18 @@ public class AndroidLauncher extends AndroidApplication implements GameHelper.Ga
 			dailyResult.setResultCallback(new ResultCallback<Leaderboards.LoadPlayerScoreResult>() {
 				@Override
 				public void onResult(@NonNull Leaderboards.LoadPlayerScoreResult loadScoresResult) {
-					if(loadScoresResult.getStatus().getStatusCode() == GamesStatusCodes.STATUS_OK && loadScoresResult.getScore() != null) {
+					String status = loadScoresResult.getStatus().getStatusMessage();
+					boolean okay = loadScoresResult.getStatus().getStatusCode() == GamesStatusCodes.STATUS_OK;
+					boolean notNull = loadScoresResult.getScore() != null;
+					Log.i("AndroidGame", "Received all time rank. Okay/notNull? "+okay+"/"+notNull);
+					if(okay && notNull) {
+						Log.i("AndroidGame", "Implementing daily rank");
 						gameOverGUI.setDailyRank(loadScoresResult.getScore().getDisplayRank());
 						dailyGood = true;
 						checkToCancelTimer(timeOutTimer);
+					}else{
+						Log.i("AndroidGame", "[daily] Something went wrong, status: "+status);
+						gameOverGUI.setDailyRank("Error");
 					}
 				}
 			});
@@ -341,10 +340,18 @@ public class AndroidLauncher extends AndroidApplication implements GameHelper.Ga
 			weekylResult.setResultCallback(new ResultCallback<Leaderboards.LoadPlayerScoreResult>() {
 				@Override
 				public void onResult(@NonNull Leaderboards.LoadPlayerScoreResult loadScoresResult) {
-					if(loadScoresResult.getStatus().getStatusCode() == GamesStatusCodes.STATUS_OK && loadScoresResult.getScore() != null) {
-						gameOverGUI.setWeekylRank(loadScoresResult.getScore().getDisplayRank());
+					String status = loadScoresResult.getStatus().getStatusMessage();
+					boolean okay = loadScoresResult.getStatus().getStatusCode() == GamesStatusCodes.STATUS_OK;
+					boolean notNull = loadScoresResult.getScore() != null;
+					Log.i("AndroidGame", "Received weekly rank. Okay/notNull? "+okay+"/"+notNull);
+					if(okay && notNull) {
+						Log.i("AndroidGame", "Implementing weekly rank");
+						gameOverGUI.setWeeklyRank(loadScoresResult.getScore().getDisplayRank());
 						weeklyGood = true;
 						checkToCancelTimer(timeOutTimer);
+					}else{
+						Log.i("AndroidGame", "[weekly] Something went wrong, status: "+status);
+						gameOverGUI.setWeeklyRank("Error");
 					}
 				}
 			});
@@ -352,29 +359,41 @@ public class AndroidLauncher extends AndroidApplication implements GameHelper.Ga
 			allTimeResult.setResultCallback(new ResultCallback<Leaderboards.LoadPlayerScoreResult>() {
 				@Override
 				public void onResult(@NonNull Leaderboards.LoadPlayerScoreResult loadScoresResult) {
-					if(loadScoresResult.getStatus().getStatusCode() == GamesStatusCodes.STATUS_OK && loadScoresResult.getScore() != null) {
+					String status = loadScoresResult.getStatus().getStatusMessage();
+					boolean okay = loadScoresResult.getStatus().getStatusCode() == GamesStatusCodes.STATUS_OK;
+					boolean notNull = loadScoresResult.getScore() != null;
+					Log.i("AndroidGame", "Received all time rank. Okay/notNull? "+okay+"/"+notNull);
+					if(okay && notNull) {
+						Log.i("AndroidGame", "Implementing all time rank");
 						gameOverGUI.setAllTimeRank(loadScoresResult.getScore().getDisplayRank());
 						allTimeGood = true;
 						checkToCancelTimer(timeOutTimer);
+					}else{
+						Log.i("AndroidGame", "[all time] Something went wrong, status: "+status);
+						gameOverGUI.setAllTimeRank("Error");
 					}
 				}
 			});
 
 			final double timeStarted = TimeUtils.millis();
-			final double _timeout = 7000; //In millis, 10 seconds
+			final double _timeout = 15000; //In millis, 15 seconds
+
+			Log.i("AndroidGame", "Started getting scores at "+timeStarted);
 
 			//If we wait too long, cancel the result.
 			timeOutTimer.scheduleTask(new Timer.Task() {
 				@Override
 				public void run() {
-					if(TimeUtils.millis() >= timeStarted + _timeout) {
+					if(TimeUtils.millis() >= timeStarted + _timeout || !gameOverGUI.isShowing()) {
+						Log.i("AndroidGame", "Getting ranks expired after "+(_timeout/1000)+" seconds, at "+(timeStarted + _timeout));
+
 						dailyResult.cancel();
 						weekylResult.cancel();
 						allTimeResult.cancel();
 						timeOutTimer.clear();
 
 						if(!dailyGood) gameOverGUI.setDailyRank("NA");
-						if(!weeklyGood) gameOverGUI.setWeekylRank("NA");
+						if(!weeklyGood) gameOverGUI.setWeeklyRank("NA");
 						if(!allTimeGood) gameOverGUI.setAllTimeRank("NA");
 
 						dailyGood = weeklyGood = allTimeGood = false;
@@ -382,9 +401,9 @@ public class AndroidLauncher extends AndroidApplication implements GameHelper.Ga
 				}
 			}, 0, 0.5f);
 		}else {
-			if (!dailyGood) gameOverGUI.setDailyRank("NA");
-			if (!weeklyGood) gameOverGUI.setWeekylRank("NA");
-			if (!allTimeGood) gameOverGUI.setAllTimeRank("NA");
+			gameOverGUI.setDailyRank("Log In");
+			gameOverGUI.setWeeklyRank("Log In");
+			gameOverGUI.setAllTimeRank("Log In");
 		}
 	}
 
@@ -450,11 +469,20 @@ public class AndroidLauncher extends AndroidApplication implements GameHelper.Ga
 	}
 
 	@Override
-	public void submitEvent(String eventID) {
-		Games.Events.increment(gameHelper.getApiClient(), eventID, 1);
+	public void submitEvent(String eventID, String GA_ID) {
+        if(!eventID.isEmpty())
+		    Games.Events.increment(gameHelper.getApiClient(), eventID, 1);
+
+        if(!GA_ID.isEmpty())
+            GameAnalytics.addDesignEventWithEventId(GA_ID);
 	}
 
-	private void initBilling(){
+    @Override
+    public void submitGameStructure() {
+        GameAnalytics.addDesignEventWithEventId(GH.getCurrGameConfig());
+    }
+
+    private void initBilling(){
 		mHelper = new IabHelper(this, getString(R.string.d2) + getString(R.string.d1) + getString(R.string.d3));
 
 		mHelper.startSetup(new IabHelper.OnIabSetupFinishedListener() {
@@ -486,6 +514,7 @@ public class AndroidLauncher extends AndroidApplication implements GameHelper.Ga
 						showAds = false;
 						hideAdmobBannerAd();
 						MainMenuGUI.removeNoAdsButton();
+                        GameAnalytics.addBusinessEventWithCurrency("USD", 99, info.getItemType(), "no_ads", "menu", "", "Google Play", info.getSignature());
 					}else{
 						Log.e(TAG, "Purchase was not successful");
 					}
@@ -537,5 +566,78 @@ public class AndroidLauncher extends AndroidApplication implements GameHelper.Ga
 //		SoundManager.playMusic();
 	}
 
+	/**
+	 * Handles custom interstitial ad mediating. For instance, trying to display a limited (every 10 mins) vide
+	 * ad and falling back when it can't load.
+	 */
+	private class InterstialAdMediator{
+		private InterstitialAd interstitialAd, interstitialAdVideo;
+		private InterstitialAd currLoadedAd;
+		private final String tag = "InterAdMediator";
+
+		 public InterstialAdMediator(Context context){
+			 /* This is the interstitial ad that plays a video. Prioritize this.*/
+			 interstitialAdVideo = new InterstitialAd(context);
+			 interstitialAdVideo.setAdUnitId(getString(R.string.inter_video_ad_unit_id));
+			 interstitialAdVideo.setAdListener(new AdListener() {
+				 @Override
+				 public void onAdLoaded() {
+					 currLoadedAd = interstitialAdVideo;
+					 Log.i(tag, "Loaded video inter ad");
+				 }
+
+				 @Override
+				 public void onAdClosed() {
+					 interstitialAdVideo.loadAd(new AdRequest.Builder().build());
+				 }
+
+				 @Override
+				 public void onAdFailedToLoad(int i) {
+					 super.onAdFailedToLoad(i);
+					 //When this fails, let's load the regular inter ad
+					 interstitialAd.loadAd(new AdRequest.Builder().build());
+					 Log.i(tag, "Failed to load interVideoAd, loading regular");
+				 }
+			 });
+
+			 /* This is the interstitial ad that doesn't have a video*/
+			 interstitialAd = new InterstitialAd(context);
+			 interstitialAd.setAdUnitId(getString(R.string.inter_ad_unit_id));
+			 interstitialAd.setAdListener(new AdListener() {
+				 @Override
+				 public void onAdLoaded() {
+					 currLoadedAd = interstitialAd;
+					 Log.i(tag, "Loaded regular inter ad");
+				 }
+
+				 @Override
+				 public void onAdClosed() {
+					 //On closing the ad, try to load a new video ad.
+					 interstitialAdVideo.loadAd(new AdRequest.Builder().build());
+				 }
+
+				 @Override
+				 public void onAdFailedToLoad(int i) {
+					 super.onAdFailedToLoad(i);
+					 Log.i(tag, "Failed to load regular interAd, fix this?");
+				 }
+			 });
+
+			 //Initially load the video ad
+			 interstitialAdVideo.loadAd(new AdRequest.Builder().build());
+		 }
+
+		public void show(){
+			currLoadedAd.show();
+		}
+
+		public void hide(){
+
+		}
+
+		public boolean isLoaded(){
+			return currLoadedAd != null && currLoadedAd.isLoaded();
+		}
+	}
 
 }
