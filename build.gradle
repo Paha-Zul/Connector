@@ -18,7 +18,7 @@ allprojects {
     version = '1.0'
     ext {
         appName = "Connector"
-        gdxVersion = '1.8.0'
+        gdxVersion = '1.9.3'
         roboVMVersion = '1.12.0'
         box2DLightsVersion = '1.4'
         ashleyVersion = '1.7.0'
@@ -65,6 +65,9 @@ project(":android") {
         natives "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-armeabi"
         natives "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-armeabi-v7a"
         natives "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-x86"
+        compile "com.google.android.gms:play-services-games:$googleServicesVersion"
+        compile "com.google.android.gms:play-services-ads:$adMobVersion"
+
 //        compile "com.badlogicgames.gdx:gdx-box2d:$gdxVersion"
 //        natives "com.badlogicgames.gdx:gdx-box2d-platform:$gdxVersion:natives-armeabi"
 //        natives "com.badlogicgames.gdx:gdx-box2d-platform:$gdxVersion:natives-armeabi-v7a"
@@ -73,9 +76,6 @@ project(":android") {
 //        natives "com.badlogicgames.gdx:gdx-freetype-platform:$gdxVersion:natives-armeabi"
 //        natives "com.badlogicgames.gdx:gdx-freetype-platform:$gdxVersion:natives-armeabi-v7a"
 //        natives "com.badlogicgames.gdx:gdx-freetype-platform:$gdxVersion:natives-x86"
-
-        compile "com.google.android.gms:play-services-games:$googleServicesVersion"
-        compile "com.google.android.gms:play-services-ads:$adMobVersion"
 
 //        compile 'com.android.support:appcompat-v7:$googleServicesVersion'
 //        compile 'com.android.support:support-v4:$googleServicesVersion'
@@ -117,7 +117,7 @@ project(":html") {
 //        compile "com.badlogicgames.gdx:gdx-box2d:$gdxVersion:sources"
 //        compile "com.badlogicgames.gdx:gdx-box2d-gwt:$gdxVersion:sources"
 //        compile "net.dermetfan.libgdx-utils:libgdx-utils:0.13.2:sources"
-        compile "net.dermetfan.libgdx-utils:libgdx-utils:0.13.2:sources"
+//        compile "net.dermetfan.libgdx-utils:libgdx-utils:0.13.2:sources"
 //        compile "net.dermetfan.libgdx-utils:libgdx-utils-box2d:0.13.2:sources"
     }
 }
@@ -129,7 +129,7 @@ project(":core") {
         compile "com.badlogicgames.gdx:gdx:$gdxVersion"
 //        compile "com.badlogicgames.gdx:gdx-box2d:$gdxVersion"
 //        compile "com.badlogicgames.gdx:gdx-freetype:$gdxVersion"
-        compile "net.dermetfan.libgdx-utils:libgdx-utils:0.13.2"
+//        compile "net.dermetfan.libgdx-utils:libgdx-utils:0.13.2"
 //        compile "net.dermetfan.libgdx-utils:libgdx-utils-box2d:0.13.2"
 
 //        compile "com.badlogicgames.gdxpay:gdx-pay-client:$gdxPayVersion"

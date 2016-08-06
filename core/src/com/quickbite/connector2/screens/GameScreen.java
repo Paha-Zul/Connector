@@ -240,8 +240,10 @@ public class GameScreen implements Screen{
         SoundManager.playSound("pop", 0.75f);
         SoundManager.playSound("waterdrop");
 
-        if(GameSettings.gameType == GameSettings.GameType.Frenzy)
+        if(GameSettings.gameType == GameSettings.GameType.Frenzy) {
             endRecordTime();
+            GameStats.roundTimeLeft += GameData.FrenzyData.SUCCESSFUL_CONNECT_BONUS_TIME;
+        }
     }
 
     private Vector2 getRandomPositionAndShuffle(){
@@ -474,7 +476,6 @@ public class GameScreen implements Screen{
 
         challengeCounter+=delta;
         if(challengeCounter > spawnThreshold){
-            System.out.println("Spawn Threshold: "+spawnThreshold);
             int randShape = MathUtils.random(0, GameData.shapeTextures.length-1);
             Color randColor = (Color)GameData.colorMap.values().toArray()[MathUtils.random(0, GameData.colorMap.size()-1)];
             final Vector2 position = getRandomPositionAndShuffle();
@@ -482,8 +483,6 @@ public class GameScreen implements Screen{
             GameData.gameShapeList.add(new GameShape(position, randShape, (int) GameData.sizeOfShapes, randColor, 5f, new ICallback() {
                 @Override
                 public void run() {
-//                    Sound sound = Game.easyAssetManager.get("whoosh_out", Sound.class);
-//                    sound.play(0.7f, 2f, 0f);
                 }
             }, new ICallback() {
                 @Override
@@ -492,8 +491,6 @@ public class GameScreen implements Screen{
                     positions.add(position);
                 }
             }));
-//            Sound sound = Game.easyAssetManager.get("whoosh_in", Sound.class);
-//            sound.play(0.7f, 2f, 0f);
             this.challengeCounter = 0f;
         }
 

@@ -212,6 +212,7 @@ public class MainMenuGUI {
                 infoTable.addAction(Actions.moveTo(0f, 0f, 0.4f, Interpolation.circleOut));
                 SoundManager.playSound("click");
                 Game.resolver.submitEvent(Constants.EVENT_CHECKEDINFO, "guiClick:info:click");
+                Game.adInterface.hideAdmobBannerAd();
             }
         });
 
@@ -632,6 +633,9 @@ public class MainMenuGUI {
         numShapesGroup.setMaxCheckCount(1);
         numShapesGroup.setMinCheckCount(1);
 
+        //Initially check the defaults.
+        initializeSettingsMenu();
+
         Label.LabelStyle labelStyle = new Label.LabelStyle(Game.defaultHugeFont, Color.WHITE);
 
         Label numShapesLabel = new Label("Number of Shapes", labelStyle);
@@ -734,6 +738,19 @@ public class MainMenuGUI {
         Game.stage.addActor(choicesTable);
     }
 
+    private static void initializeSettingsMenu(){
+        GameSettings.gameType = GameSettings.GameType.Practice;
+        GameSettings.matchType = GameSettings.MatchType.Shapes;
+        GameSettings.colorType = GameSettings.ColorType.Normal;
+        GameSettings.numShapes = 3;
+
+        modePractice.setChecked(true);
+        matchShape.setChecked(true);
+        colorSame.setChecked(true);
+        threeShapes.setChecked(true);
+        checkAllOptionsSelected();
+    }
+
     private static void startGame(){
         choicesTable.addAction(Actions.sequence(Actions.moveTo(-Game.viewport.getWorldWidth(), 0f, 0.3f, Interpolation.circle), new Action() {
             @Override
@@ -756,9 +773,6 @@ public class MainMenuGUI {
     private static void showMainMenu(){
         mainMenuTable.getColor().a = 0f;
         mainMenuTable.addAction(Actions.fadeIn(0.4f));
-
-        GameSettings.reset();
-        clearSelectedChoices();
     }
 
 
@@ -769,9 +783,6 @@ public class MainMenuGUI {
     private static void toMainMenu(){
         mainMenuTable.addAction(Actions.moveTo(0f, 0f, 0.3f, Interpolation.circle));
         choicesTable.addAction(Actions.moveTo(Game.viewport.getWorldWidth(), 0f, 0.3f, Interpolation.circle));
-
-        GameSettings.reset();
-        clearSelectedChoices();
     }
 
     /**
@@ -838,10 +849,13 @@ public class MainMenuGUI {
             fiveShapes.setDisabled(false);
             sixShapes.setDisabled(false);
 
-            //If it was challenge before, reset it.
+            //If it was frenzy before, reset it.
             if(GameSettings.gameType == GameSettings.GameType.Frenzy) {
-                GameSettings.numShapes = 0;
-                GameSettings.colorType = GameSettings.ColorType.Nothing;
+                colorSame.setChecked(true);
+                threeShapes.setChecked(true);
+
+                GameSettings.colorType = GameSettings.ColorType.Normal;
+                GameSettings.numShapes = 3;
             }
         }
 
@@ -868,6 +882,9 @@ public class MainMenuGUI {
         ...
          */
 
+        String blue = "[#"+GameData.colorMap.get("Blue").toString()+"]";
+        String red = "[#"+GameData.colorMap.get("Red").toString()+"]";
+
         float fontScale = 0.2f;
 
         Table innerTable = new Table();
@@ -882,15 +899,39 @@ public class MainMenuGUI {
 
         Label.LabelStyle style = new Label.LabelStyle(Game.defaultHugeFont, Color.WHITE);
 
-        Label madeByTitle = new Label("Created By", style);
+        Label howToPlayTitle = new Label(blue+"How To Play:[]", style);
+        howToPlayTitle.setFontScale(0.4f);
+        howToPlayTitle.setAlignment(Align.center);
+        howToPlayTitle.setWrap(true);
+
+        Label howToPlay = new Label("Tap and drag to connect a shape to another shape. Don't cross lines or connect to the " +
+                "wrong shape.", style);
+        howToPlay.setFontScale(fontScale);
+        howToPlay.setAlignment(Align.center);
+        howToPlay.setWrap(true);
+
+        Label gameModesTitle = new Label(blue+"Game Modes:[]", style);
+        gameModesTitle.setFontScale(0.4f);
+        gameModesTitle.setAlignment(Align.center);
+        gameModesTitle.setWrap(true);
+
+        Label gameModes = new Label(red+"Practice[]\nFree-play without time limits." +
+                red+"\nBest[]\nBest out of 10. Complete 10 rounds as quickly as possible." +
+                red+"\nTimed[]\nRace against the clock starting at 10 seconds per round. Each round decreases time." +
+                red+"\nFrenzy[]\nRandom shapes spawn and you must connect as many as you can in 30 seconds. Each connection gives you 1 bonus second", style);
+        gameModes.setFontScale(fontScale);
+        gameModes.setWrap(true);
+        gameModes.setAlignment(Align.center);
+
+        Label madeByTitle = new Label(blue+"Created By[]", style);
         madeByTitle.setFontScale(0.4f);
         madeByTitle.setAlignment(Align.center);
 
         Label madeByCompany = new Label("Quickbite Games", style);
-        madeByCompany.setFontScale(0.4f);
+        madeByCompany.setFontScale(0.3f);
         madeByCompany.setAlignment(Align.center);
 
-        Label musicBy = new Label("Music by:", style);
+        Label musicBy = new Label(blue+"Music by:[]", style);
         musicBy.setFontScale(0.4f);
         musicBy.setWrap(true);
         musicBy.setAlignment(Align.center);
@@ -905,7 +946,7 @@ public class MainMenuGUI {
         musicByLink.setWrap(true);
         musicByLink.setAlignment(Align.center);
 
-        Label soundsBy = new Label("Sounds by:", style);
+        Label soundsBy = new Label(blue+"Sounds by:[]", style);
         soundsBy.setFontScale(0.4f);
         soundsBy.setWrap(true);
         soundsBy.setAlignment(Align.center);
@@ -939,23 +980,31 @@ public class MainMenuGUI {
         innerTable.row();
         innerTable.add(madeByCompany).expandX().fillX().padBottom(20f);
         innerTable.row();
+        innerTable.add(howToPlayTitle).expandX().fillX();
+        innerTable.row();
+        innerTable.add(howToPlay).expandX().fillX().padBottom(10f);
+        innerTable.row();
+        innerTable.add(gameModesTitle).expandX().fillX();
+        innerTable.row();
+        innerTable.add(gameModes).expandX().fillX().padBottom(10f).padLeft(10f);
+        innerTable.row();
         innerTable.add(musicBy).expandX().fillX();
         innerTable.row();
-        innerTable.add(musicByName).expandX().fillX().padBottom(20f);
+        innerTable.add(musicByName).expandX().fillX();
         innerTable.row();
         innerTable.add(musicByLink).expandX().fillX();
         innerTable.row();
-        innerTable.add(soundsBy).expandX().fillX().padBottom(20f);
+        innerTable.add(soundsBy).expandX().fillX();
         innerTable.row();
-        innerTable.add(clickSoundBy).expandX().fillX().padBottom(20f);
+        innerTable.add(clickSoundBy).expandX().fillX().padBottom(10f);
         innerTable.row();
-        innerTable.add(popSoundBy).expandX().fillX().padBottom(20f);
+        innerTable.add(popSoundBy).expandX().fillX().padBottom(10f);
         innerTable.row();
-        innerTable.add(dropletSoundBy).expandX().fillX().padBottom(20f);
+        innerTable.add(dropletSoundBy).expandX().fillX().padBottom(10f);
         innerTable.row();
-        innerTable.add(successSoundBy).expandX().fillX().padBottom(20f);
+        innerTable.add(successSoundBy).expandX().fillX().padBottom(10f);
         innerTable.row();
-        innerTable.add(erroSoundBy).expandX().fillX().padBottom(20f);
+        innerTable.add(erroSoundBy).expandX().fillX().padBottom(10f);
         innerTable.row();
         innerTable.add(backButton).size(150f, 50f);
 
@@ -970,6 +1019,7 @@ public class MainMenuGUI {
             public void changed(ChangeEvent event, Actor actor) {
                 infoTable.addAction(Actions.moveTo(Game.viewport.getWorldWidth(), 0f, 0.4f, Interpolation.circleIn));
                 SoundManager.playSound("click");
+                Game.adInterface.showAdmobBannerAd();
             }
         });
     }

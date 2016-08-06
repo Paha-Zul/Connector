@@ -22,7 +22,7 @@ public class GameData {
         public static final float SPAWN_BASE_TIME = 1f;
         public static final float SPAWN_INCREASE_AMOUNT = 0.1f;
         public static final float SPAWN_INCREASE_RATE = 5f;
-
+        public static final float SUCCESSFUL_CONNECT_BONUS_TIME = 1f;
     }
 
     public static HashMap<String, Color> colorMap;

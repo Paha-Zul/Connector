@@ -60,6 +60,7 @@ public class LogoScreen implements Screen{
             Game.shapeAtlas = Game.easyAssetManager.get("shapes", TextureAtlas.class);
             Game.UIAtlas = Game.easyAssetManager.get("UI", TextureAtlas.class);
             Game.defaultHugeFont = Game.easyAssetManager.get("default", BitmapFont.class);
+            Game.defaultHugeFont.getData().markupEnabled = true;
             Game.defaultHugeFont.getRegion().getTexture().setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
             GameData.init();
             game.setScreen(new MainMenu(game));
